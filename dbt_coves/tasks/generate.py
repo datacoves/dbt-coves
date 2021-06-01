@@ -13,8 +13,9 @@ class GenerateTask:
             self.choose_sources()
             self.flatten_columns()
             console.print("\n"
-                "Sources [bold magenta]salesforce[/bold magenta] and [bold magenta]exchange_rates[/bold magenta] "
-                "were generated successfully under [u]models/sources[/u].")
+                          "Models [bold magenta]cases_deaths_daily_usa.sql[/bold magenta], [bold magenta]covid_vaccines_pfizer.sql[/bold magenta], "
+                          "[bold magenta]covid_vaccines_janssen.sql[/bold magenta], and [bold magenta]covid_vaccines_moderna.sql[/bold magenta] "
+                          "were successfully generated under [u]models/sources/cdc_covid[/u].")
 
         console.print("\n")
         return 0
@@ -33,21 +34,18 @@ class GenerateTask:
         return asset
 
     def choose_sources(self):
-        sources = questionary.select(
+        sources = questionary.checkbox(
             "Which sources would you like to generate?",
             choices=[
-                "Salesforce",
-                "Exchange Rates",
-                "All of them"
-            ],
-            default="All of them").ask()
+                Choice("[CDC_COVID] CASES_DEATHS_DAILY_USA", checked=True),
+                Choice("[CDC_COVID] COVID_VACCINES_PFIZER", checked=True),
+                Choice("[CDC_COVID] COVID_VACCINES_JANSSEN", checked=True),
+                Choice("[CDC_COVID] COVID_VACCINES_MODERNA", checked=True)
+            ]).ask()
         return sources
 
     def flatten_columns(self):
-        flattened = questionary.checkbox(
-            "Select sources for which you want JSON columns flattened?",
-            choices=[
-                Choice(title="Salesforce (no JSON)", disabled=True),
-                Choice(title="Exchange Rates")
-            ]).ask()
+        flattened = questionary.confirm(
+            "Variant columns detected. Would you like to flatten them?",
+            default=True).ask()
         return flattened
