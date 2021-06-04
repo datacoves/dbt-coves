@@ -2,23 +2,13 @@
 import sys
 from subprocess import Popen, PIPE, CalledProcessError
 from rich.console import Console
+from dbt_coves.utils.shell import execute
 
 console = Console()
 
 
-def execute(cmd):
-    with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True) as p:
-        for line in p.stdout:
-            print(line, end='')  # process line here
-
-    if p.returncode != 0:
-        raise CalledProcessError(p.returncode, p.args)
-    return p
-
-
 def fix():
-    command = execute(['sqlfluff', 'fix', '-f', '/config/workspace/models'])
-    return command
+    return execute(['sqlfluff', 'fix', '-f', '/config/workspace/models'])
 
 
 class FixTask:
