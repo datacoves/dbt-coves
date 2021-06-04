@@ -45,9 +45,9 @@ class GenerateTask:
             "Which sources would you like to generate?",
             choices=[
                 Choice("[cdc_covid] cases_deaths_daily_usa", checked=True),
-                Choice("[cdc_covid] covid_vaccines_pfizer", checked=True),
-                Choice("[cdc_covid] covid_vaccines_janssen", checked=True),
-                Choice("[cdc_covid] covid_vaccines_moderna", checked=True)
+                Choice("[cdc_covid] vaccines_pfizer", checked=True),
+                Choice("[cdc_covid] vaccines_janssen", checked=True),
+                Choice("[cdc_covid] vaccines_moderna", checked=True)
             ]).ask()
         return sources
 
