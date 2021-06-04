@@ -16,7 +16,7 @@ class CheckTask:
 
         if command.returncode != 0:
             confirmed = questionary.confirm(
-                "Would you like to auto-fix the issues?",
+                "Would you like to try auto-fix these issues?",
                 default=True).ask()
             if confirmed:
                 command = fix()
