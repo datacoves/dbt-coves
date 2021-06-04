@@ -11,25 +11,21 @@ console = Console()
 class CheckTask:
     def run(self) -> int:
         command = subprocess.run(
-            ['sqlfluff', 'lint', '/config/workspace/models'], capture_output=True)
-
+            ['pre-commit', 'run', '--all-files'], capture_output=True)
         sys.stdout.buffer.write(command.stdout)
         sys.stderr.buffer.write(command.stderr)
 
-        if command.returncode == 0:
-            command = subprocess.run(
-                ['pre-commit', 'run', '--all-files'], capture_output=True)
+        command = subprocess.run(
+            ['sqlfluff', 'lint', '/config/workspace/models'], capture_output=True)
+        sys.stdout.buffer.write(command.stdout)
+        sys.stderr.buffer.write(command.stderr)
 
-            sys.stdout.buffer.write(command.stdout)
-            sys.stderr.buffer.write(command.stderr)
-
-            sys.exit(command.returncode)
-        else:
+        if command.returncode != 0:
             confirmed = questionary.confirm(
                 "Would you like to auto-fix the issues?",
                 default=True).ask()
             if confirmed:
                 command = fix()
                 sys.exit(command.returncode)
-            else:
-                return 0
+
+        return 0
