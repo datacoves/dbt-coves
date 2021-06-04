@@ -19,11 +19,11 @@ class GenerateTask:
             self.choose_sources()
             self.flatten_columns()
             console.print("\n"
-                          "SQL and YML files were successfully generated under [u]models/sources/cdc_covid[/u] for these sources:\n"
+                          "SQL and YML files were successfully generated under [u]models/sources/cdc_covid[/u] for these sources:\n\n"
                           " - [bold magenta]cases_deaths_daily_usa[/bold magenta]\n"
-                          " - [bold magenta]covid_vaccines_pfizer[/bold magenta]\n"
-                          " - [bold magenta]covid_vaccines_janssen[/bold magenta]\n"
-                          " - [bold magenta]covid_vaccines_moderna[/bold magenta]\n")
+                          " - [bold magenta]vaccines_pfizer[/bold magenta]\n"
+                          " - [bold magenta]vaccines_janssen[/bold magenta]\n"
+                          " - [bold magenta]vaccines_moderna[/bold magenta]\n")
             # Path(TARGET_PATH).mkdir(parents=True, exist_ok=True)
             copytree(SOURCE_PATH, TARGET_PATH, dirs_exist_ok=True)
         return 0

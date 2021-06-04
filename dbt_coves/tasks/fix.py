@@ -8,7 +8,7 @@ console = Console()
 
 def fix():
     command = subprocess.run(
-        ['sqlfluff', 'fix', '/config/workspace/models'], capture_output=True)
+        ['sqlfluff', 'fix', '-f', '/config/workspace/models'], capture_output=True)
 
     sys.stdout.buffer.write(command.stdout)
     sys.stderr.buffer.write(command.stderr)

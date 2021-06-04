@@ -25,10 +25,10 @@ class CheckTask:
 
             sys.exit(command.returncode)
         else:
-            fix = questionary.confirm(
+            confirmed = questionary.confirm(
                 "Would you like to auto-fix the issues?",
                 default=True).ask()
-            if fix == "yes":
+            if confirmed:
                 command = fix()
                 sys.exit(command.returncode)
             else:
