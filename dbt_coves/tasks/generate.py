@@ -1,9 +1,15 @@
 
 import questionary
+from shutil import copytree
+from pathlib import Path
+
 from questionary import Choice
 from rich.console import Console
 
 console = Console()
+
+SOURCE_PATH = "/config/dbt-coves/samples"
+TARGET_PATH = "/config/workspace/models/staging/cdc_covid"
 
 
 class GenerateTask:
@@ -13,11 +19,13 @@ class GenerateTask:
             self.choose_sources()
             self.flatten_columns()
             console.print("\n"
-                          "Models [bold magenta]cases_deaths_daily_usa.sql[/bold magenta], [bold magenta]covid_vaccines_pfizer.sql[/bold magenta], "
-                          "[bold magenta]covid_vaccines_janssen.sql[/bold magenta], and [bold magenta]covid_vaccines_moderna.sql[/bold magenta] "
-                          "were successfully generated under [u]models/sources/cdc_covid[/u].")
-
-        console.print("\n")
+                          "SQL and YML files were successfully generated under [u]models/sources/cdc_covid[/u] for these sources:\n"
+                          " - [bold magenta]cases_deaths_daily_usa[/bold magenta]\n"
+                          " - [bold magenta]covid_vaccines_pfizer[/bold magenta]\n"
+                          " - [bold magenta]covid_vaccines_janssen[/bold magenta]\n"
+                          " - [bold magenta]covid_vaccines_moderna[/bold magenta]\n")
+            # Path(TARGET_PATH).mkdir(parents=True, exist_ok=True)
+            copytree(SOURCE_PATH, TARGET_PATH, dirs_exist_ok=True)
         return 0
 
     def which_asset(self):
@@ -25,8 +33,7 @@ class GenerateTask:
             "What would you like to generate?",
             choices=[
                 "Sources",
-                "Bays",
-                "Coves",
+                "Marts",
                 "Docs",
                 "Tests"
             ],
@@ -37,10 +44,10 @@ class GenerateTask:
         sources = questionary.checkbox(
             "Which sources would you like to generate?",
             choices=[
-                Choice("[CDC_COVID] CASES_DEATHS_DAILY_USA", checked=True),
-                Choice("[CDC_COVID] COVID_VACCINES_PFIZER", checked=True),
-                Choice("[CDC_COVID] COVID_VACCINES_JANSSEN", checked=True),
-                Choice("[CDC_COVID] COVID_VACCINES_MODERNA", checked=True)
+                Choice("[cdc_covid] cases_deaths_daily_usa", checked=True),
+                Choice("[cdc_covid] covid_vaccines_pfizer", checked=True),
+                Choice("[cdc_covid] covid_vaccines_janssen", checked=True),
+                Choice("[cdc_covid] covid_vaccines_moderna", checked=True)
             ]).ask()
         return sources
 

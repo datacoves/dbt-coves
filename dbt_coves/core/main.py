@@ -8,6 +8,8 @@ from rich.console import Console
 from dbt_coves import __version__
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.tasks.generate import GenerateTask
+from dbt_coves.tasks.check import CheckTask
+from dbt_coves.tasks.fix import FixTask
 
 console = Console()
 
@@ -32,21 +34,17 @@ base_subparser.add_argument(
 
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="command")
 
-# generate task parser
 generate_sub_parser = sub_parsers.add_parser(
     "generate", parents=[base_subparser], help="Generates models, docs and tests."
 )
 
-# generate_sub_parser.set_defaults(cls=GenerateTask, which="generate")
-
-generate_sub_parser.add_argument(
-    "-s",
-    "--sources",
-    help="Name of the sources to generate",
-    type=str,
-    default=None,
+check_sub_parser = sub_parsers.add_parser(
+    "check", parents=[base_subparser], help="Runs pre-commit hooks and linters."
 )
 
+check_sub_parser = sub_parsers.add_parser(
+    "fix", parents=[base_subparser], help="Runs linter fixes."
+)
 
 def handle(parser: argparse.ArgumentParser, test_cli_args: List[str] = list()) -> int:
 
@@ -57,6 +55,12 @@ def handle(parser: argparse.ArgumentParser, test_cli_args: List[str] = list()) -
 
     if task_name == "generate":
         task: GenerateTask = GenerateTask()
+        return task.run()
+    elif task_name == "check":
+        task: CheckTask = CheckTask()
+        return task.run()
+    elif task_name == "fix":
+        task: FixTask = FixTask()
         return task.run()
 
     raise NotImplementedError(f"{task_name} is not supported.")
@@ -74,7 +78,8 @@ def main(
     if "--version" not in sys.argv[1:]:
         # app logo
         logo_str = str(pyfiglet.figlet_format("dbt-coves", font="slant"))
-        console.print(logo_str, style="blue")
+        console.print(logo_str, style="cyan")
+        console.print("version 0.0.1\n")
 
     exit_code = handle(parser, _cli_args)  # type: ignore
 

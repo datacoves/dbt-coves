@@ -1,0 +1,17 @@
+version: 2
+
+sources:
+  - name: cdc_covid
+    schema: raw
+    tables:
+      - name: vaccines_janssen_data
+        identifier: _AIRBYTE_RAW_CDC_COVID_VACCINES_JANSSEN
+
+models:
+  - name: stg_vaccines_janssen
+    columns:
+      - name: _1st_dose_allocations
+      - name: jurisdiction
+      - name: week_of_allocations
+      - name: _airbyte_ab_id
+      - name: _airbyte_emitted_at
