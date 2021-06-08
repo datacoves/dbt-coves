@@ -18,8 +18,8 @@ final as (
         _airbyte_data:state::varchar as state,
         _airbyte_data:tot_cases::varchar as tot_cases,
         _airbyte_data:tot_death::varchar as tot_death,
-        _airbyte_data:submission_date::timestamp_ntz as submission_date,
-        _airbyte_data:created_at::timestamp_ntz as created_at
+        _airbyte_data:submission_date::varchar as submission_date,
+        _airbyte_data:created_at::varchar as created_at
 
     from raw_source
 

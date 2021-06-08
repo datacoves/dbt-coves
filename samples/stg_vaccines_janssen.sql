@@ -11,7 +11,7 @@ final as (
         _airbyte_emitted_at,
         _airbyte_data:_1st_dose_allocations::varchar as _1st_dose_allocations,
         _airbyte_data:jurisdiction::varchar as jurisdiction,
-        _airbyte_data:week_of_allocations::timestamp_ntz as week_of_allocations
+        _airbyte_data:week_of_allocations::varchar as week_of_allocations
 
     from raw_source
 
