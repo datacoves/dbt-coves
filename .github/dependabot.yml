@@ -1,0 +1,27 @@
+version: 2
+updates:
+  - package-ecosystem: pip
+    directory: "/"
+    schedule:
+      interval: daily
+      time: "04:00"
+    open-pull-requests-limit: 10
+    ignore:
+      - dependency-name: sqlalchemy
+        versions:
+          - 1.4.0
+          - 1.4.4
+          - 1.4.5
+          - 1.4.6
+          - 1.4.8
+          - 1.4.9
+      - dependency-name: pytest
+        versions:
+          - 6.2.3
+      - dependency-name: rich
+        versions:
+          - 10.0.1
+          - 9.11.0
+          - 9.11.1
+          - 9.12.0
+          - 9.12.4

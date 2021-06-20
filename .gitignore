@@ -139,9 +139,9 @@ cython_debug/
 # vscode local settings folder
 .vscode/**
 
-# dbt-sugar specifics
+# dbt-coves specifics
 .coverage
-**/dbt_sugar_logs/**
+**/dbt_coves_logs/**
 
 #pyenv
 .python-version

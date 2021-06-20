@@ -1,14 +1,18 @@
 
 import sys
 import questionary
-from rich.console import Console
-from dbt_coves.tasks.fix import fix
+from dbt_coves.commands.fix import fix
 from dbt_coves.utils.shell import execute
 
-console = Console()
 
+class CheckCommand:
+    @classmethod
+    def register_parser(cls, sub_parsers, base_subparser):
+        subparser = sub_parsers.add_parser(
+            "check", parents=[base_subparser], help="Runs pre-commit hooks and linters."
+        )
+        return subparser
 
-class CheckTask:
     def run(self) -> int:
         execute(['pre-commit', 'run', '--all-files'])
 

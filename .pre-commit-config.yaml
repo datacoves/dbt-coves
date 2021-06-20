@@ -1,0 +1,47 @@
+repos:
+  - repo: https://github.com/asottile/seed-isort-config
+    rev: v2.2.0
+    hooks:
+      - id: seed-isort-config
+        name: Seed isort
+  - repo: https://github.com/psf/black
+    rev: 21.5b2
+    hooks:
+      - id: black
+        language_version: python3
+        args: [--line-length=100, --target-version=py38]
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.0.1
+    hooks:
+      - id: end-of-file-fixer
+        exclude: ^.bumpversion.cfg
+      - id: trailing-whitespace
+        exclude: ^.bumpversion.cfg
+  - repo: https://github.com/pre-commit/mirrors-mypy
+    rev: "v0.812"
+    hooks:
+      - id: mypy
+        name: Lint core with mypy
+        files: ^dbt_sugar/core/
+        entry: mypy dbt_sugar/core
+        pass_filenames: false
+        args: [--ignore-missing-imports]
+  - repo: https://github.com/PyCQA/isort
+    rev: "5.8.0"
+    hooks:
+      - id: isort
+        name: Sort import with isort
+        args: ["-m3", "-w 100", "--tc"]
+        # exclude: ^tests/
+  - repo: https://github.com/pre-commit/mirrors-prettier
+    rev: "v2.3.1"
+    hooks:
+      - id: prettier
+  - repo: https://github.com/PyCQA/flake8
+    rev: "3.9.2"
+    hooks:
+      - id: flake8
+        exclude: ^tests/
+        additional_dependencies: [flake8-docstrings]
+        args:
+          ["--max-line-length=120", "--ignore=D102,D104,D401,D400,D107,W503"]

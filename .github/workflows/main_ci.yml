@@ -1,0 +1,52 @@
+name: Build, Test, Report Coverage
+
+on: ["push", "pull_request"]
+
+jobs:
+  build:
+    name: Main CI
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v2
+
+      - name: Deploy PG docker
+        run: docker-compose -f ./tests/docker_postgres/docker-compose.yml up -d
+
+      - name: Check for Container
+        run: docker ps
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install Poetry
+        uses: Gr1N/setup-poetry@v4
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/.virtualenvs
+          key: poetry-$
+          restore-keys: |
+            poetry-$
+
+      - name: Install Dependencies using Poetry
+        run: poetry install
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Run Tests and Coverage Report
+        run: |
+          PYTHONPATH=src/ poetry run python -m pytest --cov-report=xml:coverage-reports/coverage.xml --cov-report term-missing  --cov=dbt_coves tests/
+
+      - name: Upload coverage report to CodeCov
+        uses: codecov/codecov-action@v1
+        with:
+          env_vars: GITHUB_RUN_ID
+          file: coverage-reports/coverage.xml
+          flags: unittests
+          name: codecov-umbrella
+          fail_ci_if_error: false

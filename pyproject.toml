@@ -1,9 +1,22 @@
 [tool.poetry]
 name = "dbt_coves"
 version = "0.1.0"
-description = "CLI tool for dbt users that follow the datacoves guidelines."
+description = "CLI tool for dbt users adopting analytics engineering best practices."
 authors = ["Sebastian Sassi <ssassi@gmail.com>, Noel Gomez <gomezn@gmail.com>, Michael Kahan <mjkahan23@gmail.com>"]
-license = "Apache 2.0"
+license = "MIT"
+readme = "README.md"
+classifiers = [
+    "Development Status :: Alpha",
+    "Intended Audience :: Analytics Engineers",
+    "Topic :: Software Development :: Build Tools",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3.6",
+    "Programming Language :: Python :: 3.7",
+    "Programming Language :: Python :: 3.8",
+]
+keywords = ["data engineering", "analytics engineering", "dbt", 'ETL', "data modelling"]
+documentation = "https://datacoves.gitbook.io/dbt-coves/"
+repository = "https://github.com/datacoves/dbt-coves"
 
 [tool.poetry.dependencies]
 python = ">=3.7,<3.10"
@@ -19,9 +32,24 @@ yamlloader = "^1.0.0"
 pyfiglet = "^0.8.post1"
 rich = ">=9.13,<11.0"
 click = "^7.1.2"
+sqlfluff = "^0.6.0"
+pre-commit = "^2.13.0"
 
 [tool.poetry.dev-dependencies]
+pytest = "^6.2.4"
+pytest-cov = "^2.12.1"
+mypy = "^0.901"
+towncrier = "^21.3.0"
+pytest-mock = "^3.6.1"
+pytest-sugar = "^0.9.4"
+pytest-datafiles = "^2.0"
+tox-poetry-installer = "^0.8.0"
+pre-commit = "^2.13.0"
+tox = "^3.23.1"
+asciinema = "^2.0.2"
+pytest-dictsdiff = "^0.5.8"
 black = "^21.5b1"
+ipdb = "^0.13.9"
 
 [build-system]
 requires = ["setuptools", "poetry_core>=1.0"]
@@ -29,3 +57,35 @@ build-backend = "poetry.core.masonry.api"
 
 [tool.poetry.scripts]
 dbt-coves="dbt_coves.core.main:main"
+
+[tool.towncrier]
+package = "dbt_coves"
+package_dir = "dbt_coves/"
+filename = "changelog/CHANGELOG.md"
+directory = "changelog/"
+start_string = "# Changelog\n"
+issue_format = "[#{issue}](https://github.com/datacoves/dbt-coves/issues/{issue})"
+underlines = ["", ""]
+template = "changelog/.towncrier.template.md"
+title_format = "## dbt-sugar [{version}] - {project_date}"
+
+
+
+    [[tool.towncrier.type]]
+    directory = "fix"
+    name = "Bug Fixes"
+    showcontent = true
+
+
+    [[tool.towncrier.type]]
+    directory = "feature"
+    name = "Features"
+    showcontent = true
+
+    [[tool.towncrier.type]]
+    directory = "misc"
+    name = "Under The Hood/Misc"
+    showcontent = true
+
+[tool.pytest.ini_options]
+markers = ["datafiles"]

@@ -1,7 +1,6 @@
 
 import questionary
 from shutil import copytree
-from pathlib import Path
 
 from questionary import Choice
 from rich.console import Console
@@ -12,7 +11,14 @@ SOURCE_PATH = "/config/dbt-coves/samples"
 TARGET_PATH = "/config/workspace/models/staging/cdc_covid"
 
 
-class GenerateTask:
+class GenerateCommand:
+    @classmethod
+    def register_parser(cls, sub_parsers, base_subparser):
+        subparser = sub_parsers.add_parser(
+            "generate", parents=[base_subparser], help="Generates sources and models with defaults."
+        )
+        return subparser
+
     def run(self) -> int:
         asset = self.which_asset()
         if asset == "Sources":
