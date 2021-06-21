@@ -4,6 +4,8 @@ from shutil import copytree
 
 from questionary import Choice
 from rich.console import Console
+from .sources import GenerateSourcesTask
+from dbt_coves.tasks.base import BaseTask
 
 console = Console()
 
@@ -11,18 +13,16 @@ SOURCE_PATH = "/config/dbt-coves/samples"
 TARGET_PATH = "/config/workspace/models/staging/cdc_covid"
 
 
-class GenerateTask:
+class GenerateTask(BaseTask):
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
-        subparser = sub_parsers.add_parser(
+        gen_subparser = sub_parsers.add_parser(
             "generate", parents=[base_subparser], help="Generates sources and models with defaults."
         )
-        subparser.set_defaults(cls=cls)
-        return subparser
-
-    @classmethod
-    def from_args(cls, main_parser):
-        return cls()
+        gen_subparser.set_defaults(cls=cls)
+        sub_parsers = gen_subparser.add_subparsers(title="dbt-coves generate commands", dest="task")
+        GenerateSourcesTask.register_parser(sub_parsers, base_subparser)
+        return gen_subparser
 
     def run(self) -> int:
         asset = self.which_asset()

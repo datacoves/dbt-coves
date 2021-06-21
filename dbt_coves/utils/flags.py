@@ -1,4 +1,4 @@
-"""Flags module containing the MainParser "Factory"."""
+"""Flags module containing the DbtCovesFlags "Factory"."""
 import sys
 import os
 from argparse import ArgumentParser
@@ -6,7 +6,7 @@ from pathlib import Path
 from typing import List, Optional
 
 
-class MainParser:
+class DbtCovesFlags:
     """Sets flags from defaults or by parsing CLI arguments.
 
     In order to not have to always parse args when testing etc. We set the defaults explicitly here.
@@ -14,7 +14,7 @@ class MainParser:
     """
 
     def __init__(self, cli_parser: ArgumentParser) -> None:
-        """Constructor for MainParser.
+        """Constructor for DbtCovesFlags.
 
         Holds explicit defaults and consumes parsed flags if asked for it.
 
@@ -28,6 +28,13 @@ class MainParser:
         self.project_dir: Optional[Path] = None
         self.verbose: bool = False
         self.template = "dbt-cookiecutter"
+        self.generate = {
+            "sources": {
+                "schemas": "raw",
+                "destination": "models/sources/{schema_name}/{relation_name}.sql",
+                "model_props_strategy": "one_file_per_model"
+            }
+        }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
@@ -43,14 +50,26 @@ class MainParser:
         self.task_cls = self.args.cls
 
         if self.task:
-            # base flags that need to be set no matter what
             if self.args:
-                self.log_level = self.args.log_level
-                self.verbose = self.args.verbose
-                self.profiles_dir = self.args.profiles_dir
-                self.project_dir = self.args.project_dir
+                if self.args.log_level:
+                    self.log_level = self.args.log_level
+                if self.args.verbose:
+                    self.verbose = self.args.verbose
+                if self.args.profiles_dir:
+                    self.profiles_dir = self.args.profiles_dir
+                if self.args.project_dir:
+                    self.project_dir = self.args.project_dir
                 if self.args.config_path:
                     self.config_path = Path(self.args.config_path).expanduser()
+
+            # generate sources
+            if self.task == "sources":
+                if self.args.schemas:
+                    self.generate["sources"]["schemas"] = self.args.schemas
+                if self.args.destination:
+                    self.generate["sources"]["destination"] = self.args.destination
+                if self.args.model_props_strategy:
+                    self.generate["sources"]["model_props_strategy"] = self.args.model_props_strategy
 
             # task specific args consumption
             if self.task == "init":

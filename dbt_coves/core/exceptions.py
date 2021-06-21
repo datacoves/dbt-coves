@@ -28,7 +28,7 @@ class NoConfigProvided(DbtCovesException):
     """Thrown when neither a default config nor a cli-passed config can be found."""
 
 
-class MissingDbtProjects(DbtCovesException):
+class MissingDbtProject(DbtCovesException):
     """Thrown when one or more in-scope dbt projects could not be found."""
 
 

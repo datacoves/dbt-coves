@@ -1,65 +1,67 @@
 """Holds config for dbt-coves."""
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional, Union
+from typing import List, Optional
 
 from pydantic import BaseModel
 
 from dbt_coves.utils.yaml import open_yaml
-from dbt_coves.utils.flags import MainParser
+from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
+from dbt_coves.core.exceptions import MissingDbtProject
 
 
-class DbtProjectModel(BaseModel):
-    """Pydantic validation model for dbt_project dict."""
+class GenerateSourcesModel(BaseModel):
+    schemas: Optional[List[str]]
+    destination: Optional[str]
+    model_props_strategy: Optional[str]
 
-    name: str
-    path: str
+
+class GenerateModel(BaseModel):
+    sources: GenerateSourcesModel
 
 
 class ConfigModel(BaseModel):
-    """Pydantic validation model for dbt_project dict."""
-
-    schemas: Optional[str]
-    dbt_project: Optional[DbtProjectModel]
+    generate: GenerateModel
 
 
 class DbtCovesConfig:
     """dbt-coves configuration class."""
 
-    COVES_CONFIG_FILENAME = ".dbt_coves"
+    DBT_COVES_CONFIG_FILENAME = ".dbt_coves.yml"
     CLI_OVERRIDE_FLAGS = [
-        # {"cli_arg_name": "schemas", "maps_to": "schemas"},
+        "generate.sources.schemas",
+        "generate.sources.destination",
+        "generate.sources.model_props_strategy"
     ]
+    
 
-    def __init__(self, flags: MainParser, max_dir_upwards_iterations: int = 4) -> None:
+    def __init__(self, flags: DbtCovesFlags) -> None:
         """Constructor for DbtCovesConfig.
 
         Args:
-            flags (MainParser): consumed flags from MainParser object.
+            flags (DbtCovesFlags): consumed flags from DbtCovesFlags object.
         """
         self._flags = flags
         self._task = self._flags.task
         self._config_path = self._flags.config_path
-        self._max_dir_upwards_iterations = max_dir_upwards_iterations
-        self._current_folder = Path(self._flags.profiles_dir) if self._flags.profiles_dir else Path.cwd()
         self._config = dict()
 
     @property
-    def config(self):
-        for flag_override_dict in self.CLI_OVERRIDE_FLAGS:
-            self._config[flag_override_dict["maps_to"]] = getattr(
-                self._flags, flag_override_dict["cli_arg_name"]
-            )
-        return self._config
-
-    @property
-    def dbt_project_info(self):
-        """Convenience function to ensure only one dbt project is unders scope
-        This was introduced as part of an intentional regresssion because we're not ready
-        to support multiple dbt projects yet.
+    def integrated(self):
         """
-        return self.config.get("dbt_project", dict())
+        Returns the values read from the config file plus the overrides from cli flags
+        """
+        config_copy = self._config.dict()
+        for value in self.CLI_OVERRIDE_FLAGS:
+            path_items = value.split('.')
+            target = config_copy
+            source = self._flags
+            for item in path_items[:-1]:
+                target = target[item]
+                source = source[item] if type(source) == dict else getattr(source, item)
+            target[path_items[-1]] = source[path_items[-1]]
+        return config_copy
 
     def load_and_validate_config_yaml(self) -> None:
         if self._config_path:
@@ -69,29 +71,24 @@ class DbtCovesConfig:
             self._config = ConfigModel(**yaml_dict)
 
     def locate_config(self) -> None:
-        logger.debug(f"Starting config file finding from {self._current_folder}")
-        current = self._current_folder
-        filename = Path(current).joinpath(self.COVES_CONFIG_FILENAME)
-
-        if self._config_path == Path(str()):
-            logger.debug("Trying to find .dbt_coves file in current and parent folders")
-
-            folder_iteration = 0
-            while folder_iteration < self._max_dir_upwards_iterations:
+        dbt_project = Path().joinpath("dbt_project.yml")
+        if dbt_project.exists():
+            if self._config_path == Path(str()):
+                logger.debug("Trying to find .dbt_coves file in current folder")
+                
+                filename = Path().joinpath(self.DBT_COVES_CONFIG_FILENAME)
                 if filename.exists():
                     coves_config_dir = filename
                     logger.debug(f"{coves_config_dir} exists and was retreived.")
                     self._config_path = coves_config_dir
                     self._config_file_found_nearby = True
-                    break
-                current = current.parent
-                filename = Path(current, self.COVES_CONFIG_FILENAME)
-                folder_iteration += 1
+        else:
+            raise MissingDbtProject()
 
     def load_config(self) -> None:
         self.locate_config()
         try:
             self.load_and_validate_config_yaml()
-            logger.debug(f"Config model dict: {self.config_model.dict()}")
+            logger.debug(f"Config model dict: {self._config.dict()}")
         except FileNotFoundError:
             logger.debug("Config file not found")
