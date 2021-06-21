@@ -22,8 +22,8 @@ repos:
     hooks:
       - id: mypy
         name: Lint core with mypy
-        files: ^dbt_sugar/core/
-        entry: mypy dbt_sugar/core
+        files: ^dbt_coves/
+        entry: mypy dbt_coves/
         pass_filenames: false
         args: [--ignore-missing-imports]
   - repo: https://github.com/PyCQA/isort

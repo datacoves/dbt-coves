@@ -6,7 +6,7 @@ from typing import Any, Dict, Optional, Union
 from pydantic import BaseModel
 
 from dbt_coves.utils.yaml import open_yaml
-from dbt_coves.utils.flags import FlagParser
+from dbt_coves.utils.flags import MainParser
 from dbt_coves.utils.log import LOGGER as logger
 from . import _assert_file_exists
 

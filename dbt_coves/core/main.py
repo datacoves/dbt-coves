@@ -3,20 +3,20 @@ import sys
 from typing import List
 
 import pyfiglet
+from dbt.config import PROFILES_DIR
 from rich.console import Console
 
-from dbt_coves.dbt.profile import DbtProfile
-from dbt_coves.dbt.project import DbtProject
 from dbt_coves.ui.traceback import DbtCovesTraceback
-from dbt_coves.utils.flags import FlagParser
+from dbt_coves.utils.flags import MainParser
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves import __version__
 from dbt_coves.utils.log import LOGGER as logger, log_manager
-from dbt_coves.commands.init import InitCommand
-from dbt_coves.commands.generate import GenerateCommand
-from dbt_coves.commands.check import CheckCommand
-from dbt_coves.commands.fix import FixCommand
+from dbt_coves.tasks.init import InitTask
+from dbt_coves.tasks.generate import GenerateTask
+from dbt_coves.tasks.check import CheckTask
+from dbt_coves.tasks.fix import FixTask
 from dbt_coves.core.exceptions import MissingCommand
+from dbt_coves.tasks.deps import DepsTask
 
 console = Console()
 
@@ -35,9 +35,11 @@ parser.add_argument(
 )
 
 base_subparser = argparse.ArgumentParser(add_help=False)
+
 base_subparser.add_argument(
     "--log-level", help="overrides default log level", type=str, default=str()
 )
+
 base_subparser.add_argument(
     "-vv",
     "--verbose",
@@ -45,64 +47,105 @@ base_subparser.add_argument(
     action="store_true",
     default=False,
 )
+
 base_subparser.add_argument(
     "--config-path", help="Full path to .dbt_coves file if not using default."
 )
+
 base_subparser.add_argument(
-    "--profiles-dir", help="Alternative path to the dbt profiles.yml file.", type=str
+    '--project-dir',
+    default=None,
+    type=str,
+    help='''
+    Which directory to look in for the dbt_project.yml file.
+    Default is the current working directory and its parents.
+    '''
 )
 
-sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="command")
+base_subparser.add_argument(
+    '--profiles-dir',
+    default=PROFILES_DIR,
+    type=str,
+    help='''
+    Which directory to look in for the profiles.yml file. Default = {}
+    '''.format(PROFILES_DIR)
+)
 
-COMMANDS = [InitCommand, GenerateCommand, CheckCommand, FixCommand]
+base_subparser.add_argument(
+    '--profile',
+    required=False,
+    type=str,
+    help='''
+    Which profile to load. Overrides setting in dbt_project.yml.
+    '''
+)
 
-[cmd.register_parser(sub_parsers, base_subparser) for cmd in COMMANDS]
+base_subparser.add_argument(
+    '-t',
+    '--target',
+    default=None,
+    type=str,
+    help='''
+    Which target to load for the given profile
+    ''',
+)
+
+base_subparser.add_argument(
+    '--vars',
+    type=str,
+    default='{}',
+    help='''
+    Supply variables to the project. This argument overrides variables
+    defined in your dbt_project.yml file. This argument should be a YAML
+    string, eg. '{my_variable: my_value}'
+    '''
+)
+
+
+sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
+
+tasks = [InitTask, GenerateTask, CheckTask, FixTask, DepsTask]
+
+[task.register_parser(sub_parsers, base_subparser) for task in tasks]
 
 
 def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int:
     
-    flag_parser = FlagParser(parser)
-    flag_parser.set_args(cli_args=cli_args)
+    main_parser = MainParser(parser)
+    main_parser.parse_args(cli_args=cli_args)
 
-    if not flag_parser.task:
+    if not main_parser.task:
         raise MissingCommand()
     
     # set up traceback manager fo prettier errors
-    DbtCovesTraceback(flag_parser)
+    DbtCovesTraceback(main_parser)
 
-    config = DbtCovesConfig(flag_parser)
+    config = DbtCovesConfig(main_parser)
     config.load_config()
 
-    dbt_project = DbtProject(
-        config.dbt_project_info.get("name", str()),
-        config.dbt_project_info.get("path", str()),
-    )
-    dbt_project.read_project()
+    # dbt_project = DbtProject(
+    #     config.dbt_project_info.get("name", str()),
+    #     config.dbt_project_info.get("path", str()),
+    # )
+    # dbt_project.read_project()
 
-    dbt_profile = DbtProfile(
-        flags=flag_parser,
-        profile_name=dbt_project.profile_name,
-        target_name=flag_parser.target,
-        profiles_dir=flag_parser.profiles_dir,
-    )
-    dbt_profile.read_profile()
+    # dbt_profile = DbtProfile(
+    #     flags=main_parser,
+    #     profile_name=dbt_project.profile_name,
+    #     target_name=main_parser.target,
+    #     profiles_dir=main_parser.profiles_dir,
+    # )
+    # dbt_profile.read_profile()
 
-    if flag_parser.log_level == "debug":
+    if main_parser.log_level == "debug":
         log_manager.set_debug()
 
-    task = None
-    if flag_parser.task == "init":
-        task = InitCommand()
-    elif flag_parser.task == "generate":
-        task = GenerateCommand()
-    elif flag_parser.task == "check":
-        task = CheckCommand()
-    elif flag_parser.task == "fix":
-        task = FixCommand()
-    if task:
+    task_cls = main_parser.task_cls
+    if task_cls:
+        task = task_cls.from_args(main_parser)
         return task.run()
 
-    raise NotImplementedError(f"{flag_parser.task} is not supported.")
+    raise NotImplementedError(f"{main_parser.task} is not supported.")
 
 
 def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
@@ -120,6 +163,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         exit_code = handle(parser, cli_args)  # type: ignore
     except MissingCommand:
         parser.print_help()
+        return 1
 
     if exit_code > 0:
         logger.error("[red]The process did not complete successfully.")

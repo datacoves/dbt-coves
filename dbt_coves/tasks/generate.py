@@ -11,13 +11,18 @@ SOURCE_PATH = "/config/dbt-coves/samples"
 TARGET_PATH = "/config/workspace/models/staging/cdc_covid"
 
 
-class GenerateCommand:
+class GenerateTask:
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
             "generate", parents=[base_subparser], help="Generates sources and models with defaults."
         )
+        subparser.set_defaults(cls=cls)
         return subparser
+
+    @classmethod
+    def from_args(cls, main_parser):
+        return cls()
 
     def run(self) -> int:
         asset = self.which_asset()

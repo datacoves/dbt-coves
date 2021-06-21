@@ -6,7 +6,7 @@ from typing import Any, Dict, List, Optional, Union
 from pydantic import BaseModel
 
 from dbt_coves.utils.yaml import open_yaml
-from dbt_coves.utils.flags import FlagParser
+from dbt_coves.utils.flags import MainParser
 from dbt_coves.utils.log import LOGGER as logger
 
 
@@ -32,11 +32,11 @@ class DbtCovesConfig:
         # {"cli_arg_name": "schemas", "maps_to": "schemas"},
     ]
 
-    def __init__(self, flags: FlagParser, max_dir_upwards_iterations: int = 4) -> None:
+    def __init__(self, flags: MainParser, max_dir_upwards_iterations: int = 4) -> None:
         """Constructor for DbtCovesConfig.
 
         Args:
-            flags (FlagParser): consumed flags from FlagParser object.
+            flags (MainParser): consumed flags from MainParser object.
         """
         self._flags = flags
         self._task = self._flags.task

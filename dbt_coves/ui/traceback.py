@@ -1,20 +1,20 @@
 """Holds handlers to manage error tracebacks using."""
 import pretty_errors
 
-from dbt_coves.utils.flags import FlagParser
+from dbt_coves.utils.flags import MainParser
 
 
 class DbtCovesTraceback:
-    """Consumes CLI flags (from FlagParser consumer) and sets up traceback pretty formatting."""
+    """Consumes CLI flags (from MainParser consumer) and sets up traceback pretty formatting."""
 
-    def __init__(self, flags: FlagParser) -> None:
+    def __init__(self, flags: MainParser) -> None:
         """Traceback constructor.
 
-        Consumes flags from the FlagParser objects and sets up traceback formatting so that we
+        Consumes flags from the MainParser objects and sets up traceback formatting so that we
         can print prettier errors.
 
         Args:
-            flags (FlagParser): [description]
+            flags (MainParser): [description]
         """
         stack_depth: int = 1
         if flags.verbose:

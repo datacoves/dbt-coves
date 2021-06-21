@@ -9,7 +9,7 @@ from dbt_coves.core.exceptions import (
     ProfileParsingError,
     TargetNameNotProvided,
 )
-from dbt_coves.utils.flags import FlagParser
+from dbt_coves.utils.flags import MainParser
 from dbt_coves.utils.log import LOGGER as logger
 from . import _assert_file_exists
 
@@ -51,7 +51,7 @@ class DbtProfile:
 
     def __init__(
         self,
-        flags: FlagParser,
+        flags: MainParser,
         profile_name: str,
         target_name: str,
         profiles_dir: Optional[Path] = None,
