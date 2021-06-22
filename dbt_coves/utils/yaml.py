@@ -21,12 +21,10 @@ def open_yaml(path: Path) -> Dict[str, Any]:
     """
     if path.is_file():
         with open(path, "r") as stream:
-            yaml_dict = yaml.load(
-                stream, Loader=yamlloader.ordereddict.CSafeLoader)
+            yaml_dict = yaml.load(stream, Loader=yamlloader.ordereddict.CSafeLoader)
             if yaml_dict:
                 return yaml_dict
-            raise YAMLFileEmptyError(
-                f"The following file {path.resolve()} seems empty.")
+            raise YAMLFileEmptyError(f"The following file {path.resolve()} seems empty.")
     raise FileNotFoundError(f"File {path.resolve()} was not found.")
 
 
@@ -39,5 +37,4 @@ def save_yaml(path: Path, data: Dict[str, Any]) -> None:
     """
     with open(path, "w") as outfile:
         data_order_dict = collections.OrderedDict(data)
-        yaml.dump(data_order_dict, outfile, width=100,
-                  Dumper=yamlloader.ordereddict.CDumper)
+        yaml.dump(data_order_dict, outfile, width=100, Dumper=yamlloader.ordereddict.CDumper)

@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: {{ relation.schema.lower() }}
+    schema: {{ relation.schema.lower() }}
+    tables:
+      - name: {{ relation.name.lower() }}
+        identifier: {{ relation.name }}
+
+models:
+  - name: {{ relation.name.lower() }}
+    columns:
+{%- for col in columns %}
+      - name: {{ col.name.lower() }}
+{%- endfor %}
+{%- for cols in variants.values() %}
+  {%- for col in cols %}
+      - name: {{ col }}
+  {%- endfor %}
+{%- endfor %}

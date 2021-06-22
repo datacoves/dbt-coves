@@ -35,6 +35,7 @@ sqlfluff = "^0.6.0"
 pre-commit = "^2.13.0"
 rich = "^10.4.0"
 dbt = "^0.19.1"
+Jinja2 = "~2.11.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"

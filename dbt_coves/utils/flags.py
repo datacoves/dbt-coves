@@ -1,6 +1,6 @@
 """Flags module containing the DbtCovesFlags "Factory"."""
-import sys
 import os
+import sys
 from argparse import ArgumentParser
 from pathlib import Path
 from typing import List, Optional
@@ -32,17 +32,17 @@ class DbtCovesFlags:
             "sources": {
                 "schemas": "raw",
                 "destination": "models/sources/{schema_name}/{relation_name}.sql",
-                "model_props_strategy": "one_file_per_model"
+                "model_props_strategy": "one_file_per_model",
             }
         }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
 
-        if hasattr(self.args, 'profiles_dir'):
+        if hasattr(self.args, "profiles_dir"):
             self.args.profiles_dir = os.path.expanduser(self.args.profiles_dir)
 
-        if getattr(self.args, 'project_dir', None) is not None:
+        if getattr(self.args, "project_dir", None) is not None:
             expanded_user = os.path.expanduser(self.args.project_dir)
             self.args.project_dir = os.path.abspath(expanded_user)
 
@@ -69,7 +69,9 @@ class DbtCovesFlags:
                 if self.args.destination:
                     self.generate["sources"]["destination"] = self.args.destination
                 if self.args.model_props_strategy:
-                    self.generate["sources"]["model_props_strategy"] = self.args.model_props_strategy
+                    self.generate["sources"][
+                        "model_props_strategy"
+                    ] = self.args.model_props_strategy
 
             # task specific args consumption
             if self.task == "init":

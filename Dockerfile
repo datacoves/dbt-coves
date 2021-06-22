@@ -9,14 +9,10 @@ RUN apt-get update -y && \
 
 # Install DBT
 RUN pip install -U pip
-RUN pip install dbt==0.19.1 sqlfluff pre-commit
+RUN pip install dbt==0.19.1 dbt-coves==0.1.0
 
 # Set environment variables
 ENV DBT_DIR /dbt
-
-COPY . /dbt-coves
-
-RUN cd /dbt-coves && pip install -e .
 
 # Set working directory
 WORKDIR $DBT_DIR

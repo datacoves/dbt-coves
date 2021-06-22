@@ -1,11 +1,12 @@
-
 import sys
+
 from dbt_coves.utils.shell import execute
+
 from .base import BaseTask
 
 
 def fix():
-    return execute(['sqlfluff', 'fix', '-f', '/config/workspace/models'])
+    return execute(["sqlfluff", "fix", "-f", "/config/workspace/models"])
 
 
 class FixTask(BaseTask):

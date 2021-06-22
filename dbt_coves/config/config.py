@@ -5,10 +5,10 @@ from typing import List, Optional
 
 from pydantic import BaseModel
 
-from dbt_coves.utils.yaml import open_yaml
+from dbt_coves.core.exceptions import MissingDbtProject
 from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
-from dbt_coves.core.exceptions import MissingDbtProject
+from dbt_coves.utils.yaml import open_yaml
 
 
 class GenerateSourcesModel(BaseModel):
@@ -32,9 +32,8 @@ class DbtCovesConfig:
     CLI_OVERRIDE_FLAGS = [
         "generate.sources.schemas",
         "generate.sources.destination",
-        "generate.sources.model_props_strategy"
+        "generate.sources.model_props_strategy",
     ]
-    
 
     def __init__(self, flags: DbtCovesFlags) -> None:
         """Constructor for DbtCovesConfig.
@@ -54,7 +53,7 @@ class DbtCovesConfig:
         """
         config_copy = self._config.dict()
         for value in self.CLI_OVERRIDE_FLAGS:
-            path_items = value.split('.')
+            path_items = value.split(".")
             target = config_copy
             source = self._flags
             for item in path_items[:-1]:
@@ -75,7 +74,7 @@ class DbtCovesConfig:
         if dbt_project.exists():
             if self._config_path == Path(str()):
                 logger.debug("Trying to find .dbt_coves file in current folder")
-                
+
                 filename = Path().joinpath(self.DBT_COVES_CONFIG_FILENAME)
                 if filename.exists():
                     coves_config_dir = filename
