@@ -21,7 +21,7 @@ class InitTask(BaseTask):
             parents=[base_subparser],
             help="Initializes a new dbt project using predefined conventions.",
         )
-        subparser.set_defaults(cls=cls)
+        subparser.set_defaults(cls=cls, which='init')
         return subparser
 
     def run(self) -> int:

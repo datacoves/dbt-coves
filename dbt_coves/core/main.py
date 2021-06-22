@@ -5,6 +5,7 @@ from typing import List
 import pyfiglet
 from dbt.config import PROFILES_DIR
 from rich.console import Console
+from dbt import tracking
 
 from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
@@ -140,6 +141,8 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
 
 
 def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
+    tracking.do_not_track()
+    
     exit_code = 0
     cli_args = test_cli_args or []
 
@@ -155,6 +158,8 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
     except MissingCommand:
         parser.print_help()
         return 1
+    except Exception as ex:
+        console.print(ex)
 
     if exit_code > 0:
         logger.error("[red]The process did not complete successfully.")

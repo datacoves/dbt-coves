@@ -30,9 +30,9 @@ class DbtCovesFlags:
         self.template = "dbt-cookiecutter"
         self.generate = {
             "sources": {
-                "schemas": "raw",
-                "destination": "models/sources/{schema_name}/{relation_name}.sql",
-                "model_props_strategy": "one_file_per_model",
+                "schemas": [],
+                "destination": None,
+                "model_props_strategy": None,
             }
         }
 
@@ -47,7 +47,7 @@ class DbtCovesFlags:
             self.args.project_dir = os.path.abspath(expanded_user)
 
         self.task = self.args.task
-        self.task_cls = self.args.cls
+        self.task_cls = getattr(self.args, 'cls', None)
 
         if self.task:
             if self.args:
@@ -65,7 +65,7 @@ class DbtCovesFlags:
             # generate sources
             if self.task == "sources":
                 if self.args.schemas:
-                    self.generate["sources"]["schemas"] = self.args.schemas
+                    self.generate["sources"]["schemas"] = [schema.strip() for schema in self.args.schemas.split(",")]
                 if self.args.destination:
                     self.generate["sources"]["destination"] = self.args.destination
                 if self.args.model_props_strategy:

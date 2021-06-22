@@ -12,9 +12,9 @@ from dbt_coves.utils.yaml import open_yaml
 
 
 class GenerateSourcesModel(BaseModel):
-    schemas: Optional[List[str]]
-    destination: Optional[str]
-    model_props_strategy: Optional[str]
+    schemas: Optional[List[str]] = ["raw"]
+    destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
+    model_props_strategy: Optional[str] = "one_file_per_model"
 
 
 class GenerateModel(BaseModel):
@@ -59,7 +59,9 @@ class DbtCovesConfig:
             for item in path_items[:-1]:
                 target = target[item]
                 source = source[item] if type(source) == dict else getattr(source, item)
-            target[path_items[-1]] = source[path_items[-1]]
+            key = path_items[-1]
+            if source[key]:
+                target[key] = source[key]
         return config_copy
 
     def load_and_validate_config_yaml(self) -> None:

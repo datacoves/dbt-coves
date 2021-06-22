@@ -14,7 +14,7 @@ class CheckTask(BaseTask):
         subparser = sub_parsers.add_parser(
             "check", parents=[base_subparser], help="Runs pre-commit hooks and linters."
         )
-        subparser.set_defaults(cls=cls)
+        subparser.set_defaults(cls=cls, which='check')
         return subparser
 
     def run(self) -> int:

@@ -16,8 +16,13 @@ class BaseTask(ConfiguredTask):
         raise NotImplementedError()
 
     @classmethod
+    def from_args(cls, args):
+        config = cls.ConfigType.from_args(args)
+        return cls(args, config)
+
+    @classmethod
     def get_instance(cls, flags, coves_config):
-        instance = super().from_args(flags.args)
+        instance = cls.from_args(flags.args)
         instance.coves_config = coves_config
         return instance
 

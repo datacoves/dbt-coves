@@ -52,6 +52,5 @@ class Logger:
         for handler in self.logger.handlers:
             handler.setLevel(logging.DEBUG)
 
-
 log_manager = Logger()
 LOGGER = log_manager.logger
