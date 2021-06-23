@@ -1,12 +1,16 @@
 import sys
 
-from dbt_coves.utils.shell import execute
+from rich.console import Console
+
+from dbt_coves.utils.shell import run as shell_run
 
 from .base import BaseTask
 
+console = Console()
 
-def fix():
-    return execute(["sqlfluff", "fix", "-f", "/config/workspace/models"])
+
+def fix(source_path):
+    return shell_run(["sqlfluff", "fix", "-f", source_path])
 
 
 class FixTask(BaseTask):
@@ -15,10 +19,12 @@ class FixTask(BaseTask):
         subparser = sub_parsers.add_parser(
             "fix", parents=[base_subparser], help="Runs linter fixes."
         )
-        subparser.set_defaults(cls=cls, which='fix')
+        subparser.set_defaults(cls=cls, which="fix")
         return subparser
 
     def run(self) -> int:
-        task = fix()
+        for source_path in self.config.source_paths:
+            console.print(f"Trying fix linting errors in [u]{source_path}[/u]...\n")
+            task = fix(source_path)
 
         sys.exit(task.returncode)

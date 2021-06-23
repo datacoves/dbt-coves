@@ -3,9 +3,9 @@ import sys
 from typing import List
 
 import pyfiglet
+from dbt import tracking
 from dbt.config import PROFILES_DIR
 from rich.console import Console
-from dbt import tracking
 
 from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
@@ -142,7 +142,7 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
 
 def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
     tracking.do_not_track()
-    
+
     exit_code = 0
     cli_args = test_cli_args or []
 
@@ -151,7 +151,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         # app logo
         logo_str = str(pyfiglet.figlet_format("dbt-coves", font="standard"))
         console.print(logo_str, style="cyan")
-        console.print("version 0.0.1\n")
+        console.print(f"version {__version__}\n")
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore

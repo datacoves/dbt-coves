@@ -10,9 +10,6 @@ from .sources import GenerateSourcesTask
 
 console = Console()
 
-SOURCE_PATH = "/config/dbt-coves/samples"
-TARGET_PATH = "/config/workspace/models/staging/cdc_covid"
-
 
 class GenerateTask(BaseTask):
     @classmethod
@@ -20,7 +17,7 @@ class GenerateTask(BaseTask):
         gen_subparser = sub_parsers.add_parser(
             "generate", parents=[base_subparser], help="Generates sources and models with defaults."
         )
-        gen_subparser.set_defaults(cls=cls, which='generate')
+        gen_subparser.set_defaults(cls=cls, which="generate")
         sub_parsers = gen_subparser.add_subparsers(title="dbt-coves generate commands", dest="task")
         GenerateSourcesTask.register_parser(sub_parsers, base_subparser)
         return gen_subparser

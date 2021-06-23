@@ -18,11 +18,11 @@ class GenerateSourcesModel(BaseModel):
 
 
 class GenerateModel(BaseModel):
-    sources: GenerateSourcesModel
+    sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
 
 
 class ConfigModel(BaseModel):
-    generate: GenerateModel
+    generate: Optional[GenerateModel] = GenerateModel()
 
 
 class DbtCovesConfig:
@@ -51,6 +51,7 @@ class DbtCovesConfig:
         """
         Returns the values read from the config file plus the overrides from cli flags
         """
+        # import ipdb; ipdb.set_trace()
         config_copy = self._config.dict()
         for value in self.CLI_OVERRIDE_FLAGS:
             path_items = value.split(".")

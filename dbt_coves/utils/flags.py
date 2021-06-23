@@ -27,7 +27,6 @@ class DbtCovesFlags:
         self.profiles_dir: Optional[Path] = None
         self.project_dir: Optional[Path] = None
         self.verbose: bool = False
-        self.template = "dbt-cookiecutter"
         self.generate = {
             "sources": {
                 "schemas": [],
@@ -35,6 +34,8 @@ class DbtCovesFlags:
                 "model_props_strategy": None,
             }
         }
+        self.init = {"template": "https://github.com/datacoves/cookiecutter-dbt.git"}
+        self.check = {"no-fix": False}
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
@@ -47,7 +48,7 @@ class DbtCovesFlags:
             self.args.project_dir = os.path.abspath(expanded_user)
 
         self.task = self.args.task
-        self.task_cls = getattr(self.args, 'cls', None)
+        self.task_cls = getattr(self.args, "cls", None)
 
         if self.task:
             if self.args:
@@ -65,7 +66,9 @@ class DbtCovesFlags:
             # generate sources
             if self.task == "sources":
                 if self.args.schemas:
-                    self.generate["sources"]["schemas"] = [schema.strip() for schema in self.args.schemas.split(",")]
+                    self.generate["sources"]["schemas"] = [
+                        schema.strip() for schema in self.args.schemas.split(",")
+                    ]
                 if self.args.destination:
                     self.generate["sources"]["destination"] = self.args.destination
                 if self.args.model_props_strategy:
@@ -73,6 +76,10 @@ class DbtCovesFlags:
                         "model_props_strategy"
                     ] = self.args.model_props_strategy
 
-            # task specific args consumption
             if self.task == "init":
-                self.template = self.args.template
+                if self.args.template:
+                    self.init["template"] = self.args.template
+
+            if self.task == "check":
+                if self.args.no_fix:
+                    self.check["no-fix"] = self.args.no_fix

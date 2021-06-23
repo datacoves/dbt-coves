@@ -6,7 +6,7 @@ from questionary import Choice
 from rich.console import Console
 
 from dbt_coves.tasks.base import BaseTask
-from dbt_coves.utils.jinja import render_template_file, render_template
+from dbt_coves.utils.jinja import render_template, render_template_file
 
 console = Console()
 
@@ -40,14 +40,12 @@ class GenerateSourcesTask(BaseTask):
             Strategy for model properties files generation, i.e. 'one_file_per_model'
             """,
         )
-        subparser.set_defaults(cls=cls, which='sources')
+        subparser.set_defaults(cls=cls, which="sources")
         return subparser
 
     def run(self):
         db = self.config.credentials.database
-        schema_names = [
-            schema.upper() for schema in self.get_config_value("schemas")
-        ]
+        schema_names = [schema.upper() for schema in self.get_config_value("schemas")]
 
         with self.adapter.connection_named("master"):
             schemas = [
@@ -97,14 +95,13 @@ class GenerateSourcesTask(BaseTask):
 
     def generate_sources(self, rels):
         dest = self.get_config_value("destination")
-        options = {
-            'override_all': None,
-            'flatten_all': None
-        }
+        options = {"override_all": None, "flatten_all": None}
         for rel in rels:
-            model_dest = render_template(dest, {'schema': rel.schema.lower(), 'relation': rel.name.lower()})
+            model_dest = render_template(
+                dest, {"schema": rel.schema.lower(), "relation": rel.name.lower()}
+            )
             model_sql = Path().joinpath(model_dest)
-            if not options['override_all']:
+            if not options["override_all"]:
                 if model_sql.exists():
                     overwrite = questionary.select(
                         f"{model_dest} already exists. Would you like to overwrite it?",
@@ -114,13 +111,13 @@ class GenerateSourcesTask(BaseTask):
                     if overwrite == "Yes":
                         self.generate_model(rel, model_sql, options)
                     elif overwrite == "No for all":
-                        options['override_all'] = "No"
+                        options["override_all"] = "No"
                     elif overwrite == "Yes for all":
-                        options['override_all'] = "Yes"
+                        options["override_all"] = "Yes"
                         self.generate_model(rel, model_sql, options)
                 else:
                     self.generate_model(rel, model_sql, options)
-            elif options['override_all'] == "Yes":
+            elif options["override_all"] == "Yes":
                 self.generate_model(rel, model_sql, options)
             else:
                 if not model_sql.exists():
@@ -130,7 +127,7 @@ class GenerateSourcesTask(BaseTask):
         destination.parent.mkdir(parents=True, exist_ok=True)
         columns = self.adapter.get_columns_in_relation(relation)
         variants = [col.name.lower() for col in columns if col.dtype == "VARIANT"]
-        if not options['flatten_all']:
+        if not options["flatten_all"]:
             if variants:
                 field_nlg = "field"
                 flatten_nlg = "flatten it"
@@ -146,12 +143,12 @@ class GenerateSourcesTask(BaseTask):
                 if flatten == "Yes":
                     self.render_templates(relation, columns, destination, variants=variants)
                 elif flatten == "No for all":
-                    options['flatten_all'] = "No"
+                    options["flatten_all"] = "No"
                     self.render_templates(relation, columns, destination)
                 elif flatten == "Yes for all":
-                    options['flatten_all'] = "Yes"
+                    options["flatten_all"] = "Yes"
                     self.render_templates(relation, columns, destination, variants=variants)
-        elif options['flatten_all'] == "Yes":
+        elif options["flatten_all"] == "Yes":
             if variants:
                 self.render_templates(relation, columns, destination, variants=variants)
         else:
@@ -178,4 +175,6 @@ class GenerateSourcesTask(BaseTask):
             context["columns"] = new_cols
 
         render_template_file("source_model.sql", context, destination)
-        render_template_file("source_model_props.yml", context, str(destination).replace(".sql", ".yml"))
+        render_template_file(
+            "source_model_props.yml", context, str(destination).replace(".sql", ".yml")
+        )
