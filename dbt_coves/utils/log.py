@@ -7,7 +7,7 @@ from rich.logging import RichHandler
 class Logger:
     def __init__(
         self,
-        log_file_path: Path = Path(Path.cwd(), "dbt_coves_logs"),
+        log_file_path: Path = Path(Path.cwd(), "logs"),
         log_to_console: bool = True,
     ):
 
@@ -16,11 +16,11 @@ class Logger:
         filename = Path(log_file_path, "dbt_coves_log.log")
         logger = logging.getLogger("dbt-coves logger")
 
-        logger.setLevel(logging.DEBUG)
+        logger.setLevel(logging.INFO)
 
         # Handlers
         handler = logging.FileHandler(filename)
-        handler.setLevel(logging.DEBUG)
+        handler.setLevel(logging.INFO)
 
         # Formatters
         format = logging.Formatter(

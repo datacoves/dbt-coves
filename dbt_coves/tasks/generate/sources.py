@@ -175,6 +175,7 @@ class GenerateSourcesTask(BaseTask):
             context["columns"] = new_cols
 
         render_template_file("source_model.sql", context, destination)
+        context["model"] = destination.name.lower().replace(".sql", "")
         render_template_file(
             "source_model_props.yml", context, str(destination).replace(".sql", ".yml")
         )

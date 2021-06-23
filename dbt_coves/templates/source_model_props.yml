@@ -8,7 +8,7 @@ sources:
         identifier: {{ relation.name }}
 
 models:
-  - name: {{ relation.name.lower() }}
+  - name: {{ model.lower() }}
     columns:
 {%- for cols in variants.values() %}
   {%- for col in cols %}

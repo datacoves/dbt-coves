@@ -44,14 +44,13 @@ class DbtCovesConfig:
         self._flags = flags
         self._task = self._flags.task
         self._config_path = self._flags.config_path
-        self._config = dict()
+        self._config = ConfigModel()
 
     @property
     def integrated(self):
         """
         Returns the values read from the config file plus the overrides from cli flags
         """
-        # import ipdb; ipdb.set_trace()
         config_copy = self._config.dict()
         for value in self.CLI_OVERRIDE_FLAGS:
             path_items = value.split(".")
