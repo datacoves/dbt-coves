@@ -17,7 +17,7 @@ class GenerateSourcesTask(BaseTask):
         subparser = sub_parsers.add_parser(
             "sources",
             parents=[base_subparser],
-            help="Generate source dbt models reading database schema.",
+            help="Generate source dbt models by inspecting the database schemas and relations.",
         )
         subparser.add_argument(
             "--schemas",

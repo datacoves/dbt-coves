@@ -38,7 +38,7 @@ class CheckTask(BaseTask):
 
             if not self.coves_flags.check["no-fix"] and command.returncode != 0:
                 confirmed = questionary.confirm(
-                    f"Would you like to try auto-fix linting errors in {source_path}?",
+                    f"Would you like to try auto-fixing linting errors in {source_path}?",
                     default=True,
                 ).ask()
                 if confirmed:

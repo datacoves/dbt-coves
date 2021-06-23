@@ -3,7 +3,7 @@ import sys
 from typing import List
 
 import pyfiglet
-from dbt import tracking
+from dbt import tracking, version
 from dbt.config import PROFILES_DIR
 from rich.console import Console
 
@@ -151,7 +151,8 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         # app logo
         logo_str = str(pyfiglet.figlet_format("dbt-coves", font="standard"))
         console.print(logo_str, style="cyan")
-        console.print(f"version {__version__}\n")
+        dbt_version = version.get_installed_version().to_version_string(skip_matcher=True)
+        console.print(f"dbt-coves v{__version__}              dbt v{dbt_version}\n")
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore
