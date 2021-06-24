@@ -5,13 +5,13 @@ import questionary
 from questionary import Choice
 from rich.console import Console
 
-from dbt_coves.tasks.base import BaseTask
+from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.utils.jinja import render_template, render_template_file
 
 console = Console()
 
 
-class GenerateSourcesTask(BaseTask):
+class GenerateSourcesTask(BaseConfiguredTask):
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
@@ -77,7 +77,10 @@ class GenerateSourcesTask(BaseTask):
             if rels:
                 selected_rels = questionary.checkbox(
                     "Which sources would you like to generate?",
-                    choices=[Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels],
+                    choices=[
+                        Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
+                        for rel in rels
+                    ],
                 ).ask()
                 if selected_rels:
                     self.generate_sources(selected_rels)

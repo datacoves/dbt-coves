@@ -4,7 +4,7 @@ from rich.console import Console
 
 from dbt_coves.utils.shell import run as shell_run
 
-from .base import BaseTask
+from .base import BaseConfiguredTask
 
 console = Console()
 
@@ -13,7 +13,7 @@ def fix(source_path):
     return shell_run(["sqlfluff", "fix", "-f", source_path])
 
 
-class FixTask(BaseTask):
+class FixTask(BaseConfiguredTask):
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(

@@ -1,17 +1,15 @@
 from shutil import copytree
 
-import questionary
-from questionary import Choice
 from rich.console import Console
 
-from dbt_coves.tasks.base import BaseTask
+from dbt_coves.tasks.base import BaseConfiguredTask
 
 from .sources import GenerateSourcesTask
 
 console = Console()
 
 
-class GenerateTask(BaseTask):
+class GenerateTask(BaseConfiguredTask):
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         gen_subparser = sub_parsers.add_parser(

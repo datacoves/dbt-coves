@@ -4,12 +4,12 @@ from rich.console import Console
 from dbt_coves.tasks.fix import fix
 from dbt_coves.utils.shell import run as shell_run
 
-from .base import BaseTask
+from .base import BaseConfiguredTask
 
 console = Console()
 
 
-class CheckTask(BaseTask):
+class CheckTask(BaseConfiguredTask):
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(

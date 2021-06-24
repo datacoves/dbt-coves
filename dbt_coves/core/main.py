@@ -9,7 +9,7 @@ from rich.console import Console
 
 from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
-from dbt_coves.core.exceptions import MissingCommand
+from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
 from dbt_coves.tasks.base import BaseTask
 from dbt_coves.tasks.check import CheckTask
 from dbt_coves.tasks.fix import FixTask
@@ -128,13 +128,15 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     # set up traceback manager fo prettier errors
     DbtCovesTraceback(main_parser)
 
-    coves_config = DbtCovesConfig(main_parser)
-    coves_config.load_config()
+    coves_config = None
+    if task_cls.needs_config:
+        coves_config = DbtCovesConfig(main_parser)
+        coves_config.load_config()
 
     if main_parser.log_level == "debug":
         log_manager.set_debug()
 
-    return task_cls.get_instance(main_parser, coves_config).run()
+    return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
 def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
@@ -156,6 +158,10 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
     except MissingCommand:
         parser.print_help()
         return 1
+    except MissingDbtProject:
+        console.print(
+            "No [u]dbt_project.yml[/u] found. Current folder doesn't look like a dbt project."
+        )
     except Exception as ex:
         logger.debug(ex)
         console.print(ex)
