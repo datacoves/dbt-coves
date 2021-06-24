@@ -32,6 +32,7 @@ class DbtCovesFlags:
                 "schemas": [],
                 "destination": None,
                 "model_props_strategy": None,
+                "templates_folder": None
             }
         }
         self.init = {"template": "https://github.com/datacoves/cookiecutter-dbt.git"}
@@ -75,6 +76,10 @@ class DbtCovesFlags:
                     self.generate["sources"][
                         "model_props_strategy"
                     ] = self.args.model_props_strategy
+                if self.args.templates_folder:
+                    self.generate["sources"][
+                        "templates_folder"
+                    ] = self.args.templates_folder
 
             if self.task == "init":
                 if self.args.template:

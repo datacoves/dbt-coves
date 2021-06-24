@@ -15,6 +15,7 @@ class GenerateSourcesModel(BaseModel):
     schemas: Optional[List[str]] = ["raw"]
     destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
     model_props_strategy: Optional[str] = "one_file_per_model"
+    templates_folder: Optional[str] = "templates"
 
 
 class GenerateModel(BaseModel):
@@ -33,6 +34,7 @@ class DbtCovesConfig:
         "generate.sources.schemas",
         "generate.sources.destination",
         "generate.sources.model_props_strategy",
+        "generate.sources.templates_folder",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

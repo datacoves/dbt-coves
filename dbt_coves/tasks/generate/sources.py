@@ -40,6 +40,13 @@ class GenerateSourcesTask(BaseConfiguredTask):
             Strategy for model properties files generation, i.e. 'one_file_per_model'
             """,
         )
+        subparser.add_argument(
+            "--templates_folder",
+            type=str,
+            help="""
+            Folder with jinja templates that override default sources generation templates, i.e. 'templates'
+            """,
+        )
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
 
@@ -162,9 +169,10 @@ class GenerateSourcesTask(BaseConfiguredTask):
             f"SELECT {', '.join(columns)} FROM {schema}.{relation} limit 1", fetch=True
         )
         result = dict()
-        for idx, col in enumerate(columns):
-            value = data.columns[idx]
-            result[col] = list(json.loads(value[0]).keys())
+        if len(data.rows) > 0:
+            for idx, col in enumerate(columns):
+                value = data.columns[idx]
+                result[col] = list(json.loads(value[0]).keys())
         return result
 
     def render_templates(self, relation, columns, destination, variants=None):
