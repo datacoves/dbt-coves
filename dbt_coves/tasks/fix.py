@@ -27,4 +27,4 @@ class FixTask(BaseTask):
             console.print(f"Trying to auto-fix linting errors in [u]{source_path}[/u]...\n")
             task = fix(source_path)
 
-        sys.exit(task.returncode)
+        return 0

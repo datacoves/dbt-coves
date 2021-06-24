@@ -120,8 +120,10 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     main_parser = DbtCovesFlags(parser)
     main_parser.parse_args(cli_args=cli_args)
 
-    if not main_parser.task:
+    if not main_parser.task_cls:
         raise MissingCommand()
+    else:
+        task_cls: BaseTask = main_parser.task_cls
 
     # set up traceback manager fo prettier errors
     DbtCovesTraceback(main_parser)
@@ -132,12 +134,7 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     if main_parser.log_level == "debug":
         log_manager.set_debug()
 
-    task_cls: BaseTask = main_parser.task_cls
-    if task_cls:
-        task = task_cls.get_instance(main_parser, coves_config)
-        return task.run()
-
-    raise NotImplementedError(f"{main_parser.task} is not supported.")
+    return task_cls.get_instance(main_parser, coves_config).run()
 
 
 def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
@@ -152,7 +149,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         logo_str = str(pyfiglet.figlet_format("dbt-coves", font="standard"))
         console.print(logo_str, style="cyan")
         dbt_version = version.get_installed_version().to_version_string(skip_matcher=True)
-        console.print(f"dbt-coves v{__version__}              dbt v{dbt_version}\n")
+        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23))
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore
@@ -160,6 +157,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         parser.print_help()
         return 1
     except Exception as ex:
+        logger.debug(ex)
         console.print(ex)
 
     if exit_code > 0:

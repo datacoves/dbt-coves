@@ -77,10 +77,10 @@ class GenerateSourcesTask(BaseTask):
             if rels:
                 selected_rels = questionary.checkbox(
                     "Which sources would you like to generate?",
-                    choices=[Choice(f"[{rel.schema}] {rel.name}", checked=True) for rel in rels],
+                    choices=[Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels],
                 ).ask()
                 if selected_rels:
-                    self.generate_sources(rels)
+                    self.generate_sources(selected_rels)
                 else:
                     return 0
             else:
