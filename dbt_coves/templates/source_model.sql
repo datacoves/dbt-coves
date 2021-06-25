@@ -7,13 +7,13 @@ with raw_source as (
 final as (
 
     select
+{%- for col in columns %}
+        {{ col.name.lower() }},
+{%- endfor %}
 {%- for key, cols in variants.items() %}
   {%- for col in cols %}
-        {{ key }}:{{ col }}::varchar as {{ col }},
+        {{ key }}:{{ col.lower() }}::varchar as {{ col.lower() }}{% if not loop.last %},{% endif %}
   {%- endfor %}
-{%- endfor %}
-{%- for col in columns %}
-        {{ col.name.lower() }}{% if not loop.last %},{% endif %}
 {%- endfor %}
 
     from raw_source

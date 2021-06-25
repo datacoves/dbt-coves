@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbt_coves"
-version = "0.19.1-a.5"
+version = "0.19.1-a.7"
 description = "CLI tool for dbt users adopting analytics engineering best practices."
 authors = ["Datacoves <hello@datacoves.com>"]
 license = "Apache 2.0"

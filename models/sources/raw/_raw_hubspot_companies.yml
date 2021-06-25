@@ -1,0 +1,20 @@
+version: 4
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: _airbyte_raw_hubspot_companies
+        identifier: _AIRBYTE_RAW_HUBSPOT_COMPANIES
+
+models:
+  - name: _raw_hubspot_companies
+    columns:
+      - name: archived
+      - name: contacts
+      - name: createdAt
+      - name: id
+      - name: properties
+      - name: updatedAt
+      - name: _airbyte_ab_id
+      - name: _airbyte_emitted_at

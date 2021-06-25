@@ -27,9 +27,9 @@ class CheckTask(BaseConfiguredTask):
         return subparser
 
     def run(self) -> int:
-        console.print("Running pre-commit hooks...\n")
+        console.print("Running pre-commit hooks on staged and commmitted git files...\n")
 
-        shell_run(["pre-commit", "run", "--all-files"])
+        shell_run(["pre-commit", "run", "-a"])
 
         for source_path in self.config.source_paths:
             console.print(f"Linting files in [u]{source_path}[/u]...\n")
