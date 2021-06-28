@@ -11,12 +11,6 @@ jobs:
       - name: Checkout branch
         uses: actions/checkout@v2
 
-      - name: Deploy PG docker
-        run: docker-compose -f ./tests/docker_postgres/docker-compose.yml up -d
-
-      - name: Check for Container
-        run: docker ps
-
       - name: Set up Python 3.8
         uses: actions/setup-python@v2
         with:
