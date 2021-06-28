@@ -7,6 +7,10 @@ console = Console()
 
 
 class InitTask(BaseTask):
+    """
+    Task that clones and applies a cookiecutter template
+    """
+    
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(

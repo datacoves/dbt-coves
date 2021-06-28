@@ -10,6 +10,10 @@ console = Console()
 
 
 class CheckTask(BaseConfiguredTask):
+    """
+    Task that runs pre-commit and sqlfluff
+    """
+    
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(

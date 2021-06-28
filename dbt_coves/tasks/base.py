@@ -3,6 +3,9 @@ from dbt.task.base import ConfiguredTask
 
 
 class BaseTask:
+    """
+    Base Task Class
+    """
     needs_config = False
 
     def __init__(self, args, config=None):
@@ -24,7 +27,7 @@ class BaseTask:
 
 class BaseConfiguredTask(ConfiguredTask, BaseTask):
     """
-    Base task class
+    Task class that requires a configuration
     """
 
     needs_config = True

@@ -14,6 +14,10 @@ def fix(source_path):
 
 
 class FixTask(BaseConfiguredTask):
+    """
+    Task that runs sqlfluff fix
+    """
+    
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(

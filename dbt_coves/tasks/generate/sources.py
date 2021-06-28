@@ -12,6 +12,10 @@ console = Console()
 
 
 class GenerateSourcesTask(BaseConfiguredTask):
+    """
+    Task that generate sources, models and model properties automatically
+    """
+    
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
