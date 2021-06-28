@@ -10,11 +10,25 @@ final as (
 {%- for col in columns %}
         {{ col.name.lower() }},
 {%- endfor %}
-{%- for key, cols in variants.items() %}
+{%- if adapter_name == 'SnowflakeAdapter' %}
+{%- for key, cols in nested.items() %}
   {%- for col in cols %}
         {{ key }}:{{ col.lower() }}::varchar as {{ col.lower() }}{% if not loop.last %},{% endif %}
   {%- endfor %}
 {%- endfor %}
+{%- elif adapter_name == 'BigQueryAdapter' %}
+{%- for key, cols in nested.items() %}
+  {%- for col in cols %}
+        cast({{ key }}.{{ col.lower() }} as string) as {{ col.lower() }}{% if not loop.last %},{% endif %}
+  {%- endfor %}
+{%- endfor %}
+{%- elif adapter_name == 'RedshiftAdapter' %}
+{%- for key, cols in nested.items() %}
+  {%- for col in cols %}
+        {{ key }}.{{ col.lower() }}::varchar as {{ col.lower() }}{% if not loop.last %},{% endif %}
+  {%- endfor %}
+{%- endfor %}
+{%- endif %}
 
     from raw_source
 

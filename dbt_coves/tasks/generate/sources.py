@@ -11,6 +11,12 @@ from dbt_coves.utils.jinja import render_template, render_template_file
 console = Console()
 
 
+NESTED_FIELD_TYPES = {
+    'SnowflakeAdapter': 'VARIANT',
+    'BigQueryAdapter': 'STRUCT',
+    'RedshiftAdapter': 'SUPER'
+}
+
 class GenerateSourcesTask(BaseConfiguredTask):
     """
     Task that generate sources, models and model properties automatically
@@ -140,35 +146,36 @@ class GenerateSourcesTask(BaseConfiguredTask):
     def generate_model(self, relation, destination, options):
         destination.parent.mkdir(parents=True, exist_ok=True)
         columns = self.adapter.get_columns_in_relation(relation)
-        variants = [col.name.lower() for col in columns if col.dtype == "VARIANT"]
+        nested_field_type = NESTED_FIELD_TYPES[self.adapter.__class__.__name__]
+        nested = [col.name.lower() for col in columns if col.dtype == nested_field_type]
         if not options["flatten_all"]:
-            if variants:
+            if nested:
                 field_nlg = "field"
                 flatten_nlg = "flatten it"
-                if len(variants) > 1:
+                if len(nested) > 1:
                     field_nlg = "fields"
                     flatten_nlg = "flatten them"
                 flatten = questionary.select(
-                    f"{relation.name.lower()} contains the JSON {field_nlg} {', '.join(variants)}."
+                    f"{relation.name.lower()} contains the JSON {field_nlg} {', '.join(nested)}."
                     f" Would you like to {flatten_nlg}?",
                     choices=["No", "Yes", "No for all", "Yes for all"],
                     default="Yes",
                 ).ask()
                 if flatten == "Yes":
-                    self.render_templates(relation, columns, destination, variants=variants)
+                    self.render_templates(relation, columns, destination, nested=nested)
                 elif flatten == "No for all":
                     options["flatten_all"] = "No"
                     self.render_templates(relation, columns, destination)
                 elif flatten == "Yes for all":
                     options["flatten_all"] = "Yes"
-                    self.render_templates(relation, columns, destination, variants=variants)
+                    self.render_templates(relation, columns, destination, nested=nested)
         elif options["flatten_all"] == "Yes":
-            if variants:
-                self.render_templates(relation, columns, destination, variants=variants)
+            if nested:
+                self.render_templates(relation, columns, destination, nested=nested)
         else:
             self.render_templates(relation, columns, destination)
 
-    def get_variant_keys(self, columns, schema, relation):
+    def get_nested_keys(self, columns, schema, relation):
         _, data = self.adapter.execute(
             f"SELECT {', '.join(columns)} FROM {schema}.{relation} limit 1", fetch=True
         )
@@ -179,13 +186,14 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 result[col] = list(json.loads(value[0]).keys())
         return result
 
-    def render_templates(self, relation, columns, destination, variants=None):
-        context = {"relation": relation, "columns": columns}
-        if variants:
-            context["variants"] = self.get_variant_keys(variants, relation.schema, relation.name)
+    def render_templates(self, relation, columns, destination, nested=None):
+        context = {"relation": relation, "columns": columns, "adapter_name": self.adapter.__class__.__name__}
+        if nested:
+            context["nested"] = self.get_nested_keys(nested, relation.schema, relation.name)
+            # Removing original column with JSON data
             new_cols = []
             for col in columns:
-                if col.name.lower() not in context["variants"]:
+                if col.name.lower() not in context["nested"]:
                     new_cols.append(col)
             context["columns"] = new_cols
 

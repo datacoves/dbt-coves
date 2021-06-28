@@ -10,7 +10,7 @@ sources:
 models:
   - name: {{ model.lower() }}
     columns:
-{%- for cols in variants.values() %}
+{%- for cols in nested.values() %}
   {%- for col in cols %}
       - name: {{ col }}
   {%- endfor %}
