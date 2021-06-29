@@ -9,16 +9,10 @@ jobs:
       max-parallel: 5
       matrix:
         platform: [ubuntu-latest]
-        python-version: [3.6, 3.7, 3.8, 3.9]
+        python-version: [3.7, 3.8]
 
     steps:
       - uses: actions/checkout@v2
-
-      - name: Deploy PG docker
-        run: docker-compose -f ./tests/docker_postgres/docker-compose.yml up -d
-
-      - name: Check for Container
-        run: docker ps
 
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v2
