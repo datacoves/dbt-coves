@@ -7,7 +7,7 @@ Supported dbt versions
    * - Version
      - Status
    * - 0.17.0
-     - 🕥 In progress
+     - ❌ Not supported
    * - 0.18.2
      - 🕥 In progress
    * - 0.19.1
@@ -28,12 +28,12 @@ Supported adapters
      - Postgres
    * - profile.yml generation
      - ✅ Tested
-     - ❌ Not tested
+     - 🕥 In progress
      - ❌ Not tested
      - ❌ Not tested
    * - sources generation
      - ✅ Tested
-     - ❌ Not tested
+     - 🕥 In progress
      - ❌ Not tested
      - ❌ Not tested
 
@@ -78,7 +78,7 @@ Quality Assurance
 
    dbt-coves check
 
-Runs a set of checks in your local environment to ensure high quality data.
+Runs a set of checks in your local environment to ensure high code quality.
 
 Checks can be extended by implementing `pre-commit hooks <https://pre-commit.com/#creating-new-hooks>`_.
 

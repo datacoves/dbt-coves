@@ -2,7 +2,7 @@
 
 rm -rf docs/build
 
-sphinx-build -c docs -b rst dbt_coves docs/build
+poetry run sphinx-build -c docs -b rst dbt_coves docs/build
 
 cp docs/header.rst README.rst
 cat docs/build/index.rst >> README.rst

@@ -56,7 +56,7 @@ Supported dbt versions
 +----------------------------------------------------+----------------------------------------------------+
 | Version                                            | Status                                             |
 +====================================================+====================================================+
-| 0.17.0                                             | 🕥 In progress                                      |
+| 0.17.0                                             | ❌ Not supported                                    |
 +----------------------------------------------------+----------------------------------------------------+
 | 0.18.2                                             | 🕥 In progress                                      |
 +----------------------------------------------------+----------------------------------------------------+
@@ -72,9 +72,9 @@ Supported adapters
 +----------------------+----------------------+----------------------+----------------------+----------------------+
 | Feature              | Snowflake            | Redshift             | BigQuery             | Postgres             |
 +======================+======================+======================+======================+======================+
-| profile.yml          | ✅ Tested             | ❌ Not tested         | ❌ Not tested         | ❌ Not tested         |
+| profile.yml          | ✅ Tested             | 🕥 In progress        | ❌ Not tested         | ❌ Not tested         |
 +----------------------+----------------------+----------------------+----------------------+----------------------+
-| sources generation   | ✅ Tested             | ❌ Not tested         | ❌ Not tested         | ❌ Not tested         |
+| sources generation   | ✅ Tested             | 🕥 In progress        | ❌ Not tested         | ❌ Not tested         |
 +----------------------+----------------------+----------------------+----------------------+----------------------+
 
 
@@ -129,8 +129,8 @@ Quality Assurance
 
    dbt-coves check
 
-Runs a set of checks in your local environment to ensure high quality
-data.
+Runs a set of checks in your local environment to ensure high code
+quality.
 
 Checks can be extended by implementing `pre-commit hooks
 <https://pre-commit.com/#creating-new-hooks>`_.
@@ -193,7 +193,8 @@ Default: False
 
 --config-path
 
-Full path to .dbt_coves file if not using default.
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
 
 --project-dir
 
@@ -202,8 +203,7 @@ the current working directory and its parents.
 
 --profiles-dir
 
-Which directory to look in for the profiles.yml file.Default =
-~/.dbt
+Which directory to look in for the profiles.yml file.
 
 Default: “~/.dbt”
 
@@ -217,9 +217,8 @@ Which target to load for the given profile
 
 --vars
 
-Supply variables to the project. This argument overrides variables
-defined in your dbt_project.yml file. This argument should be a YAML
-string, eg. ‘{my_variable: my_value}’
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
 
 Default: “{}”
 
@@ -256,7 +255,8 @@ Default: False
 
 --config-path
 
-Full path to .dbt_coves file if not using default.
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
 
 --project-dir
 
@@ -265,8 +265,7 @@ the current working directory and its parents.
 
 --profiles-dir
 
-Which directory to look in for the profiles.yml file.Default =
-~/.dbt
+Which directory to look in for the profiles.yml file.
 
 Default: “~/.dbt”
 
@@ -280,9 +279,8 @@ Which target to load for the given profile
 
 --vars
 
-Supply variables to the project. This argument overrides variables
-defined in your dbt_project.yml file. This argument should be a YAML
-string, eg. ‘{my_variable: my_value}’
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
 
 Default: “{}”
 
@@ -328,7 +326,8 @@ Default: False
 
 --config-path
 
-Full path to .dbt_coves file if not using default.
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
 
 --project-dir
 
@@ -337,8 +336,7 @@ the current working directory and its parents.
 
 --profiles-dir
 
-Which directory to look in for the profiles.yml file.Default =
-~/.dbt
+Which directory to look in for the profiles.yml file.
 
 Default: “~/.dbt”
 
@@ -352,9 +350,8 @@ Which target to load for the given profile
 
 --vars
 
-Supply variables to the project. This argument overrides variables
-defined in your dbt_project.yml file. This argument should be a YAML
-string, eg. ‘{my_variable: my_value}’
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
 
 Default: “{}”
 
@@ -406,7 +403,8 @@ Default: False
 
 --config-path
 
-Full path to .dbt_coves file if not using default.
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
 
 --project-dir
 
@@ -415,8 +413,7 @@ the current working directory and its parents.
 
 --profiles-dir
 
-Which directory to look in for the profiles.yml file.Default =
-~/.dbt
+Which directory to look in for the profiles.yml file.
 
 Default: “~/.dbt”
 
@@ -430,9 +427,8 @@ Which target to load for the given profile
 
 --vars
 
-Supply variables to the project. This argument overrides variables
-defined in your dbt_project.yml file. This argument should be a YAML
-string, eg. ‘{my_variable: my_value}’
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
 
 Default: “{}”
 
@@ -471,7 +467,8 @@ Default: False
 
 --config-path
 
-Full path to .dbt_coves file if not using default.
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
 
 --project-dir
 
@@ -480,8 +477,7 @@ the current working directory and its parents.
 
 --profiles-dir
 
-Which directory to look in for the profiles.yml file.Default =
-~/.dbt
+Which directory to look in for the profiles.yml file.
 
 Default: “~/.dbt”
 
@@ -495,9 +491,8 @@ Which target to load for the given profile
 
 --vars
 
-Supply variables to the project. This argument overrides variables
-defined in your dbt_project.yml file. This argument should be a YAML
-string, eg. ‘{my_variable: my_value}’
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
 
 Default: “{}”
 

@@ -51,7 +51,7 @@ base_subparser.add_argument(
 )
 
 base_subparser.add_argument(
-    "--config-path", help="Full path to .dbt_coves file if not using default."
+    "--config-path", help="Full path to .dbt_coves.yml file if not using default. Default is current working directory."
 )
 
 base_subparser.add_argument(
@@ -67,7 +67,6 @@ base_subparser.add_argument(
     default=PROFILES_DIR,
     type=str,
     help="Which directory to look in for the profiles.yml file."
-         "Default = {}".format(PROFILES_DIR),
 )
 
 base_subparser.add_argument(
@@ -89,8 +88,7 @@ base_subparser.add_argument(
     "--vars",
     type=str,
     default="{}",
-    help="Supply variables to the project. This argument overrides variables"
-        " defined in your dbt_project.yml file. This argument should be a YAML"
+    help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
         " string, eg. '{my_variable: my_value}'",
 )
 
