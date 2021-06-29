@@ -58,30 +58,23 @@ base_subparser.add_argument(
     "--project-dir",
     default=None,
     type=str,
-    help="""
-    Which directory to look in for the dbt_project.yml file.
-    Default is the current working directory and its parents.
-    """,
+    help="Which directory to look in for the dbt_project.yml file."
+    " Default is the current working directory and its parents.",
 )
 
 base_subparser.add_argument(
     "--profiles-dir",
     default=PROFILES_DIR,
     type=str,
-    help="""
-    Which directory to look in for the profiles.yml file. Default = {}
-    """.format(
-        PROFILES_DIR
-    ),
+    help="Which directory to look in for the profiles.yml file."
+         "Default = {}".format(PROFILES_DIR),
 )
 
 base_subparser.add_argument(
     "--profile",
     required=False,
     type=str,
-    help="""
-    Which profile to load. Overrides setting in dbt_project.yml.
-    """,
+    help="Which profile to load. Overrides setting in dbt_project.yml.",
 )
 
 base_subparser.add_argument(
@@ -89,20 +82,16 @@ base_subparser.add_argument(
     "--target",
     default=None,
     type=str,
-    help="""
-    Which target to load for the given profile
-    """,
+    help="Which target to load for the given profile",
 )
 
 base_subparser.add_argument(
     "--vars",
     type=str,
     default="{}",
-    help="""
-    Supply variables to the project. This argument overrides variables
-    defined in your dbt_project.yml file. This argument should be a YAML
-    string, eg. '{my_variable: my_value}'
-    """,
+    help="Supply variables to the project. This argument overrides variables"
+        " defined in your dbt_project.yml file. This argument should be a YAML"
+        " string, eg. '{my_variable: my_value}'",
 )
 
 

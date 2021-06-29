@@ -21,9 +21,8 @@ class InitTask(BaseTask):
         subparser.add_argument(
             "--template",
             type=str,
-            help="""
-            Cookiecutter template github url, i.e. 'https://github.com/datacoves/cookiecutter-dbt-coves.git'
-            """,
+            help="Cookiecutter template github url, i.e."
+                 " 'https://github.com/datacoves/cookiecutter-dbt-coves.git'",
         )
         subparser.set_defaults(cls=cls, which="init")
         return subparser

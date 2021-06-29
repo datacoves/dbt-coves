@@ -21,9 +21,7 @@ class CheckTask(BaseConfiguredTask):
         )
         subparser.add_argument(
             "--no-fix",
-            help="""
-            Do not suggest auto-fixing linting errors. Useful when running this command on CI jobs.
-            """,
+            help="Do not suggest auto-fixing linting errors. Useful when running this command on CI jobs.",
             action="store_true",
             default=False,
         )

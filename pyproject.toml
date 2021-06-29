@@ -52,6 +52,8 @@ asciinema = "^2.0.2"
 pytest-dictsdiff = "^0.5.8"
 black = "^21.5b1"
 ipdb = "^0.13.9"
+sphinx-argparse = "^0.2.5"
+sphinxcontrib-restbuilder = "^0.3"
 
 [build-system]
 requires = ["setuptools", "poetry_core>=1.0"]

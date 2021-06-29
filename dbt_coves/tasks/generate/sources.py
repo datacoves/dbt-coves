@@ -32,30 +32,26 @@ class GenerateSourcesTask(BaseConfiguredTask):
         subparser.add_argument(
             "--schemas",
             type=str,
-            help="""
-            Comma separated list of schemas where raw data resides, i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'
-            """,
+            help="Comma separated list of schemas where raw data resides, "
+                 "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
             "--destination",
             type=str,
-            help="""
-            Where models sql files will be generated, i.e. 'models/{schema_name}/{relation_name}.sql'
-            """,
+            help="Where models sql files will be generated, i.e. "
+                 "'models/{schema_name}/{relation_name}.sql'",
         )
         subparser.add_argument(
             "--model_props_strategy",
             type=str,
-            help="""
-            Strategy for model properties files generation, i.e. 'one_file_per_model'
-            """,
+            help="Strategy for model properties files generation,"
+                 " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
             "--templates_folder",
             type=str,
-            help="""
-            Folder with jinja templates that override default sources generation templates, i.e. 'templates'
-            """,
+            help="Folder with jinja templates that override default "
+                 "sources generation templates, i.e. 'templates'",
         )
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
