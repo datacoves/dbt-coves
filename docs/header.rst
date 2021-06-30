@@ -49,3 +49,42 @@ Here's the tool in action
 
 .. image:: https://cdn.loom.com/sessions/thumbnails/74062cf71cbe4898805ca508ea2d9455-1624905546029-with-play.gif
    :target: https://www.loom.com/share/74062cf71cbe4898805ca508ea2d9455
+
+Supported dbt versions
+======================
+
+.. list-table::
+   :header-rows: 1
+
+   * - Version
+     - Status
+   * - 0.17.0
+     - ❌ Not supported
+   * - 0.18.2
+     - ✅ Tested
+   * - 0.19.1
+     - ✅ Tested
+   * - 0.20.0
+     - 🕥 In progress
+
+Supported adapters
+==================
+
+.. list-table::
+   :header-rows: 1
+
+   * - Feature
+     - Snowflake
+     - Redshift
+     - BigQuery
+     - Postgres
+   * - profile.yml generation
+     - ✅ Tested
+     - 🕥 In progress
+     - ❌ Not tested
+     - ❌ Not tested
+   * - sources generation
+     - ✅ Tested
+     - 🕥 In progress
+     - ❌ Not tested
+     - ❌ Not tested
