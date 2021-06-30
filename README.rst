@@ -96,8 +96,8 @@ Installation
 
    pip install dbt-coves
 
-We recommend using *python virtualenvs
-<https://docs.python.org/3/tutorial/venv.html>* and create one
+We recommend using `python virtualenvs
+<https://docs.python.org/3/tutorial/venv.html>`_ and create one
 separate environment per project.
 
 ⚠️ **if you have dbt < 0.18.0 installed, dbt-coves will automatically
