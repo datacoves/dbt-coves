@@ -159,6 +159,8 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 ).ask()
                 if flatten == "Yes":
                     self.render_templates(relation, columns, destination, nested=nested)
+                elif flatten == "No":
+                    self.render_templates(relation, columns, destination)
                 elif flatten == "No for all":
                     options["flatten_all"] = "No"
                     self.render_templates(relation, columns, destination)
@@ -183,7 +185,12 @@ class GenerateSourcesTask(BaseConfiguredTask):
         return result
 
     def render_templates(self, relation, columns, destination, nested=None):
-        context = {"relation": relation, "columns": columns, "adapter_name": self.adapter.__class__.__name__}
+        context = {
+            "relation": relation,
+            "columns": columns,
+            "nested": {},
+            "adapter_name": self.adapter.__class__.__name__
+        }
         if nested:
             context["nested"] = self.get_nested_keys(nested, relation.schema, relation.name)
             # Removing original column with JSON data

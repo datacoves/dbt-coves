@@ -10,11 +10,11 @@ sources:
 models:
   - name: {{ model.lower() }}
     columns:
+{%- for col in columns %}
+      - name: {{ col.name.lower() }}
+{%- endfor %}
 {%- for cols in nested.values() %}
   {%- for col in cols %}
       - name: {{ col }}
   {%- endfor %}
-{%- endfor %}
-{%- for col in columns %}
-      - name: {{ col.name.lower() }}
 {%- endfor %}

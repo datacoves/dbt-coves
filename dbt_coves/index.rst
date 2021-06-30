@@ -9,11 +9,11 @@ Supported dbt versions
    * - 0.17.0
      - ❌ Not supported
    * - 0.18.2
-     - 🕥 In progress
+     - ✅ Tested
    * - 0.19.1
      - ✅ Tested
    * - 0.20.0
-     - ❌ Not tested
+     - 🕥 In progress
 
 Supported adapters
 ==================
@@ -43,6 +43,8 @@ Installation
 .. code-block:: console
 
    pip install dbt-coves
+
+We recommend using `python virtualenvs <https://docs.python.org/3/tutorial/venv.html>` and create one separate environment per project.
 
 Main Features
 =============
@@ -82,8 +84,107 @@ Runs a set of checks in your local environment to ensure high code quality.
 
 Checks can be extended by implementing `pre-commit hooks <https://pre-commit.com/#creating-new-hooks>`_.
 
-CLI Reference
-=============
+Settings
+========
+
+Dbt-coves could optionally read settings from ``.dbt_coves.yml``. A standard settings files could looke like this:
+
+.. code-block:: yaml
+
+   generate:
+     sources:
+       schemas:
+         - RAW
+       destination: "models/sources/{{ schema }}/{{ relation }}.sql"
+       model_props_strategy: one_file_per_model
+       templates_folder: "templates"
+
+In this example options for the ``generate`` command are provided:
+
+``schemas``: List of schema names where to look for source tables
+
+``destination``: Path to generated model, where ``schema`` represents the lowercased schema and ``relation`` the lowercased table name.
+
+``model_props_strategy``: Defines how dbt-coves generates model properties files, currently just ``one_file_per_model`` is available, creates one yaml file per model.
+
+``templates_folder``: Folder where source generation jinja templates are located.
+
+Override source generation templates
+------------------------------------
+
+Customizing generated models and model properties requires placing specific files under the ``templates_folder`` folder like these:
+
+source_model.sql
+~~~~~~~~~~~~~~~~
+
+.. code-block:: sql
+
+   with raw_source as (
+
+       select * from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
+
+   ),
+
+   final as (
+
+       select
+   {%- for col in columns %}
+           {{ col.name.lower() }}{% if not loop.last or nested %},{% endif %}
+   {%- endfor %}
+   {%- if adapter_name == 'SnowflakeAdapter' %}
+   {%- for key, cols in nested.items() %}
+     {%- for col in cols %}
+           {{ key }}:{{ col.lower() }}::varchar as {{ col.lower() }}{% if not loop.last %},{% endif %}
+     {%- endfor %}
+   {%- endfor %}
+   {%- elif adapter_name == 'BigQueryAdapter' %}
+   {%- for key, cols in nested.items() %}
+     {%- for col in cols %}
+           cast({{ key }}.{{ col.lower() }} as string) as {{ col.lower() }}{% if not loop.last %},{% endif %}
+     {%- endfor %}
+   {%- endfor %}
+   {%- elif adapter_name == 'RedshiftAdapter' %}
+   {%- for key, cols in nested.items() %}
+     {%- for col in cols %}
+           {{ key }}.{{ col.lower() }}::varchar as {{ col.lower() }}{% if not loop.last %},{% endif %}
+     {%- endfor %}
+   {%- endfor %}
+   {%- endif %}
+
+       from raw_source
+
+   )
+
+   select * from final
+
+source_model_props.yml
+~~~~~~~~~~~~~~~~~~~~~~
+
+.. code-block:: yaml
+
+   version: 2
+
+   sources:
+     - name: {{ relation.schema.lower() }}
+       schema: {{ relation.schema.lower() }}
+       tables:
+         - name: {{ relation.name.lower() }}
+           identifier: {{ relation.name }}
+
+   models:
+     - name: {{ model.lower() }}
+       columns:
+   {%- for col in columns %}
+         - name: {{ col.name.lower() }}
+   {%- endfor %}
+   {%- for cols in nested.values() %}
+     {%- for col in cols %}
+         - name: {{ col }}
+     {%- endfor %}
+   {%- endfor %}
+
+CLI Detailed Reference
+======================
 
 .. argparse::
    :filename: dbt_coves/core/main.py

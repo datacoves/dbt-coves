@@ -8,7 +8,7 @@ final as (
 
     select
 {%- for col in columns %}
-        {{ col.name.lower() }},
+        {{ col.name.lower() }}{% if not loop.last or nested %},{% endif %}
 {%- endfor %}
 {%- if adapter_name == 'SnowflakeAdapter' %}
 {%- for key, cols in nested.items() %}

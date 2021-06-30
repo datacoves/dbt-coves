@@ -42,7 +42,7 @@ What is dbt-coves?
 
 dbt-coves is a complimentary CLI tool for `dbt <https://www.getdbt.com>`_ that allows users to quickly apply `Analytics Engineering <https://www.getdbt.com/what-is-analytics-engineering/>`_ best practices.
 
-⚠️ **dbt-coves is in alpha version, don’t use on your prod models unless you have tested it in a safe place before.**
+⚠️ **dbt-coves is in alpha version. Don’t use on your prod models unless you have tested it before.**
 
 Here's the tool in action
 -------------------------
