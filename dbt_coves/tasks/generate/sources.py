@@ -142,7 +142,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
     def generate_model(self, relation, destination, options):
         destination.parent.mkdir(parents=True, exist_ok=True)
         columns = self.adapter.get_columns_in_relation(relation)
-        nested_field_type = NESTED_FIELD_TYPES[self.adapter.__class__.__name__]
+        nested_field_type = NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
         nested = [col.name.lower() for col in columns if col.dtype == nested_field_type]
         if not options["flatten_all"]:
             if nested:
