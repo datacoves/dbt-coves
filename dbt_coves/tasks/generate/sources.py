@@ -167,6 +167,8 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 elif flatten == "Yes for all":
                     options["flatten_all"] = "Yes"
                     self.render_templates(relation, columns, destination, nested=nested)
+            else:
+                self.render_templates(relation, columns, destination)
         elif options["flatten_all"] == "Yes":
             if nested:
                 self.render_templates(relation, columns, destination, nested=nested)
