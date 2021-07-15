@@ -42,6 +42,8 @@ What is dbt-coves?
 
 dbt-coves is a complimentary CLI tool for `dbt <https://www.getdbt.com>`_ that allows users to quickly apply `Analytics Engineering <https://www.getdbt.com/what-is-analytics-engineering/>`_ best practices.
 
+dbt-coves helps with the generation of scaffold for dbt by analyzing your data warehouse schema in Redshift, Snowflake, or Big Query and creating the necessary configuration files (sql and yml).
+
 ⚠️ **dbt-coves is in alpha version. Don’t use on your prod models unless you have tested it before.**
 
 Here's the tool in action
