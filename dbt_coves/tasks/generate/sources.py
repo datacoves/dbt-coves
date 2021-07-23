@@ -1,5 +1,4 @@
 import json
-from json.decoder import JSONDecodeError
 from pathlib import Path
 
 import questionary
