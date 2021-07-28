@@ -75,6 +75,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
             schemas = [
                 schema.upper()
                 for schema in self.adapter.list_schemas(db)
+                # TODO: fix this for different adapters
                 if schema != "INFORMATION_SCHEMA"
             ]
 
@@ -216,7 +217,12 @@ class GenerateSourcesTask(BaseConfiguredTask):
         if len(data.rows) > 0:
             for idx, col in enumerate(columns):
                 value = data.columns[idx]
-                result[col] = list(json.loads(value[0]).keys())
+                try:
+                    result[col] = list(json.loads(value[0]).keys())
+                except TypeError:
+                    console.print(
+                        f"Column {col} in relation {relation} contains invalid JSON.\n"
+                    )
         return result
 
     def render_templates(self, relation, columns, destination, nested=None):
