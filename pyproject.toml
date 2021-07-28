@@ -16,6 +16,7 @@ classifiers = [
 ]
 include = ["templates/*"]
 keywords = ["data engineering", "analytics engineering", "dbt", 'ETL', "data modelling"]
+homepage = "https://datacoves.com"
 documentation = "https://datacoves.gitbook.io/dbt-coves/"
 repository = "https://github.com/datacoves/dbt-coves"
 
