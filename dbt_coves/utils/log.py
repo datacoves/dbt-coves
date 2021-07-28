@@ -13,7 +13,7 @@ class Logger:
 
         Path(log_file_path).mkdir(parents=True, exist_ok=True)
 
-        filename = Path(log_file_path, "dbt_coves_log.log")
+        filename = Path(log_file_path, "dbt_coves.log")
         logger = logging.getLogger("dbt-coves logger")
 
         logger.setLevel(logging.INFO)

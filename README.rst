@@ -302,7 +302,7 @@ Initializes a new dbt project using predefined conventions.
 
 ::
 
-   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--template TEMPLATE]
+   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--template TEMPLATE] [--current-dir]
 
 
 Named Arguments
@@ -355,6 +355,12 @@ Default: “{}”
 
 Cookiecutter template github url, i.e.
 ‘https://github.com/datacoves/cookiecutter-dbt-coves.git’
+
+--current-dir
+
+Generate the dbt project in the current directory.
+
+Default: False
 
 
 generate

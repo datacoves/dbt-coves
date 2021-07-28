@@ -35,7 +35,7 @@ class DbtCovesFlags:
                 "templates_folder": None,
             }
         }
-        self.init = {"template": "https://github.com/datacoves/cookiecutter-dbt.git"}
+        self.init = {"template": "https://github.com/datacoves/cookiecutter-dbt.git", "current-dir": False}
         self.check = {"no-fix": False}
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
@@ -82,6 +82,8 @@ class DbtCovesFlags:
             if self.task == "init":
                 if self.args.template:
                     self.init["template"] = self.args.template
+                if self.args.current_dir:
+                    self.init["current-dir"] = self.args.current_dir
 
             if self.task == "check":
                 if self.args.no_fix:
