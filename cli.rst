@@ -216,6 +216,10 @@ Default: “{}”
 
    Comma separated list of schemas where raw data resides, i.e. ‘RAW_SALESFORCE,RAW_HUBSPOT’
 
+--relations     ..
+
+Comma separated list of relations where raw data resides, i.e. ‘RAW_SALESFORCE_PRODUCTS,RAW_HUBSPOT_USERS’
+
 --destination     ..
 
    Where models sql files will be generated, i.e. ‘models/{schema_name}/{relation_name}.sql’

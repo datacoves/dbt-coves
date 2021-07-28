@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import re
 
 import questionary
 from questionary import Choice
@@ -36,6 +37,12 @@ class GenerateSourcesTask(BaseConfiguredTask):
                  "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
+            "--relations",
+            type=str,
+            help="Comma separated list of relations where raw data resides, "
+                 "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
+        )
+        subparser.add_argument(
             "--destination",
             type=str,
             help="Where models sql files will be generated, i.e. "
@@ -60,12 +67,23 @@ class GenerateSourcesTask(BaseConfiguredTask):
         db = self.config.credentials.database
         schema_names = [schema.upper() for schema in self.get_config_value("schemas")]
 
+        schema_selectors = []
+        for schema_name in schema_names:
+            if re.search(".*\*.*", schema_name):
+                schema_selectors.append("\\b"+schema_name.replace("*", ".*")+"\\b")
         with self.adapter.connection_named("master"):
             schemas = [
                 schema.upper()
                 for schema in self.adapter.list_schemas(db)
                 if schema != "INFORMATION_SCHEMA"
             ]
+
+            for schema in schemas:
+                for selector in schema_selectors:
+                    if re.search(selector, schema):
+                        schema_names.append(schema)
+                        break
+        
             filtered_schemas = list(set(schemas).intersection(schema_names))
             if not filtered_schemas:
                 schema_nlg = f"schema{'s' if len(schema_names) > 1 else ''}"
@@ -83,10 +101,25 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     filtered_schemas = selected_schemas
                 else:
                     return 0
+
+            rel_names = [relation.upper() for relation in self.get_config_value("relations")]
+            console.print(self.get_config_value("relations"))
+            rel_selectors = []
+            for rel_name in rel_names:
+                if re.search(".*\*.*", rel_name):
+                    rel_selectors.append("\\b"+rel_name.replace("*", ".*")+"\\b")
             rels = []
             for schema in filtered_schemas:
-                rels += self.adapter.list_relations(db, schema)
-
+                tmp_rels = self.adapter.list_relations(db, schema)
+                if rel_selectors:
+                    for rel in tmp_rels:
+                        for selector in rel_selectors:
+                            if re.search(selector, rel.name):
+                                rels.append(rel)
+                                break
+                else:
+                    rels += tmp_rels
+    
             if rels:
                 selected_rels = questionary.checkbox(
                     "Which sources would you like to generate?",
