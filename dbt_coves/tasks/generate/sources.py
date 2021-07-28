@@ -69,8 +69,8 @@ class GenerateSourcesTask(BaseConfiguredTask):
 
         schema_selectors = []
         for schema_name in schema_names:
-            if re.search(".*\*.*", schema_name):
-                schema_selectors.append("\\b"+schema_name.replace("*", ".*")+"\\b")
+            if "*" in schema_name:
+                schema_selectors.append(schema_name.replace("*", ".*"))
         with self.adapter.connection_named("master"):
             schemas = [
                 schema.upper()
@@ -104,11 +104,10 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     return 0
 
             rel_names = [relation.upper() for relation in self.get_config_value("relations")]
-            console.print(self.get_config_value("relations"))
             rel_selectors = []
             for rel_name in rel_names:
-                if re.search(".*\*.*", rel_name):
-                    rel_selectors.append("\\b"+rel_name.replace("*", ".*")+"\\b")
+                if "*" in rel_name:
+                    rel_selectors.append(rel_name.replace("*", ".*"))
             rels = []
             for schema in filtered_schemas:
                 tmp_rels = self.adapter.list_relations(db, schema)
