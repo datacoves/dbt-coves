@@ -20,7 +20,7 @@ RUN printf "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/s
 
 # Install dbt and dbt-coves
 RUN pip install -U pip && \
-    pip install dbt-coves==0.19.2-a.10
+    pip install dbt-coves==0.19.2-a.11
 
 ENV PYTHONIOENCODING=utf-8
 ENV LANG C.UTF-8
