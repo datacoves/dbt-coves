@@ -65,12 +65,12 @@ class GenerateSourcesTask(BaseConfiguredTask):
 
     def run(self):
         db = self.config.credentials.database
-        schema_names = [schema.upper() for schema in self.get_config_value("schemas")]
+        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
 
-        schema_selectors = []
-        for schema_name in schema_names:
+        schema_wildcard_selectors = []
+        for schema_name in schema_name_selectors:
             if "*" in schema_name:
-                schema_selectors.append(schema_name.replace("*", ".*"))
+                schema_wildcard_selectors.append(schema_name.replace("*", ".*"))
         with self.adapter.connection_named("master"):
             schemas = [
                 schema.upper()
@@ -80,16 +80,16 @@ class GenerateSourcesTask(BaseConfiguredTask):
             ]
 
             for schema in schemas:
-                for selector in schema_selectors:
+                for selector in schema_wildcard_selectors:
                     if re.search(selector, schema):
-                        schema_names.append(schema)
+                        schema_name_selectors.append(schema)
                         break
         
-            filtered_schemas = list(set(schemas).intersection(schema_names))
+            filtered_schemas = list(set(schemas).intersection(schema_name_selectors))
             if not filtered_schemas:
-                schema_nlg = f"schema{'s' if len(schema_names) > 1 else ''}"
+                schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
                 console.print(
-                    f"Provided {schema_nlg} [u]{', '.join(schema_names)}[/u] not found in Database.\n"
+                    f"Provided {schema_nlg} [u]{', '.join(schema_name_selectors)}[/u] not found in Database.\n"
                 )
                 selected_schemas = questionary.checkbox(
                     "Which schemas would you like to inspect?",
@@ -103,22 +103,24 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 else:
                     return 0
 
-            rel_names = [relation.upper() for relation in self.get_config_value("relations")]
-            rel_selectors = []
-            for rel_name in rel_names:
+            rel_name_selectors = [relation.upper() for relation in self.get_config_value("relations")]
+            rel_wildcard_selectors = []
+            for rel_name in rel_name_selectors:
                 if "*" in rel_name:
-                    rel_selectors.append(rel_name.replace("*", ".*"))
-            rels = []
+                    rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
+
+            listed_relations = []
             for schema in filtered_schemas:
-                tmp_rels = self.adapter.list_relations(db, schema)
-                if rel_selectors:
-                    for rel in tmp_rels:
-                        for selector in rel_selectors:
-                            if re.search(selector, rel.name):
-                                rels.append(rel)
-                                break
-                else:
-                    rels += tmp_rels
+                listed_relations += self.adapter.list_relations(db, schema)
+        
+            for rel in listed_relations:
+                for selector in rel_wildcard_selectors:
+                    if re.search(selector, rel.name):
+                        rel_name_selectors.append(rel.name)
+                        break
+
+            intersected_rels = [relation for relation in listed_relations if relation.name in rel_name_selectors]
+            rels = intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
     
             if rels:
                 selected_rels = questionary.checkbox(
