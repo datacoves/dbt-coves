@@ -1,4 +1,15 @@
-## dbt-coves [0.19.3-a.11] - 2021-07-28
+## dbt-coves [0.20.0-a.2] - 2021-08-06
+### Features
+
+
+- [#16](https://github.com/datacoves/dbt-coves/issues/16) Select which schemas to inspect when generating sources, i.e. `dbt-coves generate sources --shemas=RAW_*`.
+
+  Select which relations to inspect as well by running i.e. `dbt-coves generate sources --relations=S*RC_*`.
+
+  Both `schemas` and `relations` selectors can be combined in the same run.
+
+
+## dbt-coves [0.20.0-a.1] - 2021-07-28
 ### Bug Fixes
 
 
