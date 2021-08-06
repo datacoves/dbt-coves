@@ -29,6 +29,7 @@ class DbtCovesFlags:
         self.verbose: bool = False
         self.generate = {
             "sources": {
+                "relations": [],
                 "schemas": [],
                 "destination": None,
                 "model_props_strategy": None,
@@ -69,6 +70,10 @@ class DbtCovesFlags:
                 if self.args.schemas:
                     self.generate["sources"]["schemas"] = [
                         schema.strip() for schema in self.args.schemas.split(",")
+                    ]
+                if self.args.relations:
+                    self.generate["sources"]["relations"] = [
+                        relation.strip() for relation in self.args.relations.split(",")
                     ]
                 if self.args.destination:
                     self.generate["sources"]["destination"] = self.args.destination

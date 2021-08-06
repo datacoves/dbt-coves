@@ -1,5 +1,6 @@
 import json
 from pathlib import Path
+import re
 
 import questionary
 from questionary import Choice
@@ -36,6 +37,12 @@ class GenerateSourcesTask(BaseConfiguredTask):
                  "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
+            "--relations",
+            type=str,
+            help="Comma separated list of relations where raw data resides, "
+                 "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
+        )
+        subparser.add_argument(
             "--destination",
             type=str,
             help="Where models sql files will be generated, i.e. "
@@ -58,8 +65,12 @@ class GenerateSourcesTask(BaseConfiguredTask):
 
     def run(self):
         db = self.config.credentials.database
-        schema_names = [schema.upper() for schema in self.get_config_value("schemas")]
+        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
 
+        schema_wildcard_selectors = []
+        for schema_name in schema_name_selectors:
+            if "*" in schema_name:
+                schema_wildcard_selectors.append(schema_name.replace("*", ".*"))
         with self.adapter.connection_named("master"):
             schemas = [
                 schema.upper()
@@ -67,11 +78,18 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 # TODO: fix this for different adapters
                 if schema != "INFORMATION_SCHEMA"
             ]
-            filtered_schemas = list(set(schemas).intersection(schema_names))
+
+            for schema in schemas:
+                for selector in schema_wildcard_selectors:
+                    if re.search(selector, schema):
+                        schema_name_selectors.append(schema)
+                        break
+        
+            filtered_schemas = list(set(schemas).intersection(schema_name_selectors))
             if not filtered_schemas:
-                schema_nlg = f"schema{'s' if len(schema_names) > 1 else ''}"
+                schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
                 console.print(
-                    f"Provided {schema_nlg} [u]{', '.join(schema_names)}[/u] not found in Database.\n"
+                    f"Provided {schema_nlg} [u]{', '.join(schema_name_selectors)}[/u] not found in Database.\n"
                 )
                 selected_schemas = questionary.checkbox(
                     "Which schemas would you like to inspect?",
@@ -84,10 +102,26 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     filtered_schemas = selected_schemas
                 else:
                     return 0
-            rels = []
-            for schema in filtered_schemas:
-                rels += self.adapter.list_relations(db, schema)
 
+            rel_name_selectors = [relation.upper() for relation in self.get_config_value("relations")]
+            rel_wildcard_selectors = []
+            for rel_name in rel_name_selectors:
+                if "*" in rel_name:
+                    rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
+
+            listed_relations = []
+            for schema in filtered_schemas:
+                listed_relations += self.adapter.list_relations(db, schema)
+        
+            for rel in listed_relations:
+                for selector in rel_wildcard_selectors:
+                    if re.search(selector, rel.name):
+                        rel_name_selectors.append(rel.name)
+                        break
+
+            intersected_rels = [relation for relation in listed_relations if relation.name in rel_name_selectors]
+            rels = intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
+    
             if rels:
                 selected_rels = questionary.checkbox(
                     "Which sources would you like to generate?",

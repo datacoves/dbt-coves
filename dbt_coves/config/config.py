@@ -12,6 +12,7 @@ from dbt_coves.utils.yaml import open_yaml
 
 
 class GenerateSourcesModel(BaseModel):
+    relations: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = ["raw"]
     destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
     model_props_strategy: Optional[str] = "one_file_per_model"
@@ -31,6 +32,7 @@ class DbtCovesConfig:
 
     DBT_COVES_CONFIG_FILENAME = ".dbt_coves.yml"
     CLI_OVERRIDE_FLAGS = [
+        "generate.sources.relations",
         "generate.sources.schemas",
         "generate.sources.destination",
         "generate.sources.model_props_strategy",
