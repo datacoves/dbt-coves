@@ -2,6 +2,8 @@ ARG BASE_IMAGE="python:3.8-slim-buster"
 
 FROM $BASE_IMAGE
 ARG DIST_PATH
+ARG DBT_VERSION
+ARG DBT_COVES_VERSION
 
 RUN printf "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/sources.list.d/backports_git.list && \
     apt-get update \
@@ -20,7 +22,8 @@ RUN printf "deb http://deb.debian.org/debian buster-backports main" > /etc/apt/s
 
 # Install dbt and dbt-coves
 RUN pip install -U pip && \
-    pip install dbt-coves==0.20.0-a.3
+    pip install dbt==$DBT_VERSION && \
+    pip install dbt-coves==$DBT_COVES_VERSION
 
 ENV PYTHONIOENCODING=utf-8
 ENV LANG C.UTF-8
