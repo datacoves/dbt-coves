@@ -1,3 +1,10 @@
+## dbt-coves [0.20.0-a.3] - 2021-08-16
+### Bug Fixes
+
+
+- [#31](https://github.com/datacoves/dbt-coves/issues/31) Pre-commit rule didn't pass, but shows as passed on CI job
+
+
 ## dbt-coves [0.20.0-a.2] - 2021-08-06
 ### Features
 
@@ -15,7 +22,6 @@
 
 - [#5](https://github.com/datacoves/dbt-coves/issues/5) Generate source throws exception when VARIANT contains no json.
   
-
 
 ### Features
 

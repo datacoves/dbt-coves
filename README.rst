@@ -302,8 +302,7 @@ Initializes a new dbt project using predefined conventions.
 
 ::
 
-   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
-                  [--template TEMPLATE] [--current-dir]
+   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--template TEMPLATE] [--current-dir]
 
 
 Named Arguments
@@ -371,9 +370,7 @@ Generates sources and models with defaults.
 
 ::
 
-   dbt_coves generate [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
-                      [--vars VARS]
-                      {sources} ...
+   dbt_coves generate [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] {sources} ...
 
 
 Named Arguments
@@ -443,9 +440,8 @@ relations.
 
 ::
 
-   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
-                              [--vars VARS] [--schemas SCHEMAS] [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY]
-                              [--templates_folder TEMPLATES_FOLDER]
+   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--schemas SCHEMAS]
+                              [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER]
 
 
 Named Arguments
@@ -527,8 +523,7 @@ Runs pre-commit hooks and linters.
 
 ::
 
-   dbt_coves check [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
-                   [--no-fix]
+   dbt_coves check [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--no-fix]
 
 
 Named Arguments

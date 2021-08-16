@@ -31,7 +31,9 @@ class CheckTask(BaseConfiguredTask):
     def run(self) -> int:
         console.print("Running pre-commit hooks on staged and commmitted git files...\n")
 
-        shell_run(["pre-commit", "run", "-a"])
+        command = shell_run(["pre-commit", "run", "-a"])
+        if command.returncode != 0:
+            return command.returncode
 
         for source_path in self.config.source_paths:
             console.print(f"Linting files in [u]{source_path}[/u]...\n")

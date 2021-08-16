@@ -29,6 +29,5 @@ class FixTask(BaseConfiguredTask):
     def run(self) -> int:
         for source_path in self.config.source_paths:
             console.print(f"Trying to auto-fix linting errors in [u]{source_path}[/u]...\n")
-            task = fix(source_path)
-
+            fix(source_path)
         return 0
