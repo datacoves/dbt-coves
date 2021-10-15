@@ -1,7 +1,4 @@
-## dbt-coves [0.21.0-a.1] - 2021-10-15No significant changes.
-
-
-## dbt-coves [0.21.0-a.1] - 2021-10-15
+## dbt-coves [0.21.0-a.2] - 2021-10-15
 
 ### Features
 

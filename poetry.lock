@@ -1888,7 +1888,7 @@ test = ["pytest"]
 
 [[package]]
 name = "sqlfluff"
-version = "0.6.9"
+version = "0.7.0"
 description = "The SQL Linter for Humans"
 category = "main"
 optional = false
@@ -1908,9 +1908,6 @@ pytest = "*"
 tblib = "*"
 toml = "*"
 typing-extensions = "*"
-
-[package.extras]
-dbt = ["dbt (>=0.17)"]
 
 [[package]]
 name = "sqlparse"
@@ -2124,7 +2121,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.9"
-content-hash = "2ef18b596ea551428e9432598fe36723ddef72db32034247d94613eafb348373"
+content-hash = "5e804630dd4cf1fa7c7e6536585fc9439d805f17ccf8b6f6b0dd5617f31da908"
 
 [metadata.files]
 agate = [
@@ -3262,8 +3259,8 @@ sphinxcontrib-serializinghtml = [
     {file = "sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl", hash = "sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd"},
 ]
 sqlfluff = [
-    {file = "sqlfluff-0.6.9-py3-none-any.whl", hash = "sha256:570737a1d3f5571607ea78f18716d9a5e4f6e601108c3b8898fff646f0c9ef8f"},
-    {file = "sqlfluff-0.6.9.tar.gz", hash = "sha256:799f9d801f4cfb6b7214c1d6af9c5fcf79f8e3de778094d540afa488bc3e1fd1"},
+    {file = "sqlfluff-0.7.0-py3-none-any.whl", hash = "sha256:16ca4b17e980628e61a6001b7667a201e90da70360ae0e7190cebab839bd6c80"},
+    {file = "sqlfluff-0.7.0.tar.gz", hash = "sha256:64d86cf961e030aee1330a926f908e2efb96b4ce65e91a9e94da35129455b770"},
 ]
 sqlparse = [
     {file = "sqlparse-0.4.2-py3-none-any.whl", hash = "sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d"},
