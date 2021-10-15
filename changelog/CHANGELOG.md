@@ -1,13 +1,21 @@
-## dbt-coves [0.20.0-a.3] - 2021-08-16
-### Bug Fixes
+## dbt-coves [0.21.0-a.1] - 2021-10-15No significant changes.
 
+
+## dbt-coves [0.21.0-a.1] - 2021-10-15
+
+### Features
+
+- [#68](https://github.com/datacoves/dbt-coves/issues/68) Support dbt 0.21.0
+
+## dbt-coves [0.20.0-a.3] - 2021-08-16
+
+### Bug Fixes
 
 - [#31](https://github.com/datacoves/dbt-coves/issues/31) Pre-commit rule didn't pass, but shows as passed on CI job
 
-
 ## dbt-coves [0.20.0-a.2] - 2021-08-06
-### Features
 
+### Features
 
 - [#16](https://github.com/datacoves/dbt-coves/issues/16) Select which schemas to inspect when generating sources, i.e. `dbt-coves generate sources --shemas=RAW_*`.
 
@@ -15,16 +23,13 @@
 
   Both `schemas` and `relations` selectors can be combined in the same run.
 
-
 ## dbt-coves [0.20.0-a.1] - 2021-07-28
+
 ### Bug Fixes
 
-
 - [#5](https://github.com/datacoves/dbt-coves/issues/5) Generate source throws exception when VARIANT contains no json.
-  
 
 ### Features
-
 
 - [#24](https://github.com/datacoves/dbt-coves/issues/24) When initializing a new dbt project, it's good to create every file in the current folder instead of on a new one.
   By passing the argument --current-dir, the initialization will happen in the current directory.

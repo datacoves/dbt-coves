@@ -62,11 +62,13 @@ Supported dbt versions
      - Status
    * - 0.17.0
      - ❌ Not supported
-   * - 0.18.2
+   * - 0.18.x
      - ✅ Tested
-   * - 0.19.1
+   * - 0.19.x
      - ✅ Tested
-   * - 0.20.0
+   * - 0.20.x
+     - ✅ Tested
+   * - 0.21.x
      - 🕥 In progress
 
 Supported adapters

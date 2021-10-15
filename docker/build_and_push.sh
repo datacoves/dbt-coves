@@ -2,13 +2,13 @@
 
 if [ -z "$1" ]
   then
-    echo "No dbt version supplied, i.e. 0.19.2"
+    echo "No dbt version supplied, i.e. 0.21.0"
     exit 1
 fi
 
 if [ -z "$2" ]
   then
-    echo "No dbt-coves version supplied, i.e. 0.20.0a3"
+    echo "No dbt-coves version supplied, i.e. 0.21.0a1"
     exit 1
 fi
 
