@@ -41,7 +41,7 @@ cookiecutter = "^1.7.3"
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
 pytest-cov = "^2.12.1"
-mypy = "^0.901"
+mypy = "^0.910"
 towncrier = "^21.3.0"
 pytest-mock = "^3.6.1"
 pytest-sugar = "^0.9.4"
@@ -52,7 +52,7 @@ asciinema = "^2.0.2"
 pytest-dictsdiff = "^0.5.8"
 black = "^21.5b1"
 ipdb = "^0.13.9"
-sphinx-argparse = "^0.2.5"
+sphinx-argparse = "^0.3.1"
 sphinxcontrib-restbuilder = "^0.3"
 
 [build-system]
