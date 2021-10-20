@@ -5,43 +5,20 @@ from rich.logging import RichHandler
 
 
 class Logger:
-    def __init__(
-        self,
-        log_file_path: Path = Path(Path.cwd(), "logs"),
-        log_to_console: bool = True,
-    ):
-
-        Path(log_file_path).mkdir(parents=True, exist_ok=True)
-
-        filename = Path(log_file_path, "dbt_coves.log")
+    def __init__(self):
         logger = logging.getLogger("dbt-coves logger")
-
         logger.setLevel(logging.INFO)
 
-        # Handlers
-        handler = logging.FileHandler(filename)
-        handler.setLevel(logging.INFO)
-
-        # Formatters
-        format = logging.Formatter(
-            "%(asctime)s - %(name)s - %(levelname)s - %(funcName)s - %(message)s"
+        c_handler = RichHandler(
+            rich_tracebacks=True,
+            show_level=False,
+            markup=True,
+            enable_link_path=False,
+            show_path=False,
         )
 
-        handler.setFormatter(format)
-
-        # Add handlers
-        logger.addHandler(handler)
-
-        if log_to_console:
-            c_handler = RichHandler(
-                rich_tracebacks=True,
-                show_level=False,
-                markup=True,
-                enable_link_path=False,
-                show_path=False,
-            )
-            c_handler.setLevel(logging.INFO)
-            logger.addHandler(c_handler)
+        c_handler.setLevel(logging.INFO)
+        logger.addHandler(c_handler)
 
         self.logger = logger
         self.format = format

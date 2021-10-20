@@ -30,7 +30,7 @@ class ConfigModel(BaseModel):
 class DbtCovesConfig:
     """dbt-coves configuration class."""
 
-    DBT_COVES_CONFIG_FILENAME = ".dbt_coves.yml"
+    DBT_COVES_CONFIG_FILENAMES = [".dbt_coves.yml", ".dbt_coves/config.yml"]
     CLI_OVERRIDE_FLAGS = [
         "generate.sources.relations",
         "generate.sources.schemas",
@@ -79,14 +79,15 @@ class DbtCovesConfig:
         dbt_project = Path().joinpath("dbt_project.yml")
         if dbt_project.exists():
             if self._config_path == Path(str()):
-                logger.debug("Trying to find .dbt_coves file in current folder")
+                logger.debug("Trying to find .dbt_coves in current folder")
 
-                filename = Path().joinpath(self.DBT_COVES_CONFIG_FILENAME)
-                if filename.exists():
-                    coves_config_dir = filename
-                    logger.debug(f"{coves_config_dir} exists and was retreived.")
-                    self._config_path = coves_config_dir
-                    self._config_file_found_nearby = True
+                for tentative_path in self.DBT_COVES_CONFIG_FILENAME:
+                    config_path = Path().joinpath(tentative_path)
+                    if config_path.exists():
+                        coves_config_dir = config_path
+                        logger.debug(f"{coves_config_dir} exists and was retreived.")
+                        self._config_path = coves_config_dir
+                        break
         else:
             raise MissingDbtProject()
 
@@ -97,3 +98,13 @@ class DbtCovesConfig:
             logger.debug(f"Config model dict: {self._config.dict()}")
         except FileNotFoundError:
             logger.debug("Config file not found")
+
+    @classmethod
+    def get_config_folder(cls, workspace_path=None, mandatory=True):
+        if not workspace_path:
+            workspace_path = Path.cwd()
+        config_folders = [path for path in Path(workspace_path).rglob("**/.dbt_coves/")]
+        if mandatory and not config_folders:
+            raise Exception("No .dbt_coves folder found in workspace")
+        else:
+            return config_folders[0]

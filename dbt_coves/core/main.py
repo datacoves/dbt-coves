@@ -13,6 +13,7 @@ from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
 from dbt_coves.tasks.base import BaseTask
 from dbt_coves.tasks.check import CheckTask
 from dbt_coves.tasks.fix import FixTask
+from dbt_coves.tasks.setup import SetupTask
 from dbt_coves.tasks.generate.main import GenerateTask
 from dbt_coves.tasks.init import InitTask
 from dbt_coves.ui.traceback import DbtCovesTraceback
@@ -51,7 +52,8 @@ base_subparser.add_argument(
 )
 
 base_subparser.add_argument(
-    "--config-path", help="Full path to .dbt_coves.yml file if not using default. Default is current working directory."
+    "--config-path",
+    help="Full path to .dbt_coves.yml file if not using default. Default is current working directory.",
 )
 
 base_subparser.add_argument(
@@ -66,7 +68,7 @@ base_subparser.add_argument(
     "--profiles-dir",
     default=PROFILES_DIR,
     type=str,
-    help="Which directory to look in for the profiles.yml file."
+    help="Which directory to look in for the profiles.yml file.",
 )
 
 base_subparser.add_argument(
@@ -89,7 +91,7 @@ base_subparser.add_argument(
     type=str,
     default="{}",
     help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
-        " string, eg. '{my_variable: my_value}'",
+    " string, eg. '{my_variable: my_value}'",
 )
 
 
@@ -98,7 +100,7 @@ sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 # Register subcommands
 [
     task.register_parser(sub_parsers, base_subparser)
-    for task in [InitTask, GenerateTask, CheckTask, FixTask]
+    for task in [InitTask, GenerateTask, CheckTask, FixTask, SetupTask]
 ]
 
 
@@ -126,7 +128,9 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
-def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
+def main(
+    parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()
+) -> int:
     tracking.do_not_track()
 
     exit_code = 0
@@ -137,8 +141,12 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         # app logo
         logo_str = str(pyfiglet.figlet_format("dbt-coves", font="standard"))
         console.print(logo_str, style="cyan")
-        dbt_version = version.get_installed_version().to_version_string(skip_matcher=True)
-        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23))
+        dbt_version = version.get_installed_version().to_version_string(
+            skip_matcher=True
+        )
+        console.print(
+            f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23)
+        )
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore
@@ -151,7 +159,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         )
     except Exception as ex:
         logger.debug(ex)
-        console.print(ex)
+        console.print(f"[red]:cross_mark:[/red] {ex}")
 
     if exit_code > 0:
         logger.error("[red]The process did not complete successfully.")
