@@ -274,7 +274,7 @@ CLI tool for dbt users applying analytics engineering best practices.
 
 ::
 
-   usage: dbt_coves [-h] [-v] {init,generate,check,fix} ...
+   usage: dbt_coves [-h] [-v] {init,generate,check,fix,setup} ...
 
 
 Named Arguments
@@ -290,7 +290,7 @@ dbt-coves commands
 
 task
 
-Possible choices: init, generate, check, fix
+Possible choices: init, generate, check, fix, setup
 
 
 Sub-commands:
@@ -442,8 +442,8 @@ relations.
 
 ::
 
-   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--schemas SCHEMAS]
-                              [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER]
+   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--database DATABASE]
+                              [--schemas SCHEMAS] [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER]
 
 
 Named Arguments
@@ -491,6 +491,10 @@ Supply variables to your dbt_project.yml file. This argument should be
 a YAML string, eg. ‘{my_variable: my_value}’
 
 Default: “{}”
+
+--database
+
+Database where source relations live, if different than target
 
 --schemas
 
@@ -590,6 +594,63 @@ Runs linter fixes.
 ::
 
    dbt_coves fix [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
+
+
+Named Arguments
+~~~~~~~~~~~~~~~
+
+--log-level
+
+overrides default log level
+
+Default: “”
+
+-vv, --verbose
+
+When provided the length of the tracebacks will not be truncated.
+
+Default: False
+
+--config-path
+
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
+
+--project-dir
+
+Which directory to look in for the dbt_project.yml file. Default is
+the current working directory and its parents.
+
+--profiles-dir
+
+Which directory to look in for the profiles.yml file.
+
+Default: “~/.dbt”
+
+--profile
+
+Which profile to load. Overrides setting in dbt_project.yml.
+
+-t, --target
+
+Which target to load for the given profile
+
+--vars
+
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
+
+Default: “{}”
+
+
+setup
+-----
+
+Sets up SSH keys, git repo, and db connections.
+
+::
+
+   dbt_coves setup [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
 
 
 Named Arguments
