@@ -13,16 +13,17 @@ console = Console()
 
 
 NESTED_FIELD_TYPES = {
-    'SnowflakeAdapter': 'VARIANT',
-    'BigQueryAdapter': 'STRUCT',
-    'RedshiftAdapter': 'SUPER'
+    "SnowflakeAdapter": "VARIANT",
+    "BigQueryAdapter": "STRUCT",
+    "RedshiftAdapter": "SUPER",
 }
+
 
 class GenerateSourcesTask(BaseConfiguredTask):
     """
     Task that generate sources, models and model properties automatically
     """
-    
+
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
@@ -31,41 +32,49 @@ class GenerateSourcesTask(BaseConfiguredTask):
             help="Generate source dbt models by inspecting the database schemas and relations.",
         )
         subparser.add_argument(
+            "--database",
+            type=str,
+            help="Database where source relations live, if different than target",
+        )
+        subparser.add_argument(
             "--schemas",
             type=str,
             help="Comma separated list of schemas where raw data resides, "
-                 "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
+            "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
             "--relations",
             type=str,
             help="Comma separated list of relations where raw data resides, "
-                 "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
+            "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
         )
         subparser.add_argument(
             "--destination",
             type=str,
             help="Where models sql files will be generated, i.e. "
-                 "'models/{schema_name}/{relation_name}.sql'",
+            "'models/{schema_name}/{relation_name}.sql'",
         )
         subparser.add_argument(
             "--model_props_strategy",
             type=str,
             help="Strategy for model properties files generation,"
-                 " i.e. 'one_file_per_model'",
+            " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
             "--templates_folder",
             type=str,
             help="Folder with jinja templates that override default "
-                 "sources generation templates, i.e. 'templates'",
+            "sources generation templates, i.e. 'templates'",
         )
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
 
     def run(self):
-        db = self.config.credentials.database
-        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
+        config_database = self.get_config_value("database")
+        db = config_database or self.config.credentials.database
+        schema_name_selectors = [
+            schema.upper() for schema in self.get_config_value("schemas")
+        ]
 
         schema_wildcard_selectors = []
         for schema_name in schema_name_selectors:
@@ -84,7 +93,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     if re.search(selector, schema):
                         schema_name_selectors.append(schema)
                         break
-        
+
             filtered_schemas = list(set(schemas).intersection(schema_name_selectors))
             if not filtered_schemas:
                 schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
@@ -94,7 +103,9 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 selected_schemas = questionary.checkbox(
                     "Which schemas would you like to inspect?",
                     choices=[
-                        Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
+                        Choice(schema, checked=True)
+                        if "RAW" in schema
+                        else Choice(schema)
                         for schema in schemas
                     ],
                 ).ask()
@@ -103,7 +114,9 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 else:
                     return 0
 
-            rel_name_selectors = [relation.upper() for relation in self.get_config_value("relations")]
+            rel_name_selectors = [
+                relation.upper() for relation in self.get_config_value("relations")
+            ]
             rel_wildcard_selectors = []
             for rel_name in rel_name_selectors:
                 if "*" in rel_name:
@@ -112,16 +125,24 @@ class GenerateSourcesTask(BaseConfiguredTask):
             listed_relations = []
             for schema in filtered_schemas:
                 listed_relations += self.adapter.list_relations(db, schema)
-        
+
             for rel in listed_relations:
                 for selector in rel_wildcard_selectors:
                     if re.search(selector, rel.name):
                         rel_name_selectors.append(rel.name)
                         break
 
-            intersected_rels = [relation for relation in listed_relations if relation.name in rel_name_selectors]
-            rels = intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
-    
+            intersected_rels = [
+                relation
+                for relation in listed_relations
+                if relation.name in rel_name_selectors
+            ]
+            rels = (
+                intersected_rels
+                if rel_name_selectors and rel_name_selectors[0]
+                else listed_relations
+            )
+
             if rels:
                 selected_rels = questionary.checkbox(
                     "Which sources would you like to generate?",
@@ -231,16 +252,21 @@ class GenerateSourcesTask(BaseConfiguredTask):
             "relation": relation,
             "columns": columns,
             "nested": {},
-            "adapter_name": self.adapter.__class__.__name__
+            "adapter_name": self.adapter.__class__.__name__,
         }
         if nested:
-            context["nested"] = self.get_nested_keys(nested, relation.schema, relation.name)
+            context["nested"] = self.get_nested_keys(
+                nested, relation.schema, relation.name
+            )
             # Removing original column with JSON data
             new_cols = []
             for col in columns:
                 if col.name.lower() not in context["nested"]:
                     new_cols.append(col)
             context["columns"] = new_cols
+        config_db = self.get_config_value("database")
+        if config_db:
+            context["source_database"] = config_db
 
         render_template_file("source_model.sql", context, destination)
         context["model"] = destination.name.lower().replace(".sql", "")

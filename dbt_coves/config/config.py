@@ -12,11 +12,12 @@ from dbt_coves.utils.yaml import open_yaml
 
 
 class GenerateSourcesModel(BaseModel):
+    database: Optional[str] = ""
     relations: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = ["raw"]
     destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
     model_props_strategy: Optional[str] = "one_file_per_model"
-    templates_folder: Optional[str] = "templates"
+    templates_folder: Optional[str] = ".dbt_coves/templates"
 
 
 class GenerateModel(BaseModel):
@@ -33,6 +34,7 @@ class DbtCovesConfig:
     DBT_COVES_CONFIG_FILENAMES = [".dbt_coves.yml", ".dbt_coves/config.yml"]
     CLI_OVERRIDE_FLAGS = [
         "generate.sources.relations",
+        "generate.sources.database",
         "generate.sources.schemas",
         "generate.sources.destination",
         "generate.sources.model_props_strategy",
@@ -81,7 +83,7 @@ class DbtCovesConfig:
             if self._config_path == Path(str()):
                 logger.debug("Trying to find .dbt_coves in current folder")
 
-                for tentative_path in self.DBT_COVES_CONFIG_FILENAME:
+                for tentative_path in self.DBT_COVES_CONFIG_FILENAMES:
                     config_path = Path().joinpath(tentative_path)
                     if config_path.exists():
                         coves_config_dir = config_path

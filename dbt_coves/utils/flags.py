@@ -30,13 +30,17 @@ class DbtCovesFlags:
         self.generate = {
             "sources": {
                 "relations": [],
+                "database": None,
                 "schemas": [],
                 "destination": None,
                 "model_props_strategy": None,
                 "templates_folder": None,
             }
         }
-        self.init = {"template": "https://github.com/datacoves/cookiecutter-dbt.git", "current-dir": False}
+        self.init = {
+            "template": "https://github.com/datacoves/cookiecutter-dbt.git",
+            "current-dir": False,
+        }
         self.check = {"no-fix": False}
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
@@ -71,6 +75,8 @@ class DbtCovesFlags:
                     self.generate["sources"]["schemas"] = [
                         schema.strip() for schema in self.args.schemas.split(",")
                     ]
+                if self.args.database:
+                    self.generate["sources"]["database"] = self.args.database
                 if self.args.relations:
                     self.generate["sources"]["relations"] = [
                         relation.strip() for relation in self.args.relations.split(",")
@@ -82,7 +88,9 @@ class DbtCovesFlags:
                         "model_props_strategy"
                     ] = self.args.model_props_strategy
                 if self.args.templates_folder:
-                    self.generate["sources"]["templates_folder"] = self.args.templates_folder
+                    self.generate["sources"][
+                        "templates_folder"
+                    ] = self.args.templates_folder
 
             if self.task == "init":
                 if self.args.template:

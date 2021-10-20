@@ -2,6 +2,9 @@ version: 2
 
 sources:
   - name: {{ relation.schema.lower() }}
+{%- if source_database %}
+    database: {{ source_database }}
+{%- endif %}
     schema: {{ relation.schema.lower() }}
     tables:
       - name: {{ relation.name.lower() }}
@@ -10,11 +13,11 @@ sources:
 models:
   - name: {{ model.lower() }}
     columns:
-{%- for col in columns %}
-      - name: {{ col.name.lower() }}
-{%- endfor %}
 {%- for cols in nested.values() %}
   {%- for col in cols %}
-      - name: {{ col }}
+      - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
   {%- endfor %}
+{%- endfor %}
+{%- for col in columns %}
+      - name: {{ col.name.lower() }}
 {%- endfor %}
