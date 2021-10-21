@@ -38,18 +38,18 @@ class SetupTask(BaseTask):
         Env vars that can be set: USER_FULLNAME, USER_EMAIL, WORKSPACE_PATH, GIT_REPO_URL, DBT_PROFILES_DIR
         """
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
+        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
 
         self.ssh_key()
         self.git_config()
         self.git_clone(workspace_path)
-        context = self.dbt_profiles(workspace_path)
-        self.dbt_debug(workspace_path)
-        self.vs_code(workspace_path, context)
+        context = self.dbt_profiles(config_folder)
+        self.dbt_debug(config_folder)
+        self.vs_code(workspace_path, config_folder, context)
 
         return 0
 
-    def vs_code(self, workspace_path, prev_context):
-        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+    def vs_code(self, workspace_path, config_folder, prev_context):
         template_path = Path(config_folder, "templates", "settings.json")
         if not template_path.exists():
             return
@@ -88,10 +88,10 @@ class SetupTask(BaseTask):
                 f"[green]:heavy_check_mark: vs code settings successfully generated in {code_local_path}."
             )
 
-    def dbt_debug(self, workspace_path):
+    def dbt_debug(self, config_folder):
         debug_status = "[red]FAIL[/red]"
         console.print("\n")
-        output = run(["dbt", "debug"], cwd=workspace_path)
+        output = run(["dbt", "debug"], cwd=config_folder.parent)
         if output.returncode is 0:
             debug_status = "[green]SUCCESS :heavy_check_mark:[/green]"
         self.print_row(
@@ -102,7 +102,7 @@ class SetupTask(BaseTask):
         if output.returncode > 0:
             raise Exception("dbt debug error. Check logs.")
 
-    def dbt_profiles(self, workspace_path):
+    def dbt_profiles(self, config_folder):
         profiles_status = "[red]MISSING[/red]"
         default_dbt_path = Path("~/.dbt").expanduser()
         dbt_path = os.environ.get("DBT_PROFILES_DIR", default_dbt_path)
@@ -119,7 +119,6 @@ class SetupTask(BaseTask):
         if profiles_exists:
             return None
 
-        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
         template_path = Path(config_folder, "templates", "profiles.yml")
         try:
             template_text = open(template_path, "r").read()
