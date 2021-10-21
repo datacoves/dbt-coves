@@ -7,7 +7,9 @@ from jinja2 import (
 )
 
 
-def render_template_file(name, context, output_path, templates_folder="templates"):
+def render_template_file(
+    name, context, output_path, templates_folder=".dbt_coves/templates"
+):
     env = Environment(
         loader=ChoiceLoader(
             [FileSystemLoader(templates_folder), PackageLoader("dbt_coves")]

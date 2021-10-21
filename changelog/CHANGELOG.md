@@ -1,3 +1,10 @@
+## dbt-coves [0.21.0-a.4] - 2021-10-21
+
+### Features
+
+- [#70](https://github.com/datacoves/dbt-coves/issues/70) Generate sources from tables/views located on a different database
+- New dbt-coves setup command that helps set up development environment
+
 ## dbt-coves [0.21.0-a.2] - 2021-10-15
 
 ### Features

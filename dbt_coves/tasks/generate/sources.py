@@ -268,8 +268,14 @@ class GenerateSourcesTask(BaseConfiguredTask):
         if config_db:
             context["source_database"] = config_db
 
-        render_template_file("source_model.sql", context, destination)
+        templates_folder = self.get_config_value("templates_folder")
+        render_template_file(
+            "source_model.sql", context, destination, templates_folder=templates_folder
+        )
         context["model"] = destination.name.lower().replace(".sql", "")
         render_template_file(
-            "source_model_props.yml", context, str(destination).replace(".sql", ".yml")
+            "source_model_props.yml",
+            context,
+            str(destination).replace(".sql", ".yml"),
+            templates_folder=templates_folder,
         )

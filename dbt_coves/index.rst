@@ -48,10 +48,20 @@ Runs a set of checks in your local environment to ensure high code quality.
 
 Checks can be extended by implementing `pre-commit hooks <https://pre-commit.com/#creating-new-hooks>`_.
 
+Environment setup
+-----------------
+
+.. code-block:: console
+
+   dbt-coves setup
+
+Runs a set of checks in your local environment and helps you configure it properly: ssh key, git, dbt profiles.yml, vscode extensions.
+
+
 Settings
 ========
 
-Dbt-coves could optionally read settings from ``.dbt_coves.yml``. A standard settings files could looke like this:
+Dbt-coves could optionally read settings from ``.dbt_coves.yml`` or ``.dbt_coves/config.yml``. A standard settings files could looke like this:
 
 .. code-block:: yaml
 
@@ -61,7 +71,7 @@ Dbt-coves could optionally read settings from ``.dbt_coves.yml``. A standard set
          - RAW
        destination: "models/sources/{{ schema }}/{{ relation }}.sql"
        model_props_strategy: one_file_per_model
-       templates_folder: "templates"
+       templates_folder: ".dbt_coves/templates"
 
 In this example options for the ``generate`` command are provided:
 
@@ -83,69 +93,72 @@ source_model.sql
 
 .. code-block:: sql
 
-   with raw_source as (
+    with raw_source as (
 
-       select * from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
+        select * from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
 
-   ),
+    ),
 
-   final as (
+    final as (
 
-       select
-   {%- for col in columns %}
-           {{ col.name.lower() }}{% if not loop.last or nested %},{% endif %}
-   {%- endfor %}
-   {%- if adapter_name == 'SnowflakeAdapter' %}
-   {%- for key, cols in nested.items() %}
-     {%- for col in cols %}
-           {{ key }}:{{ col.lower() }}::varchar as {{ col.lower() }}{% if not loop.last %},{% endif %}
-     {%- endfor %}
-   {%- endfor %}
-   {%- elif adapter_name == 'BigQueryAdapter' %}
-   {%- for key, cols in nested.items() %}
-     {%- for col in cols %}
-           cast({{ key }}.{{ col.lower() }} as string) as {{ col.lower() }}{% if not loop.last %},{% endif %}
-     {%- endfor %}
-   {%- endfor %}
-   {%- elif adapter_name == 'RedshiftAdapter' %}
-   {%- for key, cols in nested.items() %}
-     {%- for col in cols %}
-           {{ key }}.{{ col.lower() }}::varchar as {{ col.lower() }}{% if not loop.last %},{% endif %}
-     {%- endfor %}
-   {%- endfor %}
-   {%- endif %}
+        select
+    {%- if adapter_name == 'SnowflakeAdapter' %}
+    {%- for key, cols in nested.items() %}
+      {%- for col in cols %}
+            {{ key }}:{{ '"' + col + '"' }}::varchar as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
+      {%- endfor %}
+    {%- endfor %}
+    {%- elif adapter_name == 'BigQueryAdapter' %}
+    {%- for key, cols in nested.items() %}
+      {%- for col in cols %}
+            cast({{ key }}.{{ col.lower() }} as string) as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
+      {%- endfor %}
+    {%- endfor %}
+    {%- elif adapter_name == 'RedshiftAdapter' %}
+    {%- for key, cols in nested.items() %}
+      {%- for col in cols %}
+            {{ key }}.{{ col.lower() }}::varchar as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
+      {%- endfor %}
+    {%- endfor %}
+    {%- endif %}
+    {%- for col in columns %}
+            {{ '"' + col.name.lower() + '"' }} as {{ col.name.lower() }}{% if not loop.last %},{% endif %}
+    {%- endfor %}
 
-       from raw_source
+        from raw_source
 
-   )
+    )
 
-   select * from final
+    select * from final
 
 source_model_props.yml
 ~~~~~~~~~~~~~~~~~~~~~~
 
 .. code-block:: yaml
 
-   version: 2
+    version: 2
 
-   sources:
-     - name: {{ relation.schema.lower() }}
-       schema: {{ relation.schema.lower() }}
-       tables:
-         - name: {{ relation.name.lower() }}
-           identifier: {{ relation.name }}
+    sources:
+      - name: {{ relation.schema.lower() }}
+    {%- if source_database %}
+        database: {{ source_database }}
+    {%- endif %}
+        schema: {{ relation.schema.lower() }}
+        tables:
+          - name: {{ relation.name.lower() }}
+            identifier: {{ relation.name }}
 
-   models:
-     - name: {{ model.lower() }}
-       columns:
-   {%- for col in columns %}
-         - name: {{ col.name.lower() }}
-   {%- endfor %}
-   {%- for cols in nested.values() %}
-     {%- for col in cols %}
-         - name: {{ col }}
-     {%- endfor %}
-   {%- endfor %}
+    models:
+      - name: {{ model.lower() }}
+        columns:
+    {%- for cols in nested.values() %}
+      {%- for col in cols %}
+          - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+      {%- endfor %}
+    {%- endfor %}
+    {%- for col in columns %}
+          - name: {{ col.name.lower() }}
+    {%- endfor %}
 
 CLI Detailed Reference
 ======================

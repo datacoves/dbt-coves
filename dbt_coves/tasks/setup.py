@@ -139,6 +139,7 @@ class SetupTask(BaseTask):
                 value = questionary.text(f"Please enter {key}:").ask()
             context[key] = value
         new_profiles = render_template(template_text, context)
+        profiles_path.parent.mkdir(parents=True, exist_ok=True)
         with open(profiles_path, "w") as file:
             file.write(new_profiles)
         console.print(
@@ -184,6 +185,9 @@ class SetupTask(BaseTask):
 
             new_host = output.stdout
             known_hosts_path = Path("~/.ssh/known_hosts").expanduser()
+            if not known_hosts_path.exists():
+                known_hosts_path.parent.mkdir(parents=True, exist_ok=True)
+                open(known_hosts_path, "w")
 
             hosts = open(known_hosts_path, "r").read()
             if domain not in hosts:
@@ -284,6 +288,7 @@ class SetupTask(BaseTask):
         ).ask()
         if confirmed:
             ssh_key = questionary.text("Please paste your SSH key:").ask()
+            key_path_abs.parent.mkdir(parents=True, exist_ok=True)
             with open(key_path_abs, "w") as file:
                 file.write(ssh_key)
             os.chmod(key_path_abs, 0o600)
