@@ -1,4 +1,10 @@
-## dbt-coves [0.21.0-a.5] - 2021-10-21
+## dbt-coves [0.21.0-a.7] - 2021-10-26
+
+### Features
+
+- Fix bug in templates, columns where lowercased and they should have not
+
+## dbt-coves [0.21.0-a.6] - 2021-10-21
 
 ### Features
 

@@ -106,7 +106,10 @@ class DbtCovesConfig:
         if not workspace_path:
             workspace_path = Path.cwd()
         config_folders = [path for path in Path(workspace_path).rglob("**/.dbt_coves/")]
-        if mandatory and not config_folders:
-            raise Exception("No .dbt_coves folder found in workspace")
+        if not config_folders:
+            if mandatory:
+                raise Exception("No .dbt_coves folder found in workspace")
+            else:
+                return None
         else:
             return config_folders[0]

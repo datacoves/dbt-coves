@@ -38,11 +38,13 @@ class SetupTask(BaseTask):
         Env vars that can be set: USER_FULLNAME, USER_EMAIL, WORKSPACE_PATH, GIT_REPO_URL, DBT_PROFILES_DIR
         """
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
-        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
 
         self.ssh_key()
         self.git_config()
         self.git_clone(workspace_path)
+
+        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+
         context = self.dbt_profiles(config_folder)
         self.dbt_debug(config_folder)
         self.vs_code(workspace_path, config_folder, context)
