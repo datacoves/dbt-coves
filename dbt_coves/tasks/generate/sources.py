@@ -232,8 +232,14 @@ class GenerateSourcesTask(BaseConfiguredTask):
             self.render_templates(relation, columns, destination)
 
     def get_nested_keys(self, columns, schema, relation):
+        config_db = self.get_config_value("database")
+        if config_db:
+            config_db += "."
+        else:
+            config_db = ""
         _, data = self.adapter.execute(
-            f"SELECT {', '.join(columns)} FROM {schema}.{relation} limit 1", fetch=True
+            f"SELECT {', '.join(columns)} FROM {config_db}{schema}.{relation} limit 1",
+            fetch=True,
         )
         result = dict()
         if len(data.rows) > 0:
