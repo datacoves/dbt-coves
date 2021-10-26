@@ -1,3 +1,9 @@
+## dbt-coves [0.21.0-a.8] - 2021-10-26
+
+### Features
+
+- Added missing dependency sqlfluff-dbt-templater and quick fix on source template
+
 ## dbt-coves [0.21.0-a.7] - 2021-10-26
 
 ### Features
