@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import re
+import csv
 
 import questionary
 from questionary import Choice
@@ -66,11 +67,35 @@ class GenerateSourcesTask(BaseConfiguredTask):
             help="Folder with jinja templates that override default "
             "sources generation templates, i.e. 'templates'",
         )
+        subparser.add_argument(
+            "--metadata",
+            type=str,
+            help="Path to csv file containing metadata, i.e. 'metadata.csv'",
+        )
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
 
+    def get_metadata(self, path):
+        """
+        If metadata path was provided, it returns a dictionary with column keys and their corresponding values
+        """
+
+        if path:
+            metadata_path = Path().joinpath(path)
+            with open(metadata_path, "r") as csvfile:
+                rows = csv.DictReader(csvfile)
+                metadata_map = dict()
+                for row in rows:
+                    metadata_map[
+                        f"{row['db']}-{row['schema']}-{row['relation']}-{row['column']}"
+                    ] = {"type": row["type"], "description": row["description"]}
+                return metadata_map
+        return None
+
     def run(self):
         config_database = self.get_config_value("database")
+        metadata = self.get_metadata(self.get_config_value("metadata"))
+
         db = config_database or self.config.credentials.database
         schema_name_selectors = [
             schema.upper() for schema in self.get_config_value("schemas")
