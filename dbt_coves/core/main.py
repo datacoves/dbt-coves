@@ -132,7 +132,6 @@ def main(
     parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()
 ) -> int:
     tracking.do_not_track()
-
     exit_code = 0
     cli_args = test_cli_args or []
 

@@ -14,9 +14,8 @@ models:
   - name: {{ model.lower() }}
     columns:
 {%- for cols in nested.values() %}
-  {%- for col in cols %}
-      - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
-  {%- endfor %}
+      - name: {{ cols["key"].lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+      - description: {{ cols["description"].lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
 {%- endfor %}
 {%- for col in columns %}
       - name: {{ col.name.lower() }}

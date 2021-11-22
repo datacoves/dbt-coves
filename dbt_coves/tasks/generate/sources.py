@@ -79,7 +79,6 @@ class GenerateSourcesTask(BaseConfiguredTask):
         """
         If metadata path was provided, it returns a dictionary with column keys and their corresponding values
         """
-
         if path:
             metadata_path = Path().joinpath(path)
             with open(metadata_path, "r") as csvfile:
@@ -87,15 +86,17 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 metadata_map = dict()
                 for row in rows:
                     metadata_map[
-                        f"{row['db']}-{row['schema']}-{row['relation']}-{row['column']}"
-                    ] = {"type": row["type"], "description": row["description"]}
+                        f"{row['database']}-{row['schema']}-{row['relation']}-{row['key']}@{row['column']}"
+                    ] = {
+                        "key": row["key"].replace(".", "_"),
+                        "type": row["type"],
+                        "description": row["description"],
+                    }
                 return metadata_map
         return None
 
     def run(self):
         config_database = self.get_config_value("database")
-        metadata = self.get_metadata(self.get_config_value("metadata"))
-
         db = config_database or self.config.credentials.database
         schema_name_selectors = [
             schema.upper() for schema in self.get_config_value("schemas")
@@ -222,9 +223,22 @@ class GenerateSourcesTask(BaseConfiguredTask):
 
     def generate_model(self, relation, destination, options):
         destination.parent.mkdir(parents=True, exist_ok=True)
-        columns = self.adapter.get_columns_in_relation(relation)
-        nested_field_type = NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
-        nested = [col.name.lower() for col in columns if col.dtype == nested_field_type]
+        metadata = self.get_metadata(self.get_config_value("metadata"))
+
+        if metadata:
+            columns = {}
+            for x, y in metadata.items():
+                if y["key"] != "":
+                    columns[x.split("@", 1)[1] + "." + y["key"]] = y
+                else:
+                    columns[x.split("@", 1)[1]] = y
+            nested = None
+        else:
+            columns = self.adapter.get_columns_in_relation(relation)
+            nested_field_type = NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
+            nested = [
+                col.name.lower() for col in columns if col.dtype == nested_field_type
+            ]
         if not options["flatten_all"]:
             if nested:
                 field_nlg = "field"
@@ -278,23 +292,18 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     )
         return result
 
-    def render_templates(self, relation, columns, destination, nested=None):
+    def render_templates(self, relation, data, destination, nested=None):
         context = {
             "relation": relation,
-            "columns": columns,
+            "columns": {},
             "nested": {},
             "adapter_name": self.adapter.__class__.__name__,
         }
-        if nested:
-            context["nested"] = self.get_nested_keys(
-                nested, relation.schema, relation.name
-            )
-            # Removing original column with JSON data
-            new_cols = []
-            for col in columns:
-                if col.name.lower() not in context["nested"]:
-                    new_cols.append(col)
-            context["columns"] = new_cols
+        if type(data) != list:
+            nested = data
+            context["nested"] = data
+        else:
+            context["columns"] = data
         config_db = self.get_config_value("database")
         if config_db:
             context["source_database"] = config_db

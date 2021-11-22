@@ -11,9 +11,7 @@ final as (
     select
 {%- if adapter_name == 'SnowflakeAdapter' %}
 {%- for key, cols in nested.items() %}
-  {%- for col in cols %}
-        {{ key }}:{{ '"' + col + '"' }}::varchar as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
-  {%- endfor %}
+  {{ cols["key"] }}:{{ '"' + cols["key"] + '"' }}::{{ '"' + cols["type"] + '"' }} as {{ cols["key"].lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }} {% if not loop.last or columns %},{% endif %}  
 {%- endfor %}
 {%- elif adapter_name == 'BigQueryAdapter' %}
 {%- for key, cols in nested.items() %}
@@ -37,4 +35,3 @@ final as (
 )
 
 select * from final
-
