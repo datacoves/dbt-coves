@@ -24,8 +24,17 @@ class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
 
 
+class ExtractAirbyteModel(BaseModel):
+    destination: Optional[str] = "airbyte"
+
+
+class ExtractModel(BaseModel):
+    airbyte: Optional[ExtractAirbyteModel] = ExtractAirbyteModel()
+
+
 class ConfigModel(BaseModel):
     generate: Optional[GenerateModel] = GenerateModel()
+    extract: Optional[ExtractModel] = ExtractModel()
 
 
 class DbtCovesConfig:
@@ -39,6 +48,7 @@ class DbtCovesConfig:
         "generate.sources.destination",
         "generate.sources.model_props_strategy",
         "generate.sources.templates_folder",
+        "extract.airbyte.destination",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:
