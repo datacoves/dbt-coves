@@ -18,15 +18,17 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             help="Extracts airbyte sources, connections and destinations and stores them as json files",
         )
         subparser.add_argument(
-            "--destination",
+            "--to",
             type=str,
             help="Where json files will be generated, i.e. " "'airbyte'",
         )
+        # --host
+        # --port
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
     def run(self):
-        config_destination = self.get_config_value("destination")
+        config_destination = self.get_config_value("to")
 
     def get_config_value(self, key):
         return self.coves_config.integrated["extract"]["airbyte"][key]

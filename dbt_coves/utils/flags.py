@@ -37,7 +37,7 @@ class DbtCovesFlags:
                 "templates_folder": None,
             }
         }
-        self.extract = {"airbyte": {"destination": None}}
+        self.extract = {"airbyte": {"to": None}}
         self.init = {
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
             "current-dir": False,
@@ -104,5 +104,5 @@ class DbtCovesFlags:
                     self.check["no-fix"] = self.args.no_fix
 
             if self.task == "airbyte":
-                if self.args.destination:
-                    self.extract["airbyte"]["destination"] = self.args.destination
+                if self.args.to:
+                    self.extract["airbyte"]["to"] = self.args.to
