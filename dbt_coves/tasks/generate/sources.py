@@ -1,7 +1,9 @@
 import json
+from os import close
 from pathlib import Path
 import re
-
+import csv
+import ipdb
 import questionary
 from questionary import Choice
 from rich.console import Console
@@ -66,11 +68,58 @@ class GenerateSourcesTask(BaseConfiguredTask):
             help="Folder with jinja templates that override default "
             "sources generation templates, i.e. 'templates'",
         )
+        subparser.add_argument(
+            "--metadata",
+            type=str,
+            help="Path to csv file containing metadata, i.e. 'metadata.csv'",
+        )
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
 
+    def get_metadata(self, path):
+        """
+        If metadata path was provided, it returns a dictionary with column keys and their corresponding values
+        """
+        if path:
+            import ipdb
+
+            ipdb.set_trace()
+            metadata_path = Path().joinpath(path)
+            try:
+                f = open(metadata_path, "r")
+            except OSError:
+                raise ValueError(
+                    f"Failed to load metadata. File {metadata_path} not found or corrupt. Please, try again."
+                )
+            with f as csvfile:
+                rows = csv.DictReader(csvfile)
+                metadata_map = dict()
+                for row in rows:
+                    mdata_key = (
+                        row["database"]
+                        + "-"
+                        + row["schema"]
+                        + "-"
+                        + row["relation"]
+                        + "-"
+                        + row["column"]
+                        + "-"
+                        + row.get("key")
+                    )
+                    if not mdata_key in metadata_map:
+                        metadata_map[mdata_key] = {
+                            "type": row["type"],
+                            "description": row["description"],
+                        }
+                    else:
+                        raise ValueError("Duplicated Comumns in Metadata")
+            return metadata_map
+        return None
+
     def run(self):
         config_database = self.get_config_value("database")
+        metadata = self.get_metadata(self.get_config_value("metadata"))
+        print(metadata)
         db = config_database or self.config.credentials.database
         schema_name_selectors = [
             schema.upper() for schema in self.get_config_value("schemas")

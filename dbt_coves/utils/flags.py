@@ -35,6 +35,7 @@ class DbtCovesFlags:
                 "destination": None,
                 "model_props_strategy": None,
                 "templates_folder": None,
+                "metadata": None,
             }
         }
         self.init = {
@@ -91,6 +92,8 @@ class DbtCovesFlags:
                     self.generate["sources"][
                         "templates_folder"
                     ] = self.args.templates_folder
+                if self.args.metadata:
+                    self.generate["sources"]["metadata"] = self.args.metadata
 
             if self.task == "init":
                 if self.args.template:
