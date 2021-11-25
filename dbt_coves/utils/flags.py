@@ -104,5 +104,7 @@ class DbtCovesFlags:
                     self.check["no-fix"] = self.args.no_fix
 
             if self.task == "airbyte":
-                if self.args.to:
-                    self.extract["airbyte"]["to"] = self.args.to
+                self.extract["airbyte"]["to"] = self.args.to
+                self.extract["airbyte"]["host"] = self.args.host
+                self.extract["airbyte"]["port"] = self.args.port
+                

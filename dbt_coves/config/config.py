@@ -49,6 +49,8 @@ class DbtCovesConfig:
         "generate.sources.model_props_strategy",
         "generate.sources.templates_folder",
         "extract.airbyte.to",
+        "extract.airbyte.host",
+        "extract.airbyte.port"
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:
