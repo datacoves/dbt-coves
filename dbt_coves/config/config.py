@@ -25,16 +25,29 @@ class GenerateModel(BaseModel):
 
 
 class ExtractAirbyteModel(BaseModel):
-    to: Optional[str] = "airbyte"
+    to: Optional[str] = ""
+    host: Optional[str] = ""
+    port: Optional[str] = ""
+
+
+class LoadAirbyteModel(BaseModel):
+    src: Optional[str] = ""
+    host: Optional[str] = ""
+    port: Optional[str] = ""
 
 
 class ExtractModel(BaseModel):
     airbyte: Optional[ExtractAirbyteModel] = ExtractAirbyteModel()
 
 
+class LoadModel(BaseModel):
+    airbyte: Optional[LoadAirbyteModel] = LoadAirbyteModel()
+
+
 class ConfigModel(BaseModel):
     generate: Optional[GenerateModel] = GenerateModel()
     extract: Optional[ExtractModel] = ExtractModel()
+    load: Optional[LoadModel] = LoadModel()
 
 
 class DbtCovesConfig:
@@ -48,9 +61,13 @@ class DbtCovesConfig:
         "generate.sources.destination",
         "generate.sources.model_props_strategy",
         "generate.sources.templates_folder",
-        "extract.airbyte.to",
+        "extract.airbyte.path",
         "extract.airbyte.host",
-        "extract.airbyte.port"
+        "extract.airbyte.port",
+        "load.airbyte.path",
+        "load.airbyte.host",
+        "load.airbyte.port",
+        "load.airbyte.secrets",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

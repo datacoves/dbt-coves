@@ -1,107 +1,21 @@
 from rich.console import Console
 
 from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.generate import sources
 from dbt_coves.utils import shell
+from dbt_coves.utils.airbyte_api import AirbyteApiCaller
 
-import requests, json, os, subprocess
+import requests, json, os, subprocess, pathlib
 from typing import Dict
 from requests.exceptions import RequestException
+
+# from dbt_coves.utils import airbyte_api
 
 console = Console()
 
 
-class AirbyteApiCallerException(Exception):
-    pass
-
-
 class AirbyteExtractorException(Exception):
     pass
-
-
-class AirbyteApiCaller:
-    def api_call(self, endpoint: str, body: Dict[str, str] = None):
-        """
-        Generic `api caller` for contacting Airbyte
-        """
-        try:
-            response = requests.post(endpoint, json=body)
-            if response.status_code == 204:
-                return response
-            elif response.status_code >= 200 and response.status_code < 300:
-                return json.loads(response.text)
-            else:
-                raise RequestException(
-                    f"Unexpected status code from airbyte: {response.status_code}"
-                )
-        except RequestException as e:
-            raise AirbyteApiCallerException("Airbyte API error: " + str(e))
-
-    def __init__(self, api_host, api_port):
-        try:
-            airbyte_host = api_host
-            airbyte_port = api_port
-            airbyte_api_root = "api/v1/"
-            airbyte_api_base_endpoint = f"http://{airbyte_host}:{airbyte_port}/{airbyte_api_root}"  # TODO: what can we do regarding 'http' or 'https' toggling?
-        except ValueError as e:
-            raise AirbyteApiCallerException(
-                f"Error initializing Airbyte API Caller: Missing configuration: {e}"
-            )
-
-        airbyte_api_list_component = airbyte_api_base_endpoint + "{component}/list"
-        self.airbyte_endpoint_list_connections = airbyte_api_list_component.format(
-            component="connections"
-        )
-        self.airbyte_endpoint_list_sources = airbyte_api_list_component.format(
-            component="sources"
-        )
-        self.airbyte_endpoint_list_destinations = airbyte_api_list_component.format(
-            component="destinations"
-        )
-
-        airbyte_endpoint_list_workspaces = airbyte_api_list_component.format(
-            component="workspaces"
-        )
-
-        airbyte_api_create_component = airbyte_api_base_endpoint + "{component}/create"
-        self.airbyte_endpoint_create_connections = airbyte_api_create_component.format(
-            component="connections"
-        )
-        self.airbyte_endpoint_create_sources = airbyte_api_create_component.format(
-            component="sources"
-        )
-        self.airbyte_endpoint_create_destinations = airbyte_api_create_component.format(
-            component="destinations"
-        )
-
-        airbyte_api_update_component = airbyte_api_base_endpoint + "{component}/update"
-        self.airbyte_endpoint_update_sources = airbyte_api_update_component.format(
-            component="sources"
-        )
-        self.airbyte_endpoint_update_destinations = airbyte_api_update_component.format(
-            component="destinations"
-        )
-        self.airbyte_endpoint_delete_connection = (
-            airbyte_api_base_endpoint + "connections/delete"
-        )
-
-        try:
-            self.airbyte_workspace_id = self.api_call(airbyte_endpoint_list_workspaces)[
-                "workspaces"
-            ][0]["workspaceId"]
-            self.standard_request_body = {"workspaceId": self.airbyte_workspace_id}
-            self.airbyte_connections_list = self.api_call(
-                self.airbyte_endpoint_list_connections, self.standard_request_body
-            )["connections"]
-            self.airbyte_sources_list = self.api_call(
-                self.airbyte_endpoint_list_sources, self.standard_request_body
-            )["sources"]
-            self.airbyte_destinations_list = self.api_call(
-                self.airbyte_endpoint_list_destinations, self.standard_request_body
-            )["destinations"]
-        except:
-            raise AirbyteApiCallerException(
-                "Couldn't retrieve Airbyte connections, sources and destinations"
-            )
 
 
 class ExtractAirbyteTask(BaseConfiguredTask):
@@ -117,7 +31,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             help="Extracts airbyte sources, connections and destinations and stores them as json files",
         )
         subparser.add_argument(
-            "--to",
+            "--path",
             type=str,
             required=True,
             help="Where json files will be generated, i.e. " "'airbyte'",
@@ -134,39 +48,45 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             required=True,
             help="Airbyte's API port, i.e. '8001'",
         )
-
-        # --host
-        # --port
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
     def run(self):
-        extract_destination = self.get_config_value("to")
+        self.extraction_results = {
+            "sources": set(),
+            "destinations": set(),
+            "connections": set(),
+        }
+
+        extract_destination = self.get_config_value("path")
         airbyte_host = self.get_config_value("host")
         airbyte_port = self.get_config_value("port")
 
-        extract_destination = os.path.abspath(
-            os.path.join(os.path.dirname(__file__), "load", "data")
-        )
-        self.connections_extract_destination = os.path.abspath(
-            os.path.join(extract_destination, "connections")
-        )
-        self.destinations_extract_destination = os.path.abspath(
-            os.path.join(extract_destination, "destinations")
-        )
-        self.sources_extract_destination = os.path.abspath(
-            os.path.join(extract_destination, "sources")
-        )
+        path = pathlib.Path(extract_destination)
+
+        connections_path = path / "connections"
+        connections_path.mkdir(parents=True, exist_ok=True)
+        sources_path = path / "sources"
+        sources_path.mkdir(parents=True, exist_ok=True)
+        destinations_path = path / "destinations"
+        destinations_path.mkdir(parents=True, exist_ok=True)
+
+        self.connections_extract_destination = os.path.abspath(connections_path)
+        self.destinations_extract_destination = os.path.abspath(destinations_path)
+        self.sources_extract_destination = os.path.abspath(sources_path)
 
         self.airbyte_api_caller = AirbyteApiCaller(airbyte_host, airbyte_port)
 
-        dbt_sources_list = self._shell_run(
+        console.print(
+            f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(path)}\n"
+        )
+
+        dbt_sources_list = shell.run_dbt_ls(
             "dbt ls --resource-type source",
-            "/home/bruno/dev/convexa/dbt-coves/dbt",
+            None,
         )
         if dbt_sources_list:
-            dbt_sources_list = self._remove_sources_prefix(dbt_sources_list)
-            print(dbt_sources_list)
+            dbt_sources_list = self._remove_airbyte_prefix(dbt_sources_list)
             for source in dbt_sources_list:
                 # Obtain db.schema.table
                 source_db, source_schema, source_table = [
@@ -190,13 +110,20 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                         self._save_json_source(source_source)
                 else:
                     print(f"There is no Airbyte Connection for source: {source}")
+            console.print(
+                f"""Extraction successful!
+[u]Sources[/u]: {self.extraction_results['sources']}
+[u]Destinations[/u]: {self.extraction_results['destinations']}
+[u]Connections[/u]: {self.extraction_results['connections']}
+"""
+            )
+            return 0
         else:
             raise AirbyteExtractorException("There are no DBT Sources compiled")
-        return 0
 
-    def _remove_sources_prefix(self, sources_list):
+    def _remove_airbyte_prefix(self, sources_list):
         return [
-            source.lower().replace("source:", "").replace("_AIRBYTE_RAW_".lower(), "")
+            source.lower().replace("_AIRBYTE_RAW_".lower(), "")
             for source in sources_list
         ]
 
@@ -238,39 +165,32 @@ class ExtractAirbyteTask(BaseConfiguredTask):
     def _save_json_connection(self, connection):
         connection_source_name = self._get_airbyte_source_from_id(
             connection["sourceId"]
-        )["connectionConfiguration"]["dataset_name"]
+        )["name"]
         connection_destination_name = self._get_airbyte_destination_from_id(
             connection["destinationId"]
         )["name"]
         filename = f"{connection_source_name}-{connection_destination_name}.json"
         path = os.path.join(self.connections_extract_destination, filename.lower())
         self._save_json(path, connection)
+        self.extraction_results["connections"].add(filename.lower())
 
     def _save_json_destination(self, destination):
         filename = f"{destination['name']}.json"
         path = os.path.join(self.destinations_extract_destination, filename.lower())
         self._save_json(path, destination)
+        self.extraction_results["destinations"].add(filename.lower())
 
     def _save_json_source(self, source):
-        filename = f"{source['connectionConfiguration']['dataset_name']}.json"
+        filename = f"{source['name']}.json"
         path = os.path.join(self.sources_extract_destination, filename.lower())
         self._save_json(path, source)
+        self.extraction_results["sources"].add(filename.lower())
 
     def _shell_run(self, bash_cmd, cwd=None):
         """
         Run a given shell command, providing or not a CWD (Change Working Directory)
         Returns shell's `stdout`, or None if resulted in `stderr`
         """
-        process = subprocess.run(
-            bash_cmd.split(),
-            cwd=cwd,
-            stdout=subprocess.PIPE,
-            stderr=subprocess.PIPE,
-            check=True,
-        )
-        stdout = process.stdout.decode().strip()
-        full_stdout = stdout.split("\n") if "\n" in stdout else [stdout]
-        return [line for line in full_stdout if "source:" in line]
 
     def get_config_value(self, key):
         return self.coves_config.integrated["extract"]["airbyte"][key]

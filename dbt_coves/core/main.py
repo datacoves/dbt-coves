@@ -13,14 +13,16 @@ from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
 from dbt_coves.tasks.base import BaseTask
 from dbt_coves.tasks.check import CheckTask
 from dbt_coves.tasks.fix import FixTask
+from dbt_coves.tasks.load.main import LoadTask
 from dbt_coves.tasks.setup import SetupTask
 from dbt_coves.tasks.generate.main import GenerateTask
-from dbt_coves.tasks.extract.airbyte import ExtractAirbyteTask
+from dbt_coves.tasks.extract.main import ExtractTask
 from dbt_coves.tasks.init import InitTask
 from dbt_coves.ui.traceback import DbtCovesTraceback
 from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.log import log_manager
+
 
 console = Console()
 
@@ -107,7 +109,8 @@ sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
         CheckTask,
         FixTask,
         SetupTask,
-        ExtractAirbyteTask,
+        ExtractTask,
+        LoadTask,
     ]
 ]
 
@@ -166,6 +169,7 @@ def main(
             "No [u]dbt_project.yml[/u] found. Current folder doesn't look like a dbt project."
         )
     except Exception as ex:
+        ipdb.set_trace(context=5)
         logger.debug(ex)
         console.print(f"[red]:cross_mark:[/red] {ex}")
 
