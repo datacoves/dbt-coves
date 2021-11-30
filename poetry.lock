@@ -386,30 +386,30 @@ test = ["pytest (>=6.0)", "pytest-cov", "pytest-subtests", "pytest-xdist", "pret
 
 [[package]]
 name = "dbt"
-version = "0.21.0"
+version = "0.21.1"
 description = "With dbt, data analysts and engineers can build analytics the way engineers build applications."
 category = "main"
 optional = false
 python-versions = ">=3.6.2"
 
 [package.dependencies]
-dbt-bigquery = "0.21.0"
-dbt-core = "0.21.0"
-dbt-postgres = "0.21.0"
-dbt-redshift = "0.21.0"
-dbt-snowflake = "0.21.0"
+dbt-bigquery = "0.21.1"
+dbt-core = "0.21.1"
+dbt-postgres = "0.21.1"
+dbt-redshift = "0.21.1"
+dbt-snowflake = "0.21.1"
 
 [[package]]
 name = "dbt-bigquery"
-version = "0.21.0"
+version = "0.21.1"
 description = "The bigquery adapter plugin for dbt (data build tool)"
 category = "main"
 optional = false
 python-versions = ">=3.6.2"
 
 [package.dependencies]
-dbt-core = "0.21.0"
-google-api-core = ">=1.16.0,<2"
+dbt-core = "0.21.1"
+google-api-core = ">=1.16.0,<1.31.3"
 google-cloud-bigquery = ">=1.25.0,<3"
 google-cloud-core = ">=1.3.0,<2"
 googleapis-common-protos = ">=1.6.0,<2"
@@ -418,7 +418,7 @@ six = ">=1.14.0"
 
 [[package]]
 name = "dbt-core"
-version = "0.21.0"
+version = "0.21.1"
 description = "dbt (data build tool) is a command line tool that helps analysts and engineers transform data in their warehouse more effectively"
 category = "main"
 optional = false
@@ -455,19 +455,19 @@ python-versions = "*"
 
 [[package]]
 name = "dbt-postgres"
-version = "0.21.0"
+version = "0.21.1"
 description = "The postgres adpter plugin for dbt (data build tool)"
 category = "main"
 optional = false
 python-versions = ">=3.6.2"
 
 [package.dependencies]
-dbt-core = "0.21.0"
+dbt-core = "0.21.1"
 psycopg2-binary = ">=2.8,<3.0"
 
 [[package]]
 name = "dbt-redshift"
-version = "0.21.0"
+version = "0.21.1"
 description = "The redshift adapter plugin for dbt (data build tool)"
 category = "main"
 optional = false
@@ -475,12 +475,12 @@ python-versions = ">=3.6.2"
 
 [package.dependencies]
 boto3 = ">=1.4.4,<2.0.0"
-dbt-core = "0.21.0"
-dbt-postgres = "0.21.0"
+dbt-core = "0.21.1"
+dbt-postgres = "0.21.1"
 
 [[package]]
 name = "dbt-snowflake"
-version = "0.21.0"
+version = "0.21.1"
 description = "The snowflake adapter plugin for dbt (data build tool)"
 category = "main"
 optional = false
@@ -488,7 +488,7 @@ python-versions = ">=3.6.2"
 
 [package.dependencies]
 cryptography = ">=3.2,<4"
-dbt-core = "0.21.0"
+dbt-core = "0.21.1"
 requests = "<3.0.0"
 snowflake-connector-python = {version = ">=2.4.1,<2.6.0", extras = ["secure-local-storage"]}
 
@@ -562,7 +562,7 @@ testing = ["covdefaults (>=1.2.0)", "coverage (>=4)", "pytest (>=4)", "pytest-co
 
 [[package]]
 name = "google-api-core"
-version = "1.31.3"
+version = "1.31.2"
 description = "Google API client core library"
 category = "main"
 optional = false
@@ -573,7 +573,7 @@ google-auth = ">=1.25.0,<2.0dev"
 googleapis-common-protos = ">=1.6.0,<2.0dev"
 grpcio = {version = ">=1.29.0,<2.0dev", optional = true, markers = "extra == \"grpc\""}
 packaging = ">=14.3"
-protobuf = ">=3.12.0,<3.18.0"
+protobuf = ">=3.12.0"
 pytz = "*"
 requests = ">=2.18.0,<3.0.0dev"
 six = ">=1.13.0"
@@ -2368,16 +2368,16 @@ cryptography = [
     {file = "cryptography-3.4.8.tar.gz", hash = "sha256:94cc5ed4ceaefcbe5bf38c8fba6a21fc1d365bb8fb826ea1688e3370b2e24a1c"},
 ]
 dbt = [
-    {file = "dbt-0.21.0-py3-none-any.whl", hash = "sha256:4813183d42de787ac9cbddd6b55d9c2bfdc7947d21b0b73836d70e0d9b4f10a9"},
-    {file = "dbt-0.21.0.tar.gz", hash = "sha256:078598ea2bea848db323676c9ee16c4535584d87babdbe91c2a149bb235f401e"},
+    {file = "dbt-0.21.1-py3-none-any.whl", hash = "sha256:8328a417bf3f60fdca48c1f83974cd45f958c40d5da1a45981f77412925e510f"},
+    {file = "dbt-0.21.1.tar.gz", hash = "sha256:e8854fff3e1197a41016e9ec9b34d246f94dcfa13dd60649e8f6d274897215cd"},
 ]
 dbt-bigquery = [
-    {file = "dbt-bigquery-0.21.0.tar.gz", hash = "sha256:d17e88d4b3534a5808ffefd1954c69df3ce93e4ac9b87219691ebeb384b349d3"},
-    {file = "dbt_bigquery-0.21.0-py3-none-any.whl", hash = "sha256:b3ac21f8c32f5f9329e6bab243aa02106450ba9eb179fab95eecd5dcdf6c225a"},
+    {file = "dbt-bigquery-0.21.1.tar.gz", hash = "sha256:8def74aa97e8509b3b6d2955df024a7fae6e47245671e423185cb3d24dcbc7e6"},
+    {file = "dbt_bigquery-0.21.1-py3-none-any.whl", hash = "sha256:06498d786d8688b0aef3c151ec87369c91a91683f8478881b96e047d7c83d183"},
 ]
 dbt-core = [
-    {file = "dbt-core-0.21.0.tar.gz", hash = "sha256:74626c1e32acfc3f49112b77029dac8dd6902c13dbfee184e74e659fe28ce51b"},
-    {file = "dbt_core-0.21.0-py3-none-any.whl", hash = "sha256:ed1d75eb767c6d994bd22e3dc1a885011d73bbd78e81ebccaddaf4e1e3c4aee2"},
+    {file = "dbt-core-0.21.1.tar.gz", hash = "sha256:afa778e4172186153c9575a36c5bf584d6859afc15af8d27aaee7e8c34e01ba8"},
+    {file = "dbt_core-0.21.1-py3-none-any.whl", hash = "sha256:a0a8a567858380d5830c3dd5e033f78f87cfbfa6e6594a82d3d62d82bdf79399"},
 ]
 dbt-extractor = [
     {file = "dbt_extractor-0.4.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:f776821a92b1419745ce4fe77d1f3bba46b9efccec3d2f8d0353f3bcb9b10150"},
@@ -2426,16 +2426,16 @@ dbt-extractor = [
     {file = "dbt_extractor-0.4.0.tar.gz", hash = "sha256:58672e36fab988c849a693405920ee18421f27245c48e5f9ecf496369ed31a85"},
 ]
 dbt-postgres = [
-    {file = "dbt-postgres-0.21.0.tar.gz", hash = "sha256:00ccad11fce3e4d43f7e86c39b3e813924153189ed8288e9a721b20b3dc822a8"},
-    {file = "dbt_postgres-0.21.0-py3-none-any.whl", hash = "sha256:f3a120d61277b34ca9a8876a295432fdd3f2ff43dd5a5431c0ba3d7e1a9d0ad8"},
+    {file = "dbt-postgres-0.21.1.tar.gz", hash = "sha256:38b338e8a60ed28f7d400e2828b548781031b7414328a34e92cbcbb59860d3e3"},
+    {file = "dbt_postgres-0.21.1-py3-none-any.whl", hash = "sha256:e2561b50cdf2653176a6f22fc7a04d214422c57f340a69c8709fe8e9acbdc25a"},
 ]
 dbt-redshift = [
-    {file = "dbt-redshift-0.21.0.tar.gz", hash = "sha256:79c29f0c032741fdfeffb23f9388ebf659c9b82aa70b228886d79e763bdbecf2"},
-    {file = "dbt_redshift-0.21.0-py3-none-any.whl", hash = "sha256:932472385ae3a0c8345762d5c75f66bd7cc831c9d536ec93076f5a33de0228b4"},
+    {file = "dbt-redshift-0.21.1.tar.gz", hash = "sha256:e52d50f32e3459186525b7e59a7bbb5593612988de4f7ecd945fed4e01c1695a"},
+    {file = "dbt_redshift-0.21.1-py3-none-any.whl", hash = "sha256:efd645a0639e5332ea8959d5911a7ad5dffc4625319330665a202da49a9d0efb"},
 ]
 dbt-snowflake = [
-    {file = "dbt-snowflake-0.21.0.tar.gz", hash = "sha256:f635463bcfa276ac34d9603f2808daa3c3a44bb1f36209efff9cf35111d0014e"},
-    {file = "dbt_snowflake-0.21.0-py3-none-any.whl", hash = "sha256:3a545a13441679b37cd7a90a4485fb8023743902ab60eb08cd087d96642e8ba1"},
+    {file = "dbt-snowflake-0.21.1.tar.gz", hash = "sha256:0a6384188b351505f2a511217b98395d2dff6877db5f6b96b9ea6a45223a8ef7"},
+    {file = "dbt_snowflake-0.21.1-py3-none-any.whl", hash = "sha256:09a30b8ab4524accf689e066a0d8fc748c83ee10c68cf06066780cfd7e2e54fd"},
 ]
 decorator = [
     {file = "decorator-5.1.0-py3-none-any.whl", hash = "sha256:7b12e7c3c6ab203a29e157335e9122cb03de9ab7264b137594103fd4a683b374"},
@@ -2462,8 +2462,8 @@ filelock = [
     {file = "filelock-3.3.1.tar.gz", hash = "sha256:34a9f35f95c441e7b38209775d6e0337f9a3759f3565f6c5798f19618527c76f"},
 ]
 google-api-core = [
-    {file = "google-api-core-1.31.3.tar.gz", hash = "sha256:4b7ad965865aef22afa4aded3318b8fa09b20bcc7e8dbb639a3753cf60af08ea"},
-    {file = "google_api_core-1.31.3-py2.py3-none-any.whl", hash = "sha256:f52c708ab9fd958862dea9ac94d9db1a065608073fe583c3b9c18537b177f59a"},
+    {file = "google-api-core-1.31.2.tar.gz", hash = "sha256:8500aded318fdb235130bf183c726a05a9cb7c4b09c266bd5119b86cdb8a4d10"},
+    {file = "google_api_core-1.31.2-py2.py3-none-any.whl", hash = "sha256:384459a0dc98c1c8cd90b28dc5800b8705e0275a673a7144a513ae80fc77950b"},
 ]
 google-auth = [
     {file = "google-auth-1.35.0.tar.gz", hash = "sha256:b7033be9028c188ee30200b204ea00ed82ea1162e8ac1df4aa6ded19a191d88e"},
@@ -2930,6 +2930,8 @@ psycopg2-binary = [
     {file = "psycopg2_binary-2.9.1-cp310-cp310-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:661509f51531ec125e52357a489ea3806640d0ca37d9dada461ffc69ee1e7b6e"},
     {file = "psycopg2_binary-2.9.1-cp310-cp310-manylinux_2_24_aarch64.whl", hash = "sha256:d92272c7c16e105788efe2cfa5d680f07e34e0c29b03c1908f8636f55d5f915a"},
     {file = "psycopg2_binary-2.9.1-cp310-cp310-manylinux_2_24_ppc64le.whl", hash = "sha256:736b8797b58febabb85494142c627bd182b50d2a7ec65322983e71065ad3034c"},
+    {file = "psycopg2_binary-2.9.1-cp310-cp310-win32.whl", hash = "sha256:ebccf1123e7ef66efc615a68295bf6fdba875a75d5bba10a05073202598085fc"},
+    {file = "psycopg2_binary-2.9.1-cp310-cp310-win_amd64.whl", hash = "sha256:1f6ca4a9068f5c5c57e744b4baa79f40e83e3746875cac3c45467b16326bab45"},
     {file = "psycopg2_binary-2.9.1-cp36-cp36m-macosx_10_14_x86_64.macosx_10_9_intel.macosx_10_9_x86_64.macosx_10_10_intel.macosx_10_10_x86_64.whl", hash = "sha256:c250a7ec489b652c892e4f0a5d122cc14c3780f9f643e1a326754aedf82d9a76"},
     {file = "psycopg2_binary-2.9.1-cp36-cp36m-manylinux_2_17_i686.manylinux2014_i686.whl", hash = "sha256:aef9aee84ec78af51107181d02fe8773b100b01c5dfde351184ad9223eab3698"},
     {file = "psycopg2_binary-2.9.1-cp36-cp36m-manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:123c3fb684e9abfc47218d3784c7b4c47c8587951ea4dd5bc38b6636ac57f616"},
