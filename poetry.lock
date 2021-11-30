@@ -1888,7 +1888,7 @@ test = ["pytest"]
 
 [[package]]
 name = "sqlfluff"
-version = "0.7.0"
+version = "0.8.2"
 description = "The SQL Linter for Humans"
 category = "main"
 optional = false
@@ -1897,6 +1897,7 @@ python-versions = ">=3.6"
 [package.dependencies]
 appdirs = "*"
 cached-property = "*"
+chardet = "*"
 click = ">=7.1"
 colorama = ">=0.3"
 configparser = "*"
@@ -1907,6 +1908,7 @@ pathspec = "*"
 pytest = "*"
 tblib = "*"
 toml = "*"
+tqdm = "*"
 typing-extensions = "*"
 
 [[package]]
@@ -2026,6 +2028,22 @@ tox = ">=3.8.0,<4.0.0"
 poetry = ["poetry (>=1.0.0,<2.0.0)"]
 
 [[package]]
+name = "tqdm"
+version = "4.62.3"
+description = "Fast, Extensible Progress Meter"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["py-make (>=0.1.0)", "twine", "wheel"]
+notebook = ["ipywidgets (>=6)"]
+telegram = ["requests"]
+
+[[package]]
 name = "traitlets"
 version = "5.1.0"
 description = "Traitlets Python configuration system"
@@ -2133,7 +2151,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.9"
-content-hash = "38080e60700b4b7a1c024531c2015fa1ad6f421a2686136a203d49a08b3ac097"
+content-hash = "8922645e86cbfc83e271412aef987b71e4af02709d6ea0489f8b1c82d7068c08"
 
 [metadata.files]
 agate = [
@@ -3317,8 +3335,8 @@ sphinxcontrib-serializinghtml = [
     {file = "sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl", hash = "sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd"},
 ]
 sqlfluff = [
-    {file = "sqlfluff-0.7.0-py3-none-any.whl", hash = "sha256:16ca4b17e980628e61a6001b7667a201e90da70360ae0e7190cebab839bd6c80"},
-    {file = "sqlfluff-0.7.0.tar.gz", hash = "sha256:64d86cf961e030aee1330a926f908e2efb96b4ce65e91a9e94da35129455b770"},
+    {file = "sqlfluff-0.8.2-py3-none-any.whl", hash = "sha256:5d63f1fb9ee65c965ba11ddeefa7a433feb276d323a7f58802e43fbb0d17fd67"},
+    {file = "sqlfluff-0.8.2.tar.gz", hash = "sha256:e48db0e1f7775c4609aa843cc8fa7fbc4a42d38fef640a78cc33d335ad385c62"},
 ]
 sqlfluff-templater-dbt = [
     {file = "sqlfluff-templater-dbt-0.7.1.tar.gz", hash = "sha256:b81ff363c3b42f8f50cb53f645d32e2e580fa7c711b827dd0f61f5768c3c9afd"},
@@ -3358,6 +3376,10 @@ tox = [
 tox-poetry-installer = [
     {file = "tox-poetry-installer-0.8.2.tar.gz", hash = "sha256:1a94f0d7783bf513280b77ba5353232a11e74d232dff039502232a4738694af2"},
     {file = "tox_poetry_installer-0.8.2-py3-none-any.whl", hash = "sha256:f7dffc4397ae9c193b40d9f40df3f67fc3a6869f4604458b01f4eabb5d0de08a"},
+]
+tqdm = [
+    {file = "tqdm-4.62.3-py2.py3-none-any.whl", hash = "sha256:8dd278a422499cd6b727e6ae4061c40b48fce8b76d1ccbf5d34fca9b7f925b0c"},
+    {file = "tqdm-4.62.3.tar.gz", hash = "sha256:d359de7217506c9851b7869f3708d8ee53ed70a1b8edbba4dbcb47442592920d"},
 ]
 traitlets = [
     {file = "traitlets-5.1.0-py3-none-any.whl", hash = "sha256:03f172516916220b58c9f19d7f854734136dd9528103d04e9bf139a92c9f54c4"},
