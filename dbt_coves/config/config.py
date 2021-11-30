@@ -25,15 +25,16 @@ class GenerateModel(BaseModel):
 
 
 class ExtractAirbyteModel(BaseModel):
-    to: Optional[str] = ""
+    path: Optional[str] = ""
     host: Optional[str] = ""
     port: Optional[str] = ""
 
 
 class LoadAirbyteModel(BaseModel):
-    src: Optional[str] = ""
+    path: Optional[str] = ""
     host: Optional[str] = ""
     port: Optional[str] = ""
+    secrets: Optional[str] = ""
 
 
 class ExtractModel(BaseModel):

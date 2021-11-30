@@ -105,7 +105,7 @@ class DbtCovesFlags:
                 if self.args.no_fix:
                     self.check["no-fix"] = self.args.no_fix
 
-            if self.task == "airbyte" and self.args.cls.__name__ == "LoadAirbyteTask":
+            if self.args.cls.__name__ == "LoadAirbyteTask":
                 if self.args.path:
                     self.load["airbyte"]["path"] = self.args.path
 
@@ -115,10 +115,7 @@ class DbtCovesFlags:
                 if self.args.secrets:
                     self.load["airbyte"]["secrets"] = self.args.secrets
 
-            if (
-                self.task == "airbyte"
-                and self.args.cls.__name__ == "ExtractAirbyteTask"
-            ):
+            if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
                     self.extract["airbyte"]["path"] = self.args.path
                 if self.args.host and self.args.port:
