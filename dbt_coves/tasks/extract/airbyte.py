@@ -8,6 +8,7 @@ from dbt_coves.utils.airbyte_api import AirbyteApiCaller
 import requests, json, os, subprocess, pathlib
 from typing import Dict
 from requests.exceptions import RequestException
+from copy import copy
 
 # from dbt_coves.utils import airbyte_api
 
@@ -104,7 +105,6 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                     )
 
                     if source_destination and source_source:
-                        # filename = source.replace('.', '-') + ".json"
                         self._save_json_connection(source_connection)
                         self._save_json_destination(source_destination)
                         self._save_json_source(source_source)
@@ -163,34 +163,53 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             json.dump(object, json_file)
 
     def _save_json_connection(self, connection):
+        connection = copy(connection)
+        connection.pop("connectionId")
+
         connection_source_name = self._get_airbyte_source_from_id(
             connection["sourceId"]
-        )["name"]
+        )["name"].lower()
         connection_destination_name = self._get_airbyte_destination_from_id(
             connection["destinationId"]
-        )["name"]
+        )["name"].lower()
+
+        # Once we used the source and destination IDs, they are no longer required and don't need to be saved
+        # Instead, they are replaced with their respective names
+        connection.pop("sourceId", None)
+        connection.pop("destinationId", None)
+        connection["sourceName"] = connection_source_name
+        connection["destinationName"] = connection_destination_name
         filename = f"{connection_source_name}-{connection_destination_name}.json"
-        path = os.path.join(self.connections_extract_destination, filename.lower())
+        path = os.path.join(self.connections_extract_destination, filename)
+
         self._save_json(path, connection)
-        self.extraction_results["connections"].add(filename.lower())
+        self.extraction_results["connections"].add(filename)
 
     def _save_json_destination(self, destination):
+        destination = copy(destination)
+
+        destination.pop("destinationDefinitionId", None)
+        destination.pop("workspaceId", None)
+        destination.pop("destinationId", None)
+        destination.pop("destinationName", None)
         filename = f"{destination['name']}.json"
         path = os.path.join(self.destinations_extract_destination, filename.lower())
+
         self._save_json(path, destination)
         self.extraction_results["destinations"].add(filename.lower())
 
     def _save_json_source(self, source):
+        source = copy(source)
+
+        source.pop("sourceDefinitionId", None)
+        source.pop("workspaceId", None)
+        source.pop("sourceId", None)
+        source.pop("sourceName", None)
         filename = f"{source['name']}.json"
         path = os.path.join(self.sources_extract_destination, filename.lower())
+
         self._save_json(path, source)
         self.extraction_results["sources"].add(filename.lower())
-
-    def _shell_run(self, bash_cmd, cwd=None):
-        """
-        Run a given shell command, providing or not a CWD (Change Working Directory)
-        Returns shell's `stdout`, or None if resulted in `stderr`
-        """
 
     def get_config_value(self, key):
         return self.coves_config.integrated["extract"]["airbyte"][key]

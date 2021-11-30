@@ -5,8 +5,6 @@ from argparse import ArgumentParser
 from pathlib import Path
 from typing import List, Optional
 
-import ipdb  # TODO
-
 
 class DbtCovesFlags:
     """Sets flags from defaults or by parsing CLI arguments.

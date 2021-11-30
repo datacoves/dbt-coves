@@ -23,7 +23,6 @@ from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.log import log_manager
 
-
 console = Console()
 
 parser = argparse.ArgumentParser(
