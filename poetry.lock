@@ -894,6 +894,17 @@ inflect = ">=0.2.4"
 jinja2 = ">=2.4"
 
 [[package]]
+name = "jinja2-simple-tags"
+version = "0.3.1"
+description = "Base classes for quick-and-easy template tag development"
+category = "main"
+optional = false
+python-versions = ">=3.5"
+
+[package.dependencies]
+Jinja2 = ">=2.10"
+
+[[package]]
 name = "jinja2-time"
 version = "0.2.0"
 description = "Jinja2 Extension for Dates and Times"
@@ -1911,14 +1922,15 @@ typing-extensions = "*"
 
 [[package]]
 name = "sqlfluff-templater-dbt"
-version = "0.7.1"
+version = "0.8.2"
 description = "Lint your dbt project SQL."
 category = "main"
 optional = false
 python-versions = ">=3.6"
 
 [package.dependencies]
-dbt = ">=0.17"
+dbt-core = ">=0.17"
+jinja2-simple-tags = ">=0.3.1"
 sqlfluff = ">=0.7.0"
 
 [[package]]
@@ -2133,7 +2145,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.9"
-content-hash = "38080e60700b4b7a1c024531c2015fa1ad6f421a2686136a203d49a08b3ac097"
+content-hash = "d83db6cd78b009c507bd2c66b75bb79b96cb2a841785e2f805b09ba98bb651ba"
 
 [metadata.files]
 agate = [
@@ -2634,6 +2646,10 @@ jinja2 = [
 jinja2-pluralize = [
     {file = "jinja2_pluralize-0.3.0-py2.py3-none-any.whl", hash = "sha256:4fec874a591014774d4c66cb7f65314390731bfc57db4c27119db61aa93b2bc4"},
     {file = "jinja2_pluralize-0.3.0.tar.gz", hash = "sha256:df5c2d5017b9b54c0a66cb790cca9fc08945837c3dbfc323589203f1ffb73c1c"},
+]
+jinja2-simple-tags = [
+    {file = "jinja2-simple-tags-0.3.1.tar.gz", hash = "sha256:5cfb9a94686b15ee09134a0407a943ddd6848e3690dc697c1815a27e4dffca45"},
+    {file = "jinja2_simple_tags-0.3.1-py2.py3-none-any.whl", hash = "sha256:40b9694eb6b0895daff3ea28899972015c1045e1512cccc14a78b033a11eec81"},
 ]
 jinja2-time = [
     {file = "jinja2-time-0.2.0.tar.gz", hash = "sha256:d14eaa4d315e7688daa4969f616f226614350c48730bfa1692d2caebd8c90d40"},
@@ -3321,8 +3337,8 @@ sqlfluff = [
     {file = "sqlfluff-0.7.0.tar.gz", hash = "sha256:64d86cf961e030aee1330a926f908e2efb96b4ce65e91a9e94da35129455b770"},
 ]
 sqlfluff-templater-dbt = [
-    {file = "sqlfluff-templater-dbt-0.7.1.tar.gz", hash = "sha256:b81ff363c3b42f8f50cb53f645d32e2e580fa7c711b827dd0f61f5768c3c9afd"},
-    {file = "sqlfluff_templater_dbt-0.7.1-py3-none-any.whl", hash = "sha256:acff252da595a85083a538b8a8f551a205e9496536880b2dfcad963c862a7389"},
+    {file = "sqlfluff-templater-dbt-0.8.2.tar.gz", hash = "sha256:3b0fb8741244cec48ada54a9b75f756195eed8c107a8667a9b31b1b786db689b"},
+    {file = "sqlfluff_templater_dbt-0.8.2-py3-none-any.whl", hash = "sha256:fa2aa4072f12e01bb600001b68d03ad2a3523270a68db0cfba9e1e5f6ad03b91"},
 ]
 sqlparse = [
     {file = "sqlparse-0.4.2-py3-none-any.whl", hash = "sha256:48719e356bb8b42991bdbb1e8b83223757b93789c00910a616a071910ca4a64d"},
