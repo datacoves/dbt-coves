@@ -191,7 +191,6 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         destination.pop("destinationDefinitionId", None)
         destination.pop("workspaceId", None)
         destination.pop("destinationId", None)
-        destination.pop("destinationName", None)
         filename = f"{destination['name']}.json"
         path = os.path.join(self.destinations_extract_destination, filename.lower())
 
@@ -200,11 +199,9 @@ class ExtractAirbyteTask(BaseConfiguredTask):
 
     def _save_json_source(self, source):
         source = copy(source)
-
         source.pop("sourceDefinitionId", None)
         source.pop("workspaceId", None)
         source.pop("sourceId", None)
-        source.pop("sourceName", None)
         filename = f"{source['name']}.json"
         path = os.path.join(self.sources_extract_destination, filename.lower())
 

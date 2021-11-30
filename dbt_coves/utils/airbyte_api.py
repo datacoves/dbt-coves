@@ -9,6 +9,7 @@ class AirbyteApiCallerException(Exception):
 
 class AirbyteApiCaller:
     def api_call(self, endpoint: str, body: Dict[str, str] = None):
+
         """
         Generic `api caller` for contacting Airbyte
         """
@@ -75,6 +76,14 @@ class AirbyteApiCaller:
             airbyte_api_base_endpoint + "connections/delete"
         )
 
+        self.airbyte_endpoint_list_destination_definitions = (
+            airbyte_api_base_endpoint + "destination_definitions/list"
+        )
+
+        self.airbyte_endpoint_list_source_definitions = (
+            airbyte_api_base_endpoint + "source_definitions/list"
+        )
+
         try:
             self.airbyte_workspace_id = self.api_call(airbyte_endpoint_list_workspaces)[
                 "workspaces"
@@ -93,3 +102,13 @@ class AirbyteApiCaller:
             raise AirbyteApiCallerException(
                 "Couldn't retrieve Airbyte connections, sources and destinations"
             )
+
+    def load_definitions(self):
+        self.destination_definitions = self.api_call(
+            self.airbyte_endpoint_list_destination_definitions,
+            self.standard_request_body,
+        )["destinationDefinitions"]
+
+        self.source_definitions = self.api_call(
+            self.airbyte_endpoint_list_source_definitions, self.standard_request_body
+        )["sourceDefinitions"]

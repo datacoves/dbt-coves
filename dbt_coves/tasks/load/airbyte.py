@@ -79,6 +79,7 @@ class LoadAirbyteTask(BaseConfiguredTask):
         self.sources_load_destination = os.path.abspath(sources_path)
 
         self.airbyte_api_caller = AirbyteApiCaller(airbyte_host, airbyte_port)
+        self.airbyte_api_caller.load_definitions()
 
         console.print(
             f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n"
@@ -232,6 +233,10 @@ Connections:
     def _create_source(self, exported_json_data):
         # Grab password from secret
         exported_json_data = self._get_secrets(exported_json_data, "sources")
+        exported_json_data["workspaceId"] = self.airbyte_api_caller.airbyte_workspace_id
+        exported_json_data[
+            "sourceDefinitionId"
+        ] = self._get_source_definition_id_by_name(exported_json_data.pop("sourceName"))
         try:
             response = self.airbyte_api_caller.api_call(
                 self.airbyte_api_caller.airbyte_endpoint_create_sources,
@@ -248,6 +253,7 @@ Connections:
 
     def _update_source(self, exported_json_data, source_id):
         exported_json_data["sourceId"] = source_id
+        exported_json_data.pop("sourceName")
 
         exported_json_data = self._get_secrets(exported_json_data, "sources")
         try:
@@ -272,10 +278,38 @@ Connections:
 
         return self._create_source(exported_json_data)
 
-    def _create_destination(self, exported_json_data):
+    def _get_destination_definition_id_by_name(self, destination_type_name):
+        """
+        Get destination definition ID by it's name (File, Postgres, Snowflake, BigQuery, MariaDB, etc)
+        """
+        for definition in self.airbyte_api_caller.destination_definitions:
+            if definition["name"] == destination_type_name:
+                return definition["destinationDefinitionId"]
+        raise AirbyteLoaderException(
+            f"There is no destination definition for {destination_type_name}. Please review Airbyte's configuration"
+        )
 
+    def _get_source_definition_id_by_name(self, source_type_name):
+        """
+        Get destination definition ID by it's name (File, Postgres, Snowflake, BigQuery, MariaDB, etc)
+        """
+        for definition in self.airbyte_api_caller.source_definitions:
+            if definition["name"] == source_type_name:
+                return definition["sourceDefinitionId"]
+        raise AirbyteLoaderException(
+            f"There is no source definition for {source_type_name}. Please review Airbyte's configuration"
+        )
+
+    def _create_destination(self, exported_json_data):
         exported_json_data = self._get_secrets(exported_json_data, "destinations")
+        exported_json_data["workspaceId"] = self.airbyte_api_caller.airbyte_workspace_id
+        exported_json_data[
+            "destinationDefinitionId"
+        ] = self._get_destination_definition_id_by_name(
+            exported_json_data.pop("destinationName")
+        )
         try:
+
             response = self.airbyte_api_caller.api_call(
                 self.airbyte_api_caller.airbyte_endpoint_create_destinations,
                 exported_json_data,
@@ -289,6 +323,7 @@ Connections:
             raise AirbyteApiCallerException("Could not create Airbyte destination")
 
     def _update_destination(self, exported_json_data, destination_id):
+        exported_json_data.pop("destinationName")
         exported_json_data["destinationId"] = destination_id
 
         exported_json_data = self._get_secrets(exported_json_data, "destinations")
@@ -324,7 +359,7 @@ Connections:
     def _create_connection(self, exported_json_data, source_id, destination_id):
         exported_json_data["sourceId"] = source_id
         exported_json_data["destinationId"] = destination_id
-
+        connection_name = f"{exported_json_data['sourceName']}-{exported_json_data['destinationName']}"
         # The custom fields `sourceName` and `destinationName` (created by dbt-coves extract) must be popped (Airbyte's API responds they are unrecognized)
         exported_json_data.pop("sourceName")
         exported_json_data.pop("destinationName")
@@ -335,8 +370,10 @@ Connections:
                 exported_json_data,
             )
             self.airbyte_api_caller.airbyte_connections_list.append(response)
-            return response["connectionId"]
-
+            if "connectionId" in response:
+                return connection_name
+            else:
+                raise AirbyteApiCallerException("Could not create Airbyte connection")
         except:
             raise AirbyteApiCallerException("Could not create Airbyte connection")
 
@@ -373,16 +410,16 @@ Connections:
         if connection_id:
             # Connection update
             self._delete_connection(connection_id)
-            conn_id = self._create_connection(
+            conn_name = self._create_connection(
                 exported_json_data, source_id, destination_id
             )
-            self.loading_results["connections"]["updated"].append(conn_id)
+            self.loading_results["connections"]["updated"].append(conn_name)
         else:
             # Connection creation
-            conn_id = self._create_connection(
+            conn_name = self._create_connection(
                 exported_json_data, source_id, destination_id
             )
-            self.loading_results["connections"]["created"].append(conn_id)
+            self.loading_results["connections"]["created"].append(conn_name)
 
     def get_config_value(self, key):
         return self.coves_config.integrated["load"]["airbyte"][key]
