@@ -111,21 +111,17 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 else:
                     print(f"There is no Airbyte Connection for source: {source}")
             console.print(
-                f"""Extraction successful!
-[u]Sources[/u]: {self.extraction_results['sources']}
-[u]Destinations[/u]: {self.extraction_results['destinations']}
-[u]Connections[/u]: {self.extraction_results['connections']}
-"""
+                "Extraction successful!\n"
+                f"[u]Sources[/u]: {self.extraction_results['sources']}\n"
+                f"[u]Destinations[/u]: {self.extraction_results['destinations']}\n"
+                f"[u]Connections[/u]: {self.extraction_results['connections']}\n"
             )
             return 0
         else:
-            raise AirbyteExtractorException("There are no DBT Sources compiled")
+            raise AirbyteExtractorException("There are no dbt Sources compiled")
 
     def _remove_airbyte_prefix(self, sources_list):
-        return [
-            source.lower().replace("_AIRBYTE_RAW_".lower(), "")
-            for source in sources_list
-        ]
+        return [source.lower().replace("_airbyte_raw_", "") for source in sources_list]
 
     def _get_airbyte_connection_for_table(self, table):
         """
@@ -135,6 +131,9 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             for stream in conn["syncCatalog"]["streams"]:
                 if stream["stream"]["name"].lower() == table:
                     return conn
+        raise AirbyteExtractorException(
+            f"Airbyte extract error: there are no connections for table {table}"
+        )
 
     def _get_airbyte_destination_from_id(self, destinationId):
         """
@@ -144,7 +143,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             if destination["destinationId"] == destinationId:
                 return destination
         raise AirbyteExtractorException(
-            f"Airbyte error: there are no destinations for id {destinationId}"
+            f"Airbyte extract error: there are no destinations for id {destinationId}"
         )
 
     def _get_airbyte_source_from_id(self, sourceId):
@@ -155,7 +154,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             if source["sourceId"] == sourceId:
                 return source
         raise AirbyteExtractorException(
-            f"Airbyte error: there are no sources for id {sourceId}"
+            f"Airbyte extract error: there are no sources for id {sourceId}"
         )
 
     def _save_json(self, path, object):

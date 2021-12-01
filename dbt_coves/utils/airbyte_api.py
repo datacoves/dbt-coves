@@ -27,17 +27,12 @@ class AirbyteApiCaller:
             raise AirbyteApiCallerException("Airbyte API error: " + str(e))
 
     def __init__(self, api_host, api_port):
-        try:
-            airbyte_host = api_host
-            airbyte_port = api_port
-            airbyte_api_root = "api/v1/"
-            airbyte_api_base_endpoint = (
-                f"http://{airbyte_host}:{airbyte_port}/{airbyte_api_root}"
-            )
-        except ValueError as e:
-            raise AirbyteApiCallerException(
-                f"Error initializing Airbyte API Caller: Missing configuration: {e}"
-            )
+        airbyte_host = api_host
+        airbyte_port = api_port
+        airbyte_api_root = "api/v1/"
+        airbyte_api_base_endpoint = (
+            f"http://{airbyte_host}:{airbyte_port}/{airbyte_api_root}"
+        )
 
         airbyte_api_list_component = airbyte_api_base_endpoint + "{component}/list"
         self.airbyte_endpoint_list_connections = airbyte_api_list_component.format(

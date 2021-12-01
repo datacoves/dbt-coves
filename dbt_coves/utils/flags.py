@@ -73,7 +73,7 @@ class DbtCovesFlags:
                     self.config_path = Path(self.args.config_path).expanduser()
 
             # generate sources
-            if self.task == "sources":
+            if self.args.cls.__name__ == "GenerateSourcesTask":
                 if self.args.schemas:
                     self.generate["sources"]["schemas"] = [
                         schema.strip() for schema in self.args.schemas.split(",")
@@ -95,13 +95,13 @@ class DbtCovesFlags:
                         "templates_folder"
                     ] = self.args.templates_folder
 
-            if self.task == "init":
+            if self.args.cls.__name__ == "InitTask":
                 if self.args.template:
                     self.init["template"] = self.args.template
                 if self.args.current_dir:
                     self.init["current-dir"] = self.args.current_dir
 
-            if self.task == "check":
+            if self.args.cls.__name__ == "CheckTask":
                 if self.args.no_fix:
                     self.check["no-fix"] = self.args.no_fix
 
