@@ -213,9 +213,8 @@ Connections:
                             wildcard_keys.remove(key)
                     # If wildcard_keys is still not empty, there's a missing item in secrets
                     if len(wildcard_keys) > 0:
-                        console.print(
-                            f"""Secrets are missing to fulfill Airbyte's configuration: [bold red]{'|'.join(k for k in wildcard_keys)}[/bold red]\n{airbyte_object_type} [bold magenta]{exported_json_data['name']}[/bold magenta] will be saved but it may not work immediately.
-                            """
+                        raise AirbyteLoaderException(
+                            f"Secrets are missing to fulfill {airbyte_object_type} {exported_json_data['name']} configuration: [bold red]{'|'.join(k for k in wildcard_keys)}[/bold red]"
                         )
                     exported_json_data[
                         "connectionConfiguration"
