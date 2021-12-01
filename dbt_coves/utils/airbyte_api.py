@@ -15,10 +15,8 @@ class AirbyteApiCaller:
         """
         try:
             response = requests.post(endpoint, json=body)
-            if response.status_code == 204:
-                return response
-            elif response.status_code >= 200 and response.status_code < 300:
-                return json.loads(response.text)
+            if response.status_code >= 200 and response.status_code < 300:
+                return json.loads(response.text) if response.text else None
             else:
                 raise RequestException(
                     f"Unexpected status code from airbyte: {response.status_code}"
