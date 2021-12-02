@@ -211,7 +211,7 @@ Connections:
                     # If wildcard_keys is still not empty, there are missing key:values in secrets
                     if len(wildcard_keys) > 0:
                         raise AirbyteLoaderException(
-                            f"The following keys are missing in [bold red]{secret_file}[/bold red] secret file: [bold red]{' | '.join(k for k in wildcard_keys)}[/bold red]"
+                            f"The following keys are missing in [bold red]{secret_file}[/bold red] secret file: [bold red]{', '.join(k for k in wildcard_keys)}[/bold red]"
                         )
                     exported_json_data[
                         "connectionConfiguration"
@@ -219,7 +219,7 @@ Connections:
                 else:
                     raise AirbyteLoaderException(
                         f"Secret file not found\n"
-                        f"Please create [bold red]{secret_file}[/bold red] with the following keys: [bold red]{' | '.join(k for k in wildcard_keys)}[/bold red]"
+                        f"Please create [bold red]{secret_file}[/bold red] with the following keys: [bold red]{', '.join(k for k in wildcard_keys)}[/bold red]"
                     )
             return exported_json_data
         except AirbyteLoaderException as e:
