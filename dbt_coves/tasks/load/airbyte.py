@@ -109,18 +109,15 @@ class LoadAirbyteTask(BaseConfiguredTask):
                         connection_json["destinationName"]
                     )
                     if source_json and destination_json:
-                        try:
-                            source_id = self._create_or_update_source(source_json)
-                            destination_id = self._create_or_update_destination(
-                                destination_json
-                            )
-                            self._create_or_update_connection(
-                                connection_json, source_table, source_id, destination_id
-                            )
-                        except Exception as e:
-                            raise AirbyteLoaderException(
-                                f"There was an error loading Airbyte data: {e}"
-                            )
+
+                        source_id = self._create_or_update_source(source_json)
+                        destination_id = self._create_or_update_destination(
+                            destination_json
+                        )
+                        self._create_or_update_connection(
+                            connection_json, source_table, source_id, destination_id
+                        )
+
                     else:
                         # raise AirbyteLoaderException(f"There is no exported source-destination combination for connection {connection_json['connectionId']}")
                         print(
@@ -211,22 +208,23 @@ Connections:
                         if key in wildcard_keys:
                             connection_configuration[key] = value
                             wildcard_keys.remove(key)
-                    # If wildcard_keys is still not empty, there's a missing item in secrets
+                    # If wildcard_keys is still not empty, there are missing key:values in secrets
                     if len(wildcard_keys) > 0:
                         raise AirbyteLoaderException(
-                            f"Secrets are missing to fulfill {airbyte_object_type} {exported_json_data['name']} configuration: [bold red]{'|'.join(k for k in wildcard_keys)}[/bold red]"
+                            f"The following keys are missing in [bold red]{secret_file}[/bold red] secret file: [bold red]{' | '.join(k for k in wildcard_keys)}[/bold red]"
                         )
                     exported_json_data[
                         "connectionConfiguration"
                     ] = connection_configuration
                 else:
-                    console.print(
-                        f"Secret file not found for {airbyte_object_type} {exported_json_data['name'].lower()}"
+                    raise AirbyteLoaderException(
+                        f"Secret file not found\n"
+                        f"Please create [bold red]{secret_file}[/bold red] with the following information: [bold red]{' | '.join(k for k in wildcard_keys)}[/bold red]"
                     )
             return exported_json_data
-        except:
+        except AirbyteLoaderException as e:
             raise AirbyteLoaderException(
-                f"Could not load secret file for {airbyte_object_type} {exported_json_data['name']}"
+                f"There was an error loading secret data for {airbyte_object_type} [bold red]{exported_json_data['name']}[/bold red]: {e}"
             )
 
     def _create_source(self, exported_json_data):
