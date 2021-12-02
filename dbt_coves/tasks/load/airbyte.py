@@ -219,7 +219,7 @@ Connections:
                 else:
                     raise AirbyteLoaderException(
                         f"Secret file not found\n"
-                        f"Please create [bold red]{secret_file}[/bold red] with the following information: [bold red]{' | '.join(k for k in wildcard_keys)}[/bold red]"
+                        f"Please create [bold red]{secret_file}[/bold red] with the following keys: [bold red]{' | '.join(k for k in wildcard_keys)}[/bold red]"
                     )
             return exported_json_data
         except AirbyteLoaderException as e:
