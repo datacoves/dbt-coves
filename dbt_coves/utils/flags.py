@@ -37,6 +37,10 @@ class DbtCovesFlags:
                 "templates_folder": None,
             }
         }
+        self.extract = {"airbyte": {"path": None, "host": None, "port": None}}
+        self.load = {
+            "airbyte": {"path": None, "host": None, "port": None, "secrets": None}
+        }
         self.init = {
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
             "current-dir": False,
@@ -52,7 +56,6 @@ class DbtCovesFlags:
         if getattr(self.args, "project_dir", None) is not None:
             expanded_user = os.path.expanduser(self.args.project_dir)
             self.args.project_dir = os.path.abspath(expanded_user)
-
         self.task = self.args.task
         self.task_cls = getattr(self.args, "cls", None)
 
@@ -70,7 +73,7 @@ class DbtCovesFlags:
                     self.config_path = Path(self.args.config_path).expanduser()
 
             # generate sources
-            if self.task == "sources":
+            if self.args.cls.__name__ == "GenerateSourcesTask":
                 if self.args.schemas:
                     self.generate["sources"]["schemas"] = [
                         schema.strip() for schema in self.args.schemas.split(",")
@@ -92,12 +95,29 @@ class DbtCovesFlags:
                         "templates_folder"
                     ] = self.args.templates_folder
 
-            if self.task == "init":
+            if self.args.cls.__name__ == "InitTask":
                 if self.args.template:
                     self.init["template"] = self.args.template
                 if self.args.current_dir:
                     self.init["current-dir"] = self.args.current_dir
 
-            if self.task == "check":
+            if self.args.cls.__name__ == "CheckTask":
                 if self.args.no_fix:
                     self.check["no-fix"] = self.args.no_fix
+
+            if self.args.cls.__name__ == "LoadAirbyteTask":
+                if self.args.path:
+                    self.load["airbyte"]["path"] = self.args.path
+
+                if self.args.host and self.args.port:
+                    self.load["airbyte"]["port"] = self.args.port
+                    self.load["airbyte"]["host"] = self.args.host
+                if self.args.secrets:
+                    self.load["airbyte"]["secrets"] = self.args.secrets
+
+            if self.args.cls.__name__ == "ExtractAirbyteTask":
+                if self.args.path:
+                    self.extract["airbyte"]["path"] = self.args.path
+                if self.args.host and self.args.port:
+                    self.extract["airbyte"]["host"] = self.args.host
+                    self.extract["airbyte"]["port"] = self.args.port
