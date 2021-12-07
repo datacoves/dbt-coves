@@ -1,0 +1,14 @@
+version: 2
+
+sources:
+  - name: psql
+    schema: raw
+    tables:
+      - name: origin_test_data
+        identifier: ORIGIN_TEST_DATA
+
+models:
+  - name: origin_test_data
+    columns:
+      - name: id
+      - name: username

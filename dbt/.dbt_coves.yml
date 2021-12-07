@@ -1,0 +1,12 @@
+extract:
+  airbyte:
+    path: /home/bruno/airbyte
+    host: http://localhost
+    port: 8001
+
+load:
+  airbyte:
+    path: /home/bruno/airbyte
+    host: http://localhost
+    port: 8001
+    secrets: /home/bruno/secrets

@@ -1,0 +1,9 @@
+# dbt
+target/
+dbt_modules/
+.config/.user.yml
+/profiles.yml
+
+# logs
+*.log
+logs/

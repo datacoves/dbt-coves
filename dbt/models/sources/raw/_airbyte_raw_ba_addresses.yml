@@ -1,0 +1,20 @@
+version: 2
+
+sources:
+  - name: raw
+    schema: raw
+    tables:
+      - name: _airbyte_raw_ba_addresses
+        identifier: _AIRBYTE_RAW_BA_ADDRESSES
+
+models:
+  - name: _airbyte_raw_ba_addresses
+    columns:
+      - name: _08075
+      - name: _nj
+      - name: 120_jefferson_st.
+      - name: doe
+      - name: john
+      - name: riverside
+      - name: _airbyte_ab_id
+      - name: _airbyte_emitted_at

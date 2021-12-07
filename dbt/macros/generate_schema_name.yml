@@ -1,0 +1,9 @@
+version: 2
+
+macros:
+  - name: generate_schema_name
+    description: Cool Macro Description
+    arguments:
+      - name: custom_schema_name
+        type: schema name or expression
+        description: "The name of the schema, or an expression"
