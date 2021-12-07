@@ -34,19 +34,19 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         subparser.add_argument(
             "--path",
             type=str,
-            required=True,
+            required=False,
             help="Where json files will be generated, i.e. " "'airbyte'",
         )
         subparser.add_argument(
             "--host",
             type=str,
-            required=True,
+            required=False,
             help="Airbyte's API hostname, i.e. 'airbyte-server'",
         )
         subparser.add_argument(
             "--port",
             type=str,
-            required=True,
+            required=False,
             help="Airbyte's API port, i.e. '8001'",
         )
         subparser.set_defaults(cls=cls, which="airbyte")
