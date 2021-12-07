@@ -29,25 +29,21 @@ class LoadAirbyteTask(BaseConfiguredTask):
         subparser.add_argument(
             "--path",
             type=str,
-            required=False,
             help="Where json files will be loaded from, i.e. " "'/var/data'",
         )
         subparser.add_argument(
             "--host",
             type=str,
-            required=False,
             help="Airbyte's API hostname, i.e. 'airbyte-server'",
         )
         subparser.add_argument(
             "--port",
             type=str,
-            required=False,
             help="Airbyte's API port, i.e. '8001'",
         )
         subparser.add_argument(
             "--secrets",
             type=str,
-            required=False,
             help="Secret files location for Airbyte configuration",
         )
         subparser.set_defaults(cls=cls, which="airbyte")
