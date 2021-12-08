@@ -89,9 +89,9 @@ class AirbyteApiCaller:
             self.airbyte_destinations_list = self.api_call(
                 self.airbyte_endpoint_list_destinations, self.standard_request_body
             )["destinations"]
-        except:
+        except AirbyteApiCallerException as e:
             raise AirbyteApiCallerException(
-                "Couldn't retrieve Airbyte connections, sources and destinations"
+                f"Couldn't retrieve Airbyte connections, sources and destinations {e}"
             )
 
     def load_definitions(self):

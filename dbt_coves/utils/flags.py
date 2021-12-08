@@ -37,7 +37,9 @@ class DbtCovesFlags:
                 "templates_folder": None,
             }
         }
-        self.extract = {"airbyte": {"path": None, "host": None, "port": None}}
+        self.extract = {
+            "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
+        }
         self.load = {
             "airbyte": {"path": None, "host": None, "port": None, "secrets": None}
         }
@@ -121,3 +123,5 @@ class DbtCovesFlags:
                 if self.args.host and self.args.port:
                     self.extract["airbyte"]["host"] = self.args.host
                     self.extract["airbyte"]["port"] = self.args.port
+                if self.args.dbt_list_args:
+                    self.extract["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
