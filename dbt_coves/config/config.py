@@ -28,6 +28,7 @@ class ExtractAirbyteModel(BaseModel):
     path: Optional[str] = ""
     host: Optional[str] = ""
     port: Optional[str] = ""
+    dbt_list_args: Optional[str] = ""
 
 
 class LoadAirbyteModel(BaseModel):
@@ -65,6 +66,7 @@ class DbtCovesConfig:
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",
+        "extract.airbyte.dbt_list_args",
         "load.airbyte.path",
         "load.airbyte.host",
         "load.airbyte.port",

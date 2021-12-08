@@ -46,6 +46,11 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             type=str,
             help="Airbyte's API port, i.e. '8001'",
         )
+        subparser.add_argument(
+            "--dbt_list_args",
+            type=str,
+            help="Extra dbt arguments, selectors or modifiers",
+        )
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
@@ -59,15 +64,13 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         extract_destination = self.get_config_value("path")
         airbyte_host = self.get_config_value("host")
         airbyte_port = self.get_config_value("port")
+        dbt_modifiers = self.get_config_value("dbt_list_args")
 
-        path = pathlib.Path(extract_destination)
+        extract_destination = pathlib.Path(extract_destination)
 
-        connections_path = path / "connections"
-        connections_path.mkdir(parents=True, exist_ok=True)
-        sources_path = path / "sources"
-        sources_path.mkdir(parents=True, exist_ok=True)
-        destinations_path = path / "destinations"
-        destinations_path.mkdir(parents=True, exist_ok=True)
+        connections_path = extract_destination / "connections"
+        sources_path = extract_destination / "sources"
+        destinations_path = extract_destination / "destinations"
 
         self.connections_extract_destination = os.path.abspath(connections_path)
         self.destinations_extract_destination = os.path.abspath(destinations_path)
@@ -76,13 +79,12 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         self.airbyte_api_caller = AirbyteApiCaller(airbyte_host, airbyte_port)
 
         console.print(
-            f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(path)}\n"
+            f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(extract_destination)}\n"
         )
 
-        dbt_sources_list = shell.run_dbt_ls(
-            "dbt ls --resource-type source",
-            None,
-        )
+        dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
+        dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
+
         if dbt_sources_list:
             dbt_sources_list = self._remove_airbyte_prefix(dbt_sources_list)
             for source in dbt_sources_list:
@@ -102,20 +104,28 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                     )
 
                     if source_destination and source_source:
+                        connections_path.mkdir(parents=True, exist_ok=True)
+                        sources_path.mkdir(parents=True, exist_ok=True)
+                        destinations_path.mkdir(parents=True, exist_ok=True)
+
                         self._save_json_connection(source_connection)
                         self._save_json_destination(source_destination)
                         self._save_json_source(source_source)
                 else:
-                    print(f"There is no Airbyte Connection for source: {source}")
+                    console.print(
+                        f"There is no Airbyte Connection for source: {source}"
+                    )
             console.print(
-                "Extraction successful!\n"
+                f"Extraction to path {extract_destination} was successful!\n"
                 f"[u]Sources[/u]: {self.extraction_results['sources']}\n"
                 f"[u]Destinations[/u]: {self.extraction_results['destinations']}\n"
                 f"[u]Connections[/u]: {self.extraction_results['connections']}\n"
             )
             return 0
         else:
-            raise AirbyteExtractorException("There are no dbt Sources compiled")
+            raise AirbyteExtractorException(
+                f"No compiled dbt sources found running '{dbt_ls_cmd}'"
+            )
 
     def _remove_airbyte_prefix(self, sources_list):
         return [source.lower().replace("_airbyte_raw_", "") for source in sources_list]
@@ -140,7 +150,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             if destination["destinationId"] == destinationId:
                 return destination
         raise AirbyteExtractorException(
-            f"Airbyte extract error: there are no destinations for id {destinationId}"
+            f"Airbyte extract error: there is no Airbyte Destination for id {destinationId}"
         )
 
     def _get_airbyte_source_from_id(self, sourceId):
@@ -151,12 +161,15 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             if source["sourceId"] == sourceId:
                 return source
         raise AirbyteExtractorException(
-            f"Airbyte extract error: there are no sources for id {sourceId}"
+            f"Airbyte extract error: there is no Airbyte Source for id {sourceId}"
         )
 
     def _save_json(self, path, object):
-        with open(path, "w") as json_file:
-            json.dump(object, json_file)
+        try:
+            with open(path, "w") as json_file:
+                json.dump(object, json_file)
+        except OSError as e:
+            raise AirbyteExtractorException(f"Couldn't write {path}: {e}")
 
     def _save_json_connection(self, connection):
         connection = copy(connection)
