@@ -19,10 +19,12 @@ class AirbyteApiCaller:
                 return json.loads(response.text) if response.text else None
             else:
                 raise RequestException(
-                    f"Unexpected status code from airbyte: {response.status_code}"
+                    f"Unexpected status code from airbyte in endpoint {endpoint}: {response.status_code}"
                 )
         except RequestException as e:
-            raise AirbyteApiCallerException("Airbyte API error: " + str(e))
+            raise AirbyteApiCallerException(
+                f"Airbyte API error in endpoint {endpoint}: " + str(e)
+            )
 
     def __init__(self, api_host, api_port):
         airbyte_host = api_host
