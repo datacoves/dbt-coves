@@ -3,7 +3,8 @@ from os import close
 from pathlib import Path
 import re
 import csv
-import ipdb
+from dbt.contracts.graph.model_config import Metadata
+from dbt.adapters.base import Column
 import questionary
 from questionary import Choice
 from rich.console import Console
@@ -18,6 +19,7 @@ NESTED_FIELD_TYPES = {
     "SnowflakeAdapter": "VARIANT",
     "BigQueryAdapter": "STRUCT",
     "RedshiftAdapter": "SUPER",
+    "PostgresAdapter": "JSONB",
 }
 
 
@@ -81,9 +83,6 @@ class GenerateSourcesTask(BaseConfiguredTask):
         If metadata path was provided, it returns a dictionary with column keys and their corresponding values
         """
         if path:
-            import ipdb
-
-            ipdb.set_trace()
             metadata_path = Path().joinpath(path)
             try:
                 f = open(metadata_path, "r")
@@ -107,10 +106,22 @@ class GenerateSourcesTask(BaseConfiguredTask):
                         + row.get("key")
                     )
                     if not mdata_key in metadata_map:
-                        metadata_map[mdata_key] = {
-                            "type": row["type"],
-                            "description": row["description"],
-                        }
+                        if mdata_key[-1] == "-":
+                            mdata_key = mdata_key[:-1]
+                            name = row["column"].lower()
+                            metadata_map[mdata_key] = {
+                                "type": row["type"].lower(),
+                                "description": row["description"],
+                                "name": name,
+                            }
+                        else:
+                            name = mdata_key.split(row["relation"] + "-")
+                            name = name[-1:][0]
+                            metadata_map[mdata_key] = {
+                                "type": row["type"],
+                                "description": row["description"],
+                                "name": name,
+                            }
                     else:
                         raise ValueError("Duplicated Comumns in Metadata")
             return metadata_map
@@ -119,12 +130,10 @@ class GenerateSourcesTask(BaseConfiguredTask):
     def run(self):
         config_database = self.get_config_value("database")
         metadata = self.get_metadata(self.get_config_value("metadata"))
-        print(metadata)
         db = config_database or self.config.credentials.database
         schema_name_selectors = [
             schema.upper() for schema in self.get_config_value("schemas")
         ]
-
         schema_wildcard_selectors = []
         for schema_name in schema_name_selectors:
             if "*" in schema_name:
@@ -201,7 +210,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     ],
                 ).ask()
                 if selected_rels:
-                    self.generate_sources(selected_rels)
+                    self.generate_sources(selected_rels, metadata)
                 else:
                     return 0
             else:
@@ -214,7 +223,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["sources"][key]
 
-    def generate_sources(self, rels):
+    def generate_sources(self, rels, mdata=None):
         dest = self.get_config_value("destination")
         options = {"override_all": None, "flatten_all": None}
         for rel in rels:
@@ -230,25 +239,29 @@ class GenerateSourcesTask(BaseConfiguredTask):
                         default="No",
                     ).ask()
                     if overwrite == "Yes":
-                        self.generate_model(rel, model_sql, options)
+                        self.generate_model(rel, model_sql, options, mdata)
                     elif overwrite == "No for all":
                         options["override_all"] = "No"
                     elif overwrite == "Yes for all":
                         options["override_all"] = "Yes"
-                        self.generate_model(rel, model_sql, options)
+                        self.generate_model(rel, model_sql, options, mdata)
                 else:
-                    self.generate_model(rel, model_sql, options)
+                    self.generate_model(rel, model_sql, options, mdata)
             elif options["override_all"] == "Yes":
-                self.generate_model(rel, model_sql, options)
+                self.generate_model(rel, model_sql, options, mdata)
             else:
                 if not model_sql.exists():
-                    self.generate_model(rel, model_sql, options)
+                    self.generate_model(rel, model_sql, options, mdata)
 
-    def generate_model(self, relation, destination, options):
+    def generate_model(self, relation, destination, options, meta_data=None):
         destination.parent.mkdir(parents=True, exist_ok=True)
         columns = self.adapter.get_columns_in_relation(relation)
         nested_field_type = NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
-        nested = [col.name.lower() for col in columns if col.dtype == nested_field_type]
+        nested = [
+            col.name.lower()
+            for col in columns
+            if col.dtype.lower() == nested_field_type.lower()
+        ]
         if not options["flatten_all"]:
             if nested:
                 field_nlg = "field"
@@ -263,20 +276,28 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     default="Yes",
                 ).ask()
                 if flatten == "Yes":
-                    self.render_templates(relation, columns, destination, nested=nested)
+                    self.render_templates(
+                        relation, columns, destination, nested=nested, meta_d=meta_data
+                    )
                 elif flatten == "No":
-                    self.render_templates(relation, columns, destination)
+                    self.render_templates(
+                        relation, columns, destination)
                 elif flatten == "No for all":
                     options["flatten_all"] = "No"
-                    self.render_templates(relation, columns, destination)
+                    self.render_templates(
+                        relation, columns, destination)
                 elif flatten == "Yes for all":
                     options["flatten_all"] = "Yes"
-                    self.render_templates(relation, columns, destination, nested=nested)
+                    self.render_templates(
+                        relation, columns, destination, nested=nested, meta_d=meta_data
+                    )
             else:
                 self.render_templates(relation, columns, destination)
         elif options["flatten_all"] == "Yes":
             if nested:
-                self.render_templates(relation, columns, destination, nested=nested)
+                self.render_templates(
+                    relation, columns, destination, nested=nested, meta_d=meta_data
+                )
         else:
             self.render_templates(relation, columns, destination)
 
@@ -302,30 +323,75 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     )
         return result
 
-    def render_templates(self, relation, columns, destination, nested=None):
+    def render_templates(
+        self, relation, columns, destination, nested=None, meta_d=None
+    ):
         context = {
             "relation": relation,
             "columns": columns,
             "nested": {},
             "adapter_name": self.adapter.__class__.__name__,
         }
+
         if nested:
-            context["nested"] = self.get_nested_keys(
-                nested, relation.schema, relation.name
-            )
-            # Removing original column with JSON data
-            new_cols = []
-            for col in columns:
-                if col.name.lower() not in context["nested"]:
-                    new_cols.append(col)
-            context["columns"] = new_cols
+            if meta_d:
+                nested_columns = self.get_nested_keys(
+                    nested, relation.schema, relation.name
+                )
+                new_cols = []
+                for col in columns:
+                    if col.column.lower() not in nested_columns:
+                        nc = {}
+                        nc["name"] = col.column.lower()
+                        for x in meta_d.values():
+                            if nc["name"] == x["name"].lower():
+                                nc["dtype"] = x["type"].lower()
+                                nc["description"] = x["description"]
+                                nc["col_instance"] = col
+                                new_cols.append(nc)
+                context["columns"] = new_cols
+                new_nes = {}
+                for reg, cols in nested_columns.items():
+                    for col in cols:
+                        for x in meta_d.values():
+                            if col.lower() in x["name"].lower():
+                                nes = {}
+                                under = x["name"].lower().replace(".", "_")
+                                under = under.replace("-", "_")
+                                nes["name"] = under
+                                nes["dtype"] = x["type"].lower()
+                                nes["description"] = x["description"]
+                                if reg in new_nes.keys():
+                                    l = new_nes[reg]
+                                    l.append(nes)
+                                    new_nes[reg] = l
+                                else:
+                                    new_nes[reg] = [nes]
+
+                context["nested"] = new_nes
+                context["with_metadata"] = "yes"
+            else:
+                context["nested"] = self.get_nested_keys(
+                    nested, relation.schema, relation.name
+                )
+                new_cols = []
+                for col in columns:
+                    if col.name.lower() not in context["nested"]:
+                        new_cols.append(col)
+                context["columns"] = new_cols
+                context["with_metadata"] = "no"
+
         config_db = self.get_config_value("database")
         if config_db:
             context["source_database"] = config_db
 
         templates_folder = self.get_config_value("templates_folder")
+
         render_template_file(
-            "source_model.sql", context, destination, templates_folder=templates_folder
+            "source_model.sql",
+            context,
+            destination,
+            templates_folder=templates_folder,
         )
         context["model"] = destination.name.lower().replace(".sql", "")
         render_template_file(

@@ -15,9 +15,19 @@ models:
     columns:
 {%- for cols in nested.values() %}
   {%- for col in cols %}
+  {%- if with_metadata == 'yes' %}
+      - name: {{ col.name.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+      - description: {{ col.description.replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+  {%- else  %} 
       - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+  {%- endif %}    
   {%- endfor %}
 {%- endfor %}
 {%- for col in columns %}
+  {%- if with_metadata == 'yes' %}
       - name: {{ col.name.lower() }}
+      - description: {{ col.description.replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+  {%- else  %} 
+      - name: {{ col.name.lower() }}
+  {%- endif %} 
 {%- endfor %}
