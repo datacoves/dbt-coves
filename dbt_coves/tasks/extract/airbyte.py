@@ -66,6 +66,11 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         airbyte_port = self.get_config_value("port")
         dbt_modifiers = self.get_config_value("dbt_list_args")
 
+        if not extract_destination or not airbyte_host or not airbyte_port:
+            raise AirbyteExtractorException(
+                f"Couldn't start extraction: one (or more) of the following arguments is missing either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
+            )
+
         extract_destination = pathlib.Path(extract_destination)
 
         connections_path = extract_destination / "connections"
@@ -83,6 +88,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         )
 
         dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
+
         dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
 
         if dbt_sources_list:
@@ -167,7 +173,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
     def _save_json(self, path, object):
         try:
             with open(path, "w") as json_file:
-                json.dump(object, json_file)
+                json.dump(object, json_file, indent=4)
         except OSError as e:
             raise AirbyteExtractorException(f"Couldn't write {path}: {e}")
 
