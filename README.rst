@@ -177,8 +177,10 @@ Extract configuration from Airbyte
    dbt-coves extract airbyte
 
 Extracts the configuration from your Airbyte sources, connections and
-destinations (excluding credentials) and stores it in a folder. This
-feature is useful when you like having everything versioned in git.
+destinations (excluding credentials) and stores it in the specified
+folder. The main goal of this feature is to keep track of the
+configuration changes in your git repo, and rollback to a specific
+version when needed.
 
 
 Load configuration to Airbyte
@@ -189,9 +191,9 @@ Load configuration to Airbyte
    dbt-coves load airbyte
 
 Loads the Airbyte configuration generated with *dbt-coves extract
-airbyte* on an Airbyte server. Secrets folder needs to be also
-specified, you can use `git-secret <https://git-secret.io/>`_ to
-securely store them.
+airbyte* on an Airbyte server. Secrets folder needs to be specified
+separatedly. You can use `git-secret <https://git-secret.io/>`_ to
+encrypt them and make them part of your git repo.
 
 
 Settings
