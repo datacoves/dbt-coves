@@ -57,6 +57,23 @@ Environment setup
 
 Runs a set of checks in your local environment and helps you configure it properly: ssh key, git, dbt profiles.yml, vscode extensions.
 
+Extract configuration from Airbyte
+----------------------------------
+
+.. code-block:: console
+
+   dbt-coves extract airbyte
+
+Extracts the configuration from your Airbyte sources, connections and destinations (excluding credentials) and stores it in the specified folder. The main goal of this feature is to keep track of the configuration changes in your git repo, and rollback to a specific version when needed.
+
+Load configuration to Airbyte
+-----------------------------
+
+.. code-block:: console
+
+   dbt-coves load airbyte
+
+Loads the Airbyte configuration generated with `dbt-coves extract airbyte` on an Airbyte server. Secrets folder needs to be specified separatedly. You can use `git-secret <https://git-secret.io/>`_ to encrypt them and make them part of your git repo.
 
 Settings
 ========
@@ -65,13 +82,14 @@ Dbt-coves could optionally read settings from ``.dbt_coves.yml`` or ``.dbt_coves
 
 .. code-block:: yaml
 
-   generate:
-     sources:
-       schemas:
-         - RAW
-       destination: "models/sources/{{ schema }}/{{ relation }}.sql"
-       model_props_strategy: one_file_per_model
-       templates_folder: ".dbt_coves/templates"
+  generate:
+    sources:
+      schemas:
+        - RAW
+      destination: "models/sources/{{ schema }}/{{ relation }}.sql"
+      model_props_strategy: one_file_per_model
+      templates_folder: ".dbt_coves/templates"
+
 
 In this example options for the ``generate`` command are provided:
 
