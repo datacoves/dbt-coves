@@ -139,7 +139,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 console.print(
                     f"There is no Airbyte Connection for source: [red]{source}[/red]"
                 )
-        if len(self.extraction_results["connection"] >= 1):
+        if len(self.extraction_results["connections"] >= 1):
             console.print(
                 f"Extraction to path {extract_destination} was successful!\n"
                 f"[u]Sources[/u]: {self.extraction_results['sources']}\n"
