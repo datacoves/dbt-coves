@@ -4,6 +4,7 @@ from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.tasks.generate import sources
 from dbt_coves.utils import shell
 from dbt_coves.utils.airbyte_api import AirbyteApiCaller
+from pathlib import Path
 
 import requests, json, os, subprocess, pathlib
 from typing import Dict
@@ -88,65 +89,116 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         )
 
         dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
+        # dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
 
-        dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
+        try:
+            dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
+        except subprocess.CalledProcessError as e:
+            raise AirbyteExtractorException(
+                f"Command '{dbt_ls_cmd}' failed and returned with error (code {e.returncode})\n"
+                f"Output: {e.output.decode('utf-8')}"
+            )
 
-        if dbt_sources_list:
-            dbt_sources_list = self._remove_airbyte_prefix(dbt_sources_list)
-            for source in dbt_sources_list:
-                # Obtain db.schema.table
-                source_db, source_schema, source_table = [
-                    element.lower() for element in source.split(".")
-                ]
+        if not dbt_sources_list:
+            raise AirbyteExtractorException(
+                f"No compiled dbt sources found running '{dbt_ls_cmd}'"
+            )
 
-                source_connection = self._get_airbyte_connection_for_table(source_table)
+        manifest_json = json.load(open(Path() / "target" / "manifest.json"))
+        dbt_sources_list = self._clean_sources_prefixes(dbt_sources_list)
+        for source in dbt_sources_list:
+            # Obtain db.schema.table
+            source_db = manifest_json["sources"][source]["database"].lower()
+            source_schema = manifest_json["sources"][source]["schema"].lower()
+            source_table = (
+                manifest_json["sources"][source]["identifier"]
+                .lower()
+                .replace("_airbyte_raw_", "")
+            )
 
-                if source_connection:
-                    source_destination = self._get_airbyte_destination_from_id(
-                        source_connection["destinationId"]
-                    )
-                    source_source = self._get_airbyte_source_from_id(
-                        source_connection["sourceId"]
-                    )
+            source_connection = self._get_airbyte_connection_for_table(
+                source_db, source_schema, source_table
+            )
+            if source_connection:
+                source_destination = self._get_airbyte_destination_from_id(
+                    source_connection["destinationId"]
+                )
+                source_source = self._get_airbyte_source_from_id(
+                    source_connection["sourceId"]
+                )
 
-                    if source_destination and source_source:
-                        connections_path.mkdir(parents=True, exist_ok=True)
-                        sources_path.mkdir(parents=True, exist_ok=True)
-                        destinations_path.mkdir(parents=True, exist_ok=True)
+                if source_destination and source_source:
+                    connections_path.mkdir(parents=True, exist_ok=True)
+                    sources_path.mkdir(parents=True, exist_ok=True)
+                    destinations_path.mkdir(parents=True, exist_ok=True)
 
-                        self._save_json_connection(source_connection)
-                        self._save_json_destination(source_destination)
-                        self._save_json_source(source_source)
-                else:
-                    console.print(
-                        f"There is no Airbyte Connection for source: {source}"
-                    )
+                    self._save_json_connection(source_connection)
+                    self._save_json_destination(source_destination)
+                    self._save_json_source(source_source)
+            else:
+                console.print(
+                    f"There is no Airbyte Connection for source: [red]{source}[/red]"
+                )
+        if len(self.extraction_results["connection"] >= 1):
             console.print(
                 f"Extraction to path {extract_destination} was successful!\n"
                 f"[u]Sources[/u]: {self.extraction_results['sources']}\n"
                 f"[u]Destinations[/u]: {self.extraction_results['destinations']}\n"
                 f"[u]Connections[/u]: {self.extraction_results['connections']}\n"
             )
-            return 0
         else:
-            raise AirbyteExtractorException(
-                f"No compiled dbt sources found running '{dbt_ls_cmd}'"
-            )
+            console.print(f"No Airbyte Connections were extracted")
+        return 0
 
-    def _remove_airbyte_prefix(self, sources_list):
-        return [source.lower().replace("_airbyte_raw_", "") for source in sources_list]
+    def _clean_sources_prefixes(self, sources_list):
+        return [source.lower().replace("source:", "source.") for source in sources_list]
 
-    def _get_airbyte_connection_for_table(self, table):
+    def _get_airbyte_connection_for_table(self, db, schema, table):
         """
         Given a table name, returns the corresponding airbyte connection
         """
         for conn in self.airbyte_api_caller.airbyte_connections_list:
+
             for stream in conn["syncCatalog"]["streams"]:
                 if stream["stream"]["name"].lower() == table:
-                    return conn
-        raise AirbyteExtractorException(
-            f"Airbyte extract error: there are no connections for table {table}"
-        )
+                    namespace_definition = conn["namespaceDefinition"]
+
+                    if namespace_definition == "source" or (
+                        conn["namespaceDefinition"] == "customformat"
+                        and conn["namespaceFormat"] == "${SOURCE_NAMESPACE}"
+                    ):
+                        source = self._get_airbyte_source_from_id(conn["sourceId"])
+                        if source["sourceName"] == "File":
+                            if (
+                                source["connectionConfiguration"][
+                                    "dataset_name"
+                                ].lower()
+                                == table
+                            ):
+                                return conn
+                        else:
+                            if (
+                                source["connectionConfiguration"]["database"].lower()
+                                == db
+                            ):
+                                return conn
+
+                    elif namespace_definition == "destination":
+                        # compare destination-schema with arg-schema
+                        destination = self._get_airbyte_destination_from_id(
+                            conn["destinationId"]
+                        )
+                        if (
+                            destination["connectionConfiguration"]["schema"].lower()
+                            == schema
+                        ):
+                            return conn
+
+                    else:
+                        if namespace_definition == "customformat":
+                            if conn["namespaceFormat"] == schema:
+                                return conn
+        return None
 
     def _get_airbyte_destination_from_id(self, destinationId):
         """
@@ -156,7 +208,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             if destination["destinationId"] == destinationId:
                 return destination
         raise AirbyteExtractorException(
-            f"Airbyte extract error: there is no Airbyte Destination for id {destinationId}"
+            f"Airbyte extract error: there is no Airbyte Destination for id [red]{destinationId}[/red]"
         )
 
     def _get_airbyte_source_from_id(self, sourceId):
@@ -167,7 +219,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             if source["sourceId"] == sourceId:
                 return source
         raise AirbyteExtractorException(
-            f"Airbyte extract error: there is no Airbyte Source for id {sourceId}"
+            f"Airbyte extract error: there is no Airbyte Source for id [red]{sourceId}[/red]"
         )
 
     def _save_json(self, path, object):
