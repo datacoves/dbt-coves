@@ -18,7 +18,7 @@ def run_dbt_ls(bash_cmd, cwd=None):
         bash_cmd.split(),
         cwd=cwd,
         stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
         check=True,
     )
     stdout = process.stdout.decode().strip()
