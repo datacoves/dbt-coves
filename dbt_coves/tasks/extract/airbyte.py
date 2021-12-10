@@ -89,7 +89,6 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         )
 
         dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
-        # dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
 
         try:
             dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
