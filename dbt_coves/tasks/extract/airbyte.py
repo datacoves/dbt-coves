@@ -138,7 +138,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 console.print(
                     f"There is no Airbyte Connection for source: [red]{source}[/red]"
                 )
-        if len(self.extraction_results["connections"] >= 1):
+        if len(self.extraction_results["connections"]) >= 1:
             console.print(
                 f"Extraction to path {extract_destination} was successful!\n"
                 f"[u]Sources[/u]: {self.extraction_results['sources']}\n"
@@ -152,6 +152,27 @@ class ExtractAirbyteTask(BaseConfiguredTask):
     def _clean_sources_prefixes(self, sources_list):
         return [source.lower().replace("source:", "source.") for source in sources_list]
 
+    def _get_connection_schema(self, conn, destination_config):
+        """
+        Given an airybte connection, returns a schema name
+        """
+        namespace_definition = conn["namespaceDefinition"]
+
+        if namespace_definition == "source" or (
+            conn["namespaceDefinition"] == "customformat"
+            and conn["namespaceFormat"] == "${SOURCE_NAMESPACE}"
+        ):
+            source = self._get_airbyte_source_from_id(conn["sourceId"])
+            if "schema" in source["connectionConfiguration"]:
+                return source["connectionConfiguration"]["schema"].lower()
+            else:
+                return None
+        elif namespace_definition == "destination":
+            return destination_config["connectionConfiguration"]["schema"].lower()
+        else:
+            if namespace_definition == "customformat":
+                return conn["namespaceFormat"]
+
     def _get_airbyte_connection_for_table(self, db, schema, table):
         """
         Given a table name, returns the corresponding airbyte connection
@@ -160,43 +181,22 @@ class ExtractAirbyteTask(BaseConfiguredTask):
 
             for stream in conn["syncCatalog"]["streams"]:
                 if stream["stream"]["name"].lower() == table:
-                    namespace_definition = conn["namespaceDefinition"]
-
-                    if namespace_definition == "source" or (
-                        conn["namespaceDefinition"] == "customformat"
-                        and conn["namespaceFormat"] == "${SOURCE_NAMESPACE}"
+                    destination_config = self._get_airbyte_destination_from_id(
+                        conn["destinationId"]
+                    )
+                    # match database
+                    if (
+                        db
+                        == destination_config["connectionConfiguration"][
+                            "database"
+                        ].lower()
                     ):
-                        source = self._get_airbyte_source_from_id(conn["sourceId"])
-                        if source["sourceName"] == "File":
-                            if (
-                                source["connectionConfiguration"][
-                                    "dataset_name"
-                                ].lower()
-                                == table
-                            ):
-                                return conn
-                        else:
-                            if (
-                                source["connectionConfiguration"]["database"].lower()
-                                == db
-                            ):
-                                return conn
-
-                    elif namespace_definition == "destination":
-                        # compare destination-schema with arg-schema
-                        destination = self._get_airbyte_destination_from_id(
-                            conn["destinationId"]
+                        airbyte_schema = self._get_connection_schema(
+                            conn, destination_config
                         )
-                        if (
-                            destination["connectionConfiguration"]["schema"].lower()
-                            == schema
-                        ):
+                        # and finally, match schema, if defined
+                        if airbyte_schema == schema or not airbyte_schema:
                             return conn
-
-                    else:
-                        if namespace_definition == "customformat":
-                            if conn["namespaceFormat"] == schema:
-                                return conn
         return None
 
     def _get_airbyte_destination_from_id(self, destinationId):
