@@ -89,7 +89,6 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         )
 
         dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
-        # dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
 
         try:
             dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
@@ -139,7 +138,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 console.print(
                     f"There is no Airbyte Connection for source: [red]{source}[/red]"
                 )
-        if len(self.extraction_results["connection"] >= 1):
+        if len(self.extraction_results["connections"] >= 1):
             console.print(
                 f"Extraction to path {extract_destination} was successful!\n"
                 f"[u]Sources[/u]: {self.extraction_results['sources']}\n"
