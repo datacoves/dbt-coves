@@ -325,18 +325,6 @@ python-versions = "*"
 test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
 
 [[package]]
-name = "configparser"
-version = "5.0.2"
-description = "Updated configparser from Python 3.8 for Python 2.6+."
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.extras]
-docs = ["sphinx", "jaraco.packaging (>=8.2)", "rst.linker (>=1.9)"]
-testing = ["pytest (>=4.6)", "pytest-checkdocs (>=1.2.3)", "pytest-flake8", "pytest-cov", "pytest-enabler", "pytest-black (>=0.3.7)", "pytest-mypy"]
-
-[[package]]
 name = "cookiecutter"
 version = "1.7.3"
 description = "A command-line utility that creates projects from project templates, e.g. creating a Python package project from a Python package project template."
@@ -1620,7 +1608,7 @@ docs = ["Sphinx (>=3.3,<4.0)", "sphinx-rtd-theme (>=0.5.0,<0.6.0)", "sphinx-auto
 name = "regex"
 version = "2021.10.8"
 description = "Alternative regular expression module, to replace re."
-category = "dev"
+category = "main"
 optional = false
 python-versions = "*"
 
@@ -1888,7 +1876,7 @@ test = ["pytest"]
 
 [[package]]
 name = "sqlfluff"
-version = "0.7.0"
+version = "0.9.0"
 description = "The SQL Linter for Humans"
 category = "main"
 optional = false
@@ -1897,16 +1885,19 @@ python-versions = ">=3.6"
 [package.dependencies]
 appdirs = "*"
 cached-property = "*"
+chardet = "*"
 click = ">=7.1"
 colorama = ">=0.3"
-configparser = "*"
 diff-cover = ">=2.5.0"
+importlib-metadata = {version = "*", markers = "python_version < \"3.8\""}
 Jinja2 = "*"
 oyaml = "*"
 pathspec = "*"
 pytest = "*"
+regex = "*"
 tblib = "*"
 toml = "*"
+tqdm = "*"
 typing-extensions = "*"
 
 [[package]]
@@ -2026,6 +2017,22 @@ tox = ">=3.8.0,<4.0.0"
 poetry = ["poetry (>=1.0.0,<2.0.0)"]
 
 [[package]]
+name = "tqdm"
+version = "4.62.3"
+description = "Fast, Extensible Progress Meter"
+category = "main"
+optional = false
+python-versions = "!=3.0.*,!=3.1.*,!=3.2.*,!=3.3.*,>=2.7"
+
+[package.dependencies]
+colorama = {version = "*", markers = "platform_system == \"Windows\""}
+
+[package.extras]
+dev = ["py-make (>=0.1.0)", "twine", "wheel"]
+notebook = ["ipywidgets (>=6)"]
+telegram = ["requests"]
+
+[[package]]
 name = "traitlets"
 version = "5.1.0"
 description = "Traitlets Python configuration system"
@@ -2133,7 +2140,7 @@ testing = ["pytest (>=4.6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytes
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7,<3.9"
-content-hash = "38080e60700b4b7a1c024531c2015fa1ad6f421a2686136a203d49a08b3ac097"
+content-hash = "4b9241f9b4531567a56a18d2be454ecc47adbd6af8a8cbc67f747ff6b3d646bc"
 
 [metadata.files]
 agate = [
@@ -2303,10 +2310,6 @@ commonmark = [
     {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
     {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
 ]
-configparser = [
-    {file = "configparser-5.0.2-py3-none-any.whl", hash = "sha256:af59f2cdd7efbdd5d111c1976ecd0b82db9066653362f0962d7bf1d3ab89a1fa"},
-    {file = "configparser-5.0.2.tar.gz", hash = "sha256:85d5de102cfe6d14a5172676f09d19c465ce63d6019cf0a4ef13385fc535e828"},
-]
 cookiecutter = [
     {file = "cookiecutter-1.7.3-py2.py3-none-any.whl", hash = "sha256:f8671531fa96ab14339d0c59b4f662a4f12a2ecacd94a0f70a3500843da588e2"},
     {file = "cookiecutter-1.7.3.tar.gz", hash = "sha256:6b9a4d72882e243be077a7397d0f1f76fe66cf3df91f3115dbb5330e214fa457"},
@@ -2380,8 +2383,12 @@ dbt-core = [
     {file = "dbt_core-0.21.0-py3-none-any.whl", hash = "sha256:ed1d75eb767c6d994bd22e3dc1a885011d73bbd78e81ebccaddaf4e1e3c4aee2"},
 ]
 dbt-extractor = [
+    {file = "dbt_extractor-0.4.0-cp310-cp310-macosx_10_7_x86_64.whl", hash = "sha256:916454ed38cb5ef1a3e239d639a66d74723504d271433d54a167de868290c327"},
+    {file = "dbt_extractor-0.4.0-cp310-cp310-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:5b92feae1ec4703bbe9ef5f472b1dcb6ca29acc205f243aa1bdf614ce1623574"},
     {file = "dbt_extractor-0.4.0-cp310-cp310-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:f776821a92b1419745ce4fe77d1f3bba46b9efccec3d2f8d0353f3bcb9b10150"},
     {file = "dbt_extractor-0.4.0-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:5aac619e32251c07543b34ad5c4bb6720e493a71cd17793bb5e98d9eb4ff6bf4"},
+    {file = "dbt_extractor-0.4.0-cp310-none-win32.whl", hash = "sha256:2888fe7dc8c78703a447a18fb0bcfdc17f2e1b9e6630d2ccec20c182879243d7"},
+    {file = "dbt_extractor-0.4.0-cp310-none-win_amd64.whl", hash = "sha256:de20bb41678406c95fbfbd9bbed9e76547a6c5672ff28a888fd62e6e30cf05c4"},
     {file = "dbt_extractor-0.4.0-cp36-cp36m-macosx_10_7_x86_64.whl", hash = "sha256:18e2d5371704d09e4aea6d98949f15ce84c721e8e5667cfb07a6c0b64938d8b8"},
     {file = "dbt_extractor-0.4.0-cp36-cp36m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:0dc31974e6c7785e8466df18fda0f8bcf50112073f28c8e63047fec3be528deb"},
     {file = "dbt_extractor-0.4.0-cp36-cp36m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:51fa7dd8292b23617a91a57f0be2f2c1280d35f17b6f95e3fd2e131a05fa0472"},
@@ -2394,6 +2401,7 @@ dbt-extractor = [
     {file = "dbt_extractor-0.4.0-cp36-none-win32.whl", hash = "sha256:896c3b392e5afd381a342313dd987a2547fb7f41e90ab2b748113c6cc780310b"},
     {file = "dbt_extractor-0.4.0-cp36-none-win_amd64.whl", hash = "sha256:416efbc4c8af2237348dc4c7e041632e49e4c12e5c388c8e33fe3f4095da38ce"},
     {file = "dbt_extractor-0.4.0-cp37-cp37m-macosx_10_7_x86_64.whl", hash = "sha256:5403bb01d62f6ae0227ff8fc33b19978bf4929f29954767d01e6c8b55e5bd6c9"},
+    {file = "dbt_extractor-0.4.0-cp37-cp37m-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:84b8f8b6da01bdf41c2f8ecd3bdac7ca755f9b4e4c9cc0a24d4e22921967a6e0"},
     {file = "dbt_extractor-0.4.0-cp37-cp37m-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:4a4110c6cd2c2382bdcdfd9347aed29df0462048aeaafe9b5ecb8fe4b310111f"},
     {file = "dbt_extractor-0.4.0-cp37-cp37m-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:c84836e985cc4bdee9e18918d3937a460f16d6d32cbdfe27c0a699a2d967b9b1"},
     {file = "dbt_extractor-0.4.0-cp37-cp37m-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:0ad78c97b229d47b8fa86951790dd1ae6c86bda00a4b7cffa7fd950b2a4fc717"},
@@ -2404,6 +2412,7 @@ dbt-extractor = [
     {file = "dbt_extractor-0.4.0-cp37-none-win32.whl", hash = "sha256:d2f777c56289fafbf58823cda2fac3a6e9b082980e6ffdbb0f03811f7054350d"},
     {file = "dbt_extractor-0.4.0-cp37-none-win_amd64.whl", hash = "sha256:bf66ff0b4090b578c00b1fb59681197866324265620a22e591e8e87752394713"},
     {file = "dbt_extractor-0.4.0-cp38-cp38-macosx_10_7_x86_64.whl", hash = "sha256:2ecc85951b067690a39fc5bff881096027c7eb4ac66c4041caff3d6b840745e3"},
+    {file = "dbt_extractor-0.4.0-cp38-cp38-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:751b03546514aa4bfed1ddbf52b3350cc68b96d3cab4aa465513fceb7a480f2c"},
     {file = "dbt_extractor-0.4.0-cp38-cp38-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:5737eeb266b8164ee91f8f07123f50c3342317955f436f78fd88899ea96625aa"},
     {file = "dbt_extractor-0.4.0-cp38-cp38-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:9a19636228c5b1725e6994d1af4d2672144f167fb25a57630af75e9dec50d9e8"},
     {file = "dbt_extractor-0.4.0-cp38-cp38-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:e61b54798346943256923cfa7faecd94176c8c00924c91f5a4a7bf3bd8787185"},
@@ -2414,6 +2423,7 @@ dbt-extractor = [
     {file = "dbt_extractor-0.4.0-cp38-none-win32.whl", hash = "sha256:e5292c571ba774e0de9c364b1457535132bd3289c39b8c1e097bde1f6abf6c6d"},
     {file = "dbt_extractor-0.4.0-cp38-none-win_amd64.whl", hash = "sha256:7aca5dce6a764104fbdb012d1541db2fd9177b708508d9a68cf28b0c6ad154a0"},
     {file = "dbt_extractor-0.4.0-cp39-cp39-macosx_10_7_x86_64.whl", hash = "sha256:f43fccd9be709d5f0c87008d0b7657dafb7371b802fe49d81684e270ee83770b"},
+    {file = "dbt_extractor-0.4.0-cp39-cp39-macosx_10_9_x86_64.macosx_11_0_arm64.macosx_10_9_universal2.whl", hash = "sha256:df9ab9cf95c4615f8f9e95be905d4d93e0d249ed3a95eb0b2f919a0d944ac485"},
     {file = "dbt_extractor-0.4.0-cp39-cp39-manylinux_2_17_aarch64.manylinux2014_aarch64.whl", hash = "sha256:e6672f0b5248309ad1b6afbba709cf7b9350fff156e0b0f03002aa5f41a6175a"},
     {file = "dbt_extractor-0.4.0-cp39-cp39-manylinux_2_17_armv7l.manylinux2014_armv7l.whl", hash = "sha256:2ec536a791e517576b2ee5b1beb41f35a20895662c3edab228e36215b2d5dd79"},
     {file = "dbt_extractor-0.4.0-cp39-cp39-manylinux_2_17_ppc64.manylinux2014_ppc64.whl", hash = "sha256:079e47ee37e2048d231a03caeaf3a971290727ddadfd6e6662775f52afd2b698"},
@@ -2423,6 +2433,8 @@ dbt-extractor = [
     {file = "dbt_extractor-0.4.0-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:e0775be498431e67996be3306dfa7f600a6636424cef8f1dceb05186962dea10"},
     {file = "dbt_extractor-0.4.0-cp39-none-win32.whl", hash = "sha256:d2c615b53d78d3d077289a7e43936d4f74421b2b32fb82d976a5628f13522cbd"},
     {file = "dbt_extractor-0.4.0-cp39-none-win_amd64.whl", hash = "sha256:d7e532c5e48cd8c9d7440736fcc4425750ea6cb27e29cb4a7900d888779e1bae"},
+    {file = "dbt_extractor-0.4.0-pp37-pypy37_pp73-manylinux_2_5_i686.manylinux1_i686.whl", hash = "sha256:9e7c7d8f56258e938c871523f13ed78e5fc227f02334231feb1ed8f36f39aa3e"},
+    {file = "dbt_extractor-0.4.0-pp37-pypy37_pp73-manylinux_2_5_x86_64.manylinux1_x86_64.whl", hash = "sha256:7f5cbd40f95b05587315125c85f60f4057ea5c5fc75bc97306bd379c96b49354"},
     {file = "dbt_extractor-0.4.0.tar.gz", hash = "sha256:58672e36fab988c849a693405920ee18421f27245c48e5f9ecf496369ed31a85"},
 ]
 dbt-postgres = [
@@ -3317,8 +3329,8 @@ sphinxcontrib-serializinghtml = [
     {file = "sphinxcontrib_serializinghtml-1.1.5-py2.py3-none-any.whl", hash = "sha256:352a9a00ae864471d3a7ead8d7d79f5fc0b57e8b3f95e9867eb9eb28999b92fd"},
 ]
 sqlfluff = [
-    {file = "sqlfluff-0.7.0-py3-none-any.whl", hash = "sha256:16ca4b17e980628e61a6001b7667a201e90da70360ae0e7190cebab839bd6c80"},
-    {file = "sqlfluff-0.7.0.tar.gz", hash = "sha256:64d86cf961e030aee1330a926f908e2efb96b4ce65e91a9e94da35129455b770"},
+    {file = "sqlfluff-0.9.0-py3-none-any.whl", hash = "sha256:e69f278723131ee3aa99c860594e706f3a4fe27a6bb117f7dd3c65677bfe1ff0"},
+    {file = "sqlfluff-0.9.0.tar.gz", hash = "sha256:aa1fda929572098393270fa9451a61f46ea57eb8b741f292b93611ac16fc9042"},
 ]
 sqlfluff-templater-dbt = [
     {file = "sqlfluff-templater-dbt-0.7.1.tar.gz", hash = "sha256:b81ff363c3b42f8f50cb53f645d32e2e580fa7c711b827dd0f61f5768c3c9afd"},
@@ -3358,6 +3370,10 @@ tox = [
 tox-poetry-installer = [
     {file = "tox-poetry-installer-0.8.2.tar.gz", hash = "sha256:1a94f0d7783bf513280b77ba5353232a11e74d232dff039502232a4738694af2"},
     {file = "tox_poetry_installer-0.8.2-py3-none-any.whl", hash = "sha256:f7dffc4397ae9c193b40d9f40df3f67fc3a6869f4604458b01f4eabb5d0de08a"},
+]
+tqdm = [
+    {file = "tqdm-4.62.3-py2.py3-none-any.whl", hash = "sha256:8dd278a422499cd6b727e6ae4061c40b48fce8b76d1ccbf5d34fca9b7f925b0c"},
+    {file = "tqdm-4.62.3.tar.gz", hash = "sha256:d359de7217506c9851b7869f3708d8ee53ed70a1b8edbba4dbcb47442592920d"},
 ]
 traitlets = [
     {file = "traitlets-5.1.0-py3-none-any.whl", hash = "sha256:03f172516916220b58c9f19d7f854734136dd9528103d04e9bf139a92c9f54c4"},
