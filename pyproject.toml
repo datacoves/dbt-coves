@@ -37,7 +37,7 @@ rich = "^10.4.0"
 dbt = ">=0.18.0"
 Jinja2 = "~2.11.2"
 cookiecutter = "^1.7.3"
-sqlfluff-templater-dbt = "^0.7.1"
+sqlfluff-templater-dbt = ">=0.7.1,<0.10.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
