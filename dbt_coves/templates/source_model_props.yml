@@ -15,7 +15,7 @@ models:
     columns:
 {%- for cols in nested.values() %}
   {%- for col in cols %}
-      - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+      - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_").replace("-","_").replace("/","_") }}
   {%- endfor %}
 {%- endfor %}
 {%- for col in columns %}

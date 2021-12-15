@@ -169,6 +169,33 @@ Runs a set of checks in your local environment and helps you configure
 it properly: ssh key, git, dbt profiles.yml, vscode extensions.
 
 
+Extract configuration from Airbyte
+==================================
+
+.. code:: console
+
+   dbt-coves extract airbyte
+
+Extracts the configuration from your Airbyte sources, connections and
+destinations (excluding credentials) and stores it in the specified
+folder. The main goal of this feature is to keep track of the
+configuration changes in your git repo, and rollback to a specific
+version when needed.
+
+
+Load configuration to Airbyte
+=============================
+
+.. code:: console
+
+   dbt-coves load airbyte
+
+Loads the Airbyte configuration generated with *dbt-coves extract
+airbyte* on an Airbyte server. Secrets folder needs to be specified
+separatedly. You can use `git-secret <https://git-secret.io/>`_ to
+encrypt them and make them part of your git repo.
+
+
 Settings
 ********
 
@@ -289,7 +316,7 @@ CLI tool for dbt users applying analytics engineering best practices.
 
 ::
 
-   usage: dbt_coves [-h] [-v] {init,generate,check,fix,setup} ...
+   usage: dbt_coves [-h] [-v] {init,generate,check,fix,setup,extract,load} ...
 
 
 Named Arguments
@@ -305,7 +332,7 @@ dbt-coves commands
 
 task
 
-Possible choices: init, generate, check, fix, setup
+Possible choices: init, generate, check, fix, setup, extract, load
 
 
 Sub-commands:
@@ -319,7 +346,8 @@ Initializes a new dbt project using predefined conventions.
 
 ::
 
-   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--template TEMPLATE] [--current-dir]
+   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
+                  [--vars VARS] [--template TEMPLATE] [--current-dir]
 
 
 Named Arguments
@@ -387,7 +415,9 @@ Generates sources and models with defaults.
 
 ::
 
-   dbt_coves generate [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] {sources} ...
+   dbt_coves generate [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE]
+                      [-t TARGET] [--vars VARS]
+                      {sources} ...
 
 
 Named Arguments
@@ -457,8 +487,9 @@ relations.
 
 ::
 
-   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--database DATABASE]
-                              [--schemas SCHEMAS] [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER]
+   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE]
+                              [-t TARGET] [--vars VARS] [--database DATABASE] [--schemas SCHEMAS] [--relations RELATIONS] [--destination DESTINATION]
+                              [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER]
 
 
 Named Arguments
@@ -544,7 +575,8 @@ Runs pre-commit hooks and linters.
 
 ::
 
-   dbt_coves check [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--no-fix]
+   dbt_coves check [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
+                   [--vars VARS] [--no-fix]
 
 
 Named Arguments
@@ -608,7 +640,8 @@ Runs linter fixes.
 
 ::
 
-   dbt_coves fix [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
+   dbt_coves fix [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
+                 [--vars VARS]
 
 
 Named Arguments
@@ -665,7 +698,8 @@ Sets up SSH keys, git repo, and db connections.
 
 ::
 
-   dbt_coves setup [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
+   dbt_coves setup [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
+                   [--vars VARS]
 
 
 Named Arguments
@@ -713,6 +747,298 @@ Supply variables to your dbt_project.yml file. This argument should be
 a YAML string, eg. ‘{my_variable: my_value}’
 
 Default: “{}”
+
+
+extract
+-------
+
+Extracts data from different systems.
+
+::
+
+   dbt_coves extract [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
+                     [--vars VARS]
+                     {airbyte} ...
+
+
+Named Arguments
+~~~~~~~~~~~~~~~
+
+--log-level
+
+overrides default log level
+
+Default: “”
+
+-vv, --verbose
+
+When provided the length of the tracebacks will not be truncated.
+
+Default: False
+
+--config-path
+
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
+
+--project-dir
+
+Which directory to look in for the dbt_project.yml file. Default is
+the current working directory and its parents.
+
+--profiles-dir
+
+Which directory to look in for the profiles.yml file.
+
+Default: “~/.dbt”
+
+--profile
+
+Which profile to load. Overrides setting in dbt_project.yml.
+
+-t, --target
+
+Which target to load for the given profile
+
+--vars
+
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
+
+Default: “{}”
+
+
+dbt-coves extract commands
+~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+task
+
+Possible choices: airbyte
+
+
+Sub-commands:
+~~~~~~~~~~~~~
+
+
+airbyte
+"""""""
+
+Extracts airbyte sources, connections and destinations and stores them
+as json files
+
+::
+
+   dbt_coves extract airbyte [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE]
+                             [-t TARGET] [--vars VARS] [--path PATH] [--host HOST] [--port PORT] [--dbt_list_args DBT_LIST_ARGS]
+
+
+Named Arguments
++++++++++++++++
+
+--log-level
+
+overrides default log level
+
+Default: “”
+
+-vv, --verbose
+
+When provided the length of the tracebacks will not be truncated.
+
+Default: False
+
+--config-path
+
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
+
+--project-dir
+
+Which directory to look in for the dbt_project.yml file. Default is
+the current working directory and its parents.
+
+--profiles-dir
+
+Which directory to look in for the profiles.yml file.
+
+Default: “~/.dbt”
+
+--profile
+
+Which profile to load. Overrides setting in dbt_project.yml.
+
+-t, --target
+
+Which target to load for the given profile
+
+--vars
+
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
+
+Default: “{}”
+
+--path
+
+Where json files will be generated, i.e. ‘airbyte’
+
+--host
+
+Airbyte’s API hostname, i.e. ‘airbyte-server’
+
+--port
+
+Airbyte’s API port, i.e. ‘8001’
+
+--dbt_list_args
+
+Extra dbt arguments, selectors or modifiers
+
+
+load
+----
+
+Loads data from different systems.
+
+::
+
+   dbt_coves load [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
+                  [--vars VARS]
+                  {airbyte} ...
+
+
+Named Arguments
+~~~~~~~~~~~~~~~
+
+--log-level
+
+overrides default log level
+
+Default: “”
+
+-vv, --verbose
+
+When provided the length of the tracebacks will not be truncated.
+
+Default: False
+
+--config-path
+
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
+
+--project-dir
+
+Which directory to look in for the dbt_project.yml file. Default is
+the current working directory and its parents.
+
+--profiles-dir
+
+Which directory to look in for the profiles.yml file.
+
+Default: “~/.dbt”
+
+--profile
+
+Which profile to load. Overrides setting in dbt_project.yml.
+
+-t, --target
+
+Which target to load for the given profile
+
+--vars
+
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
+
+Default: “{}”
+
+
+dbt-coves load commands
+~~~~~~~~~~~~~~~~~~~~~~~
+
+task
+
+Possible choices: airbyte
+
+
+Sub-commands:
+~~~~~~~~~~~~~
+
+
+airbyte
+"""""""
+
+Extracts airbyte sources, connections and destinations and stores them
+as json files
+
+::
+
+   dbt_coves load airbyte [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE]
+                          [-t TARGET] [--vars VARS] [--path PATH] [--host HOST] [--port PORT] [--secrets SECRETS]
+
+
+Named Arguments
++++++++++++++++
+
+--log-level
+
+overrides default log level
+
+Default: “”
+
+-vv, --verbose
+
+When provided the length of the tracebacks will not be truncated.
+
+Default: False
+
+--config-path
+
+Full path to .dbt_coves.yml file if not using default. Default is
+current working directory.
+
+--project-dir
+
+Which directory to look in for the dbt_project.yml file. Default is
+the current working directory and its parents.
+
+--profiles-dir
+
+Which directory to look in for the profiles.yml file.
+
+Default: “~/.dbt”
+
+--profile
+
+Which profile to load. Overrides setting in dbt_project.yml.
+
+-t, --target
+
+Which target to load for the given profile
+
+--vars
+
+Supply variables to your dbt_project.yml file. This argument should be
+a YAML string, eg. ‘{my_variable: my_value}’
+
+Default: “{}”
+
+--path
+
+Where json files will be loaded from, i.e. ‘/var/data’
+
+--host
+
+Airbyte’s API hostname, i.e. ‘airbyte-server’
+
+--port
+
+Airbyte’s API port, i.e. ‘8001’
+
+--secrets
+
+Secret files location for Airbyte configuration
 
 Select one of the available sub-commands with –help to find out more
 about them.
