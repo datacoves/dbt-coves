@@ -253,17 +253,22 @@ class ExtractAirbyteTask(BaseConfiguredTask):
     def _get_airbyte_secret_fields_for_definition(
         self, definition, dict_name=None, secret_fields=[]
     ):
-        for k, v in definition.items():
-            if isinstance(v, dict):
-                self._get_airbyte_secret_fields_for_definition(v, k, secret_fields)
-            else:
-                if "airbyte_secret" in str(k):
-                    if (
-                        bool(definition["airbyte_secret"])
-                        and dict_name not in secret_fields
-                    ):
-                        secret_fields.append(dict_name)
-        return secret_fields
+        try:
+            for k, v in definition.items():
+                if isinstance(v, dict):
+                    self._get_airbyte_secret_fields_for_definition(v, k, secret_fields)
+                else:
+                    if "airbyte_secret" in str(k):
+                        if (
+                            bool(definition["airbyte_secret"])
+                            and dict_name not in secret_fields
+                        ):
+                            secret_fields.append(dict_name)
+            return secret_fields
+        except KeyError as e:
+            raise AirbyteExtractorException(
+                f"There was an error searching secret fields for {definition['connectionSpecification']['title']}"
+            )
 
     def _get_airbyte_source_from_id(self, source_id):
         """
