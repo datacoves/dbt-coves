@@ -199,26 +199,97 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                             return conn
         return None
 
+    def _get_airbyte_destination_definition_from_id(self, definition_id):
+        req_body = {"destinationDefinitionId": definition_id}
+        return self.airbyte_api_caller.api_call(
+            self.airbyte_api_caller.airbyte_endpoint_get_destination_definition,
+            req_body,
+        )
+
     def _get_airbyte_destination_from_id(self, destinationId):
         """
         Get the complete Destination object from it's ID
         """
         for destination in self.airbyte_api_caller.airbyte_destinations_list:
             if destination["destinationId"] == destinationId:
+                # Grab Source definition ID
+                destination_definition = (
+                    self._get_airbyte_destination_definition_from_id(
+                        destination["destinationDefinitionId"]
+                    )
+                )
+                # Get Secret fields for source definition
+                airbyte_secret_fields = self._get_airbyte_secret_fields_for_definition(
+                    destination_definition
+                )
+                # Ensure all airbyte_secret fields are effectively hidden
+                destination[
+                    "connectionConfiguration"
+                ] = self._hide_configuration_secret_fields(
+                    destination["connectionConfiguration"], airbyte_secret_fields
+                )
+
                 return destination
         raise AirbyteExtractorException(
             f"Airbyte extract error: there is no Airbyte Destination for id [red]{destinationId}[/red]"
         )
 
-    def _get_airbyte_source_from_id(self, sourceId):
+    def _get_airbyte_source_definition_from_id(self, definition_id):
+        req_body = {"sourceDefinitionId": definition_id}
+        return self.airbyte_api_caller.api_call(
+            self.airbyte_api_caller.airbyte_endpoint_get_source_definition, req_body
+        )
+
+    def _hide_configuration_secret_fields(
+        self, connection_configuration, airbyte_secret_fields
+    ):
+        for k, v in connection_configuration.items():
+            if isinstance(v, dict):
+                self._hide_configuration_secret_fields(v, airbyte_secret_fields)
+            elif k in airbyte_secret_fields:
+                connection_configuration[k] = "**********"
+        return connection_configuration
+
+    def _get_airbyte_secret_fields_for_definition(
+        self, definition, dict_name=None, secret_fields=[]
+    ):
+        for k, v in definition.items():
+            if isinstance(v, dict):
+                self._get_airbyte_secret_fields_for_definition(v, k, secret_fields)
+            else:
+                if "airbyte_secret" in str(k):
+                    if (
+                        bool(definition["airbyte_secret"])
+                        and dict_name not in secret_fields
+                    ):
+                        secret_fields.append(dict_name)
+        return secret_fields
+
+    def _get_airbyte_source_from_id(self, source_id):
         """
         Get the complete Source object from it's ID
         """
         for source in self.airbyte_api_caller.airbyte_sources_list:
-            if source["sourceId"] == sourceId:
+
+            if source["sourceId"] == source_id:
+                # Grab Source definition ID
+                source_definition = self._get_airbyte_source_definition_from_id(
+                    source["sourceDefinitionId"]
+                )
+                # Get Secret fields for source definition
+                airbyte_secret_fields = self._get_airbyte_secret_fields_for_definition(
+                    source_definition
+                )
+                # Ensure all airbyte_secret fields are effectively hidden
+                source[
+                    "connectionConfiguration"
+                ] = self._hide_configuration_secret_fields(
+                    source["connectionConfiguration"], airbyte_secret_fields
+                )
+
                 return source
         raise AirbyteExtractorException(
-            f"Airbyte extract error: there is no Airbyte Source for id [red]{sourceId}[/red]"
+            f"Airbyte extract error: there is no Airbyte Source for id [red]{source_id}[/red]"
         )
 
     def _save_json(self, path, object):

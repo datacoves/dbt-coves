@@ -77,6 +77,14 @@ class AirbyteApiCaller:
             airbyte_api_base_endpoint + "source_definitions/list"
         )
 
+        self.airbyte_endpoint_get_source_definition = (
+            airbyte_api_base_endpoint + "source_definition_specifications/get"
+        )
+
+        self.airbyte_endpoint_get_destination_definition = (
+            airbyte_api_base_endpoint + "destination_definition_specifications/get"
+        )
+
         try:
             self.airbyte_workspace_id = self.api_call(airbyte_endpoint_list_workspaces)[
                 "workspaces"
