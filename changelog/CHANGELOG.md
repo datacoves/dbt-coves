@@ -1,6 +1,7 @@
-## dbt-coves [0.21.0-a.16] - 2022-01-18
+## dbt-coves [0.21.0-a.17] - 2022-01-18
 
-Ask user if auto-fixing linting violations
+- Ask user if auto-fixing linting violations
+- Upgrade sqlfluff to 0.9.1
 
 ## dbt-coves [0.21.0-a.11] - 2021-12-07
 
