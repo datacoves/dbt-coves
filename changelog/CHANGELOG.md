@@ -1,5 +1,6 @@
-## dbt-coves [0.21.0-a.15] - 2021-12-20No significant changes.
+## dbt-coves [0.21.0-a.16] - 2022-01-18
 
+Ask user if auto-fixing linting violations
 
 ## dbt-coves [0.21.0-a.11] - 2021-12-07
 

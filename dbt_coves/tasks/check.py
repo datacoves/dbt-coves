@@ -45,8 +45,13 @@ class CheckTask(BaseConfiguredTask):
 
             if command.returncode != 0:
                 sql_fluff_status = command.returncode
-            if not self.coves_flags.check["no-fix"] and command.returncode != 0:
-                command = fix(source_path)
-                if command.returncode != 0:
-                    return command.returncode
+            if not self.coves_flags.check["no-fix"] and sql_fluff_status != 0:
+                confirmed = questionary.confirm(
+                    f"Would you like to try auto-fixing linting errors in {source_path}?",
+                    default=True,
+                ).ask()
+                if confirmed:
+                    command = fix(source_path)
+                    if command.returncode != 0:
+                        return command.returncode
         return sql_fluff_status
