@@ -346,10 +346,7 @@ Initializes a new dbt project using predefined conventions.
 
 ::
 
-   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH]
-                  [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR]
-                  [--profile PROFILE] [-t TARGET] [--vars VARS]
-                  [--template TEMPLATE] [--current-dir]
+   dbt_coves init [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--template TEMPLATE] [--current-dir]
 
 
 Named Arguments
@@ -417,11 +414,7 @@ Generates sources and models with defaults.
 
 ::
 
-   dbt_coves generate [-h] [--log-level LOG_LEVEL] [-vv]
-                      [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR]
-                      [--profiles-dir PROFILES_DIR] [--profile PROFILE]
-                      [-t TARGET] [--vars VARS]
-                      {sources} ...
+   dbt_coves generate [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] {sources} ...
 
 
 Named Arguments
@@ -491,15 +484,8 @@ relations.
 
 ::
 
-   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv]
-                              [--config-path CONFIG_PATH]
-                              [--project-dir PROJECT_DIR]
-                              [--profiles-dir PROFILES_DIR] [--profile PROFILE]
-                              [-t TARGET] [--vars VARS] [--database DATABASE]
-                              [--schemas SCHEMAS] [--relations RELATIONS]
-                              [--destination DESTINATION]
-                              [--model_props_strategy MODEL_PROPS_STRATEGY]
-                              [--templates_folder TEMPLATES_FOLDER]
+   dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--database DATABASE] [--schemas SCHEMAS]
+                              [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER]
 
 
 Named Arguments
@@ -585,10 +571,7 @@ Runs pre-commit hooks and linters.
 
 ::
 
-   dbt_coves check [-h] [--log-level LOG_LEVEL] [-vv]
-                   [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR]
-                   [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
-                   [--vars VARS] [--no-fix]
+   dbt_coves check [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--no-fix]
 
 
 Named Arguments
@@ -652,9 +635,7 @@ Runs linter fixes.
 
 ::
 
-   dbt_coves fix [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH]
-                 [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR]
-                 [--profile PROFILE] [-t TARGET] [--vars VARS]
+   dbt_coves fix [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
 
 
 Named Arguments
@@ -711,10 +692,7 @@ Sets up SSH keys, git repo, and db connections.
 
 ::
 
-   dbt_coves setup [-h] [--log-level LOG_LEVEL] [-vv]
-                   [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR]
-                   [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET]
-                   [--vars VARS]
+   dbt_coves setup [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS]
 
 
 Named Arguments
@@ -771,11 +749,7 @@ Extracts data from different systems.
 
 ::
 
-   dbt_coves extract [-h] [--log-level LOG_LEVEL] [-vv]
-                     [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR]
-                     [--profiles-dir PROFILES_DIR] [--profile PROFILE]
-                     [-t TARGET] [--vars VARS]
-                     {airbyte} ...
+   dbt_coves extract [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] {airbyte} ...
 
 
 Named Arguments
@@ -845,12 +819,7 @@ as json files
 
 ::
 
-   dbt_coves extract airbyte [-h] [--log-level LOG_LEVEL] [-vv]
-                             [--config-path CONFIG_PATH]
-                             [--project-dir PROJECT_DIR]
-                             [--profiles-dir PROFILES_DIR] [--profile PROFILE]
-                             [-t TARGET] [--vars VARS] [--path PATH]
-                             [--host HOST] [--port PORT]
+   dbt_coves extract airbyte [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--path PATH] [--host HOST] [--port PORT]
                              [--dbt_list_args DBT_LIST_ARGS]
 
 
@@ -924,10 +893,7 @@ Loads data from different systems.
 
 ::
 
-   dbt_coves load [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH]
-                  [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR]
-                  [--profile PROFILE] [-t TARGET] [--vars VARS]
-                  {airbyte} ...
+   dbt_coves load [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] {airbyte} ...
 
 
 Named Arguments
@@ -997,12 +963,8 @@ as json files
 
 ::
 
-   dbt_coves load airbyte [-h] [--log-level LOG_LEVEL] [-vv]
-                          [--config-path CONFIG_PATH]
-                          [--project-dir PROJECT_DIR]
-                          [--profiles-dir PROFILES_DIR] [--profile PROFILE]
-                          [-t TARGET] [--vars VARS] [--path PATH] [--host HOST]
-                          [--port PORT] [--secrets SECRETS]
+   dbt_coves load airbyte [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--path PATH] [--host HOST] [--port PORT]
+                          [--secrets SECRETS]
 
 
 Named Arguments
