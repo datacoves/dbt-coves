@@ -310,8 +310,6 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     result[col] = dict(zip(field_data, [self.get_default_metadata_item()] * len(field_data)))
                     result = self.add_metadata(schema, relation, result, col)
                 except TypeError:
-                    import traceback
-                    traceback.print_exc()
                     console.print(
                         f"Column {col} in relation {relation} contains invalid JSON.\n"
                     )

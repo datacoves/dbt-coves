@@ -1,3 +1,14 @@
+## dbt-coves [0.21.0-a.18] - 2022-01-19
+
+- Ask user if auto-fixing linting violations
+- Upgrade sqlfluff to 0.9.1
+
+## dbt-coves [0.21.0-a.11] - 2021-12-07
+
+### Features
+
+- Released 2 new commands: `dbt-coves extract airbyte` and `dbt-coves load airbyte`
+
 ## dbt-coves [0.21.0-a.9] - 2021-10-26
 
 ### Features
