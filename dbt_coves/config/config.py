@@ -18,6 +18,7 @@ class GenerateSourcesModel(BaseModel):
     destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
     model_props_strategy: Optional[str] = "one_file_per_model"
     templates_folder: Optional[str] = ".dbt_coves/templates"
+    metadata: Optional[str] = ""
 
 
 class GenerateModel(BaseModel):
@@ -63,6 +64,7 @@ class DbtCovesConfig:
         "generate.sources.destination",
         "generate.sources.model_props_strategy",
         "generate.sources.templates_folder",
+        "generate.sources.metadata",
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",

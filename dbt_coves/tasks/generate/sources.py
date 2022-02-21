@@ -1,6 +1,7 @@
 import json
 from pathlib import Path
 import re
+import csv
 
 import questionary
 from questionary import Choice
@@ -66,8 +67,59 @@ class GenerateSourcesTask(BaseConfiguredTask):
             help="Folder with jinja templates that override default "
             "sources generation templates, i.e. 'templates'",
         )
+        subparser.add_argument(
+            "--metadata",
+            type=str,
+            help="Path to csv file containing metadata, i.e. 'metadata.csv'",
+        )
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
+
+    def __init__(self, *args, **kwargs):
+        self.metadata = None
+        return super().__init__(*args, **kwargs)
+
+    def get_metadata_map_key(self, row):
+        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}-{row['column']}-{row['key']}"
+        return map_key
+
+    def get_metadata_map_item(self, row):
+        data = {
+            "type": row["type"],
+            "description": row["description"].strip(),
+        }
+        return data
+
+    def get_default_metadata_item(self):
+        return {"type": "varchar", "description": ""}
+
+    def get_metadata(self):
+        """
+        If metadata path is configured, returns a dictionary with column keys and their corresponding values.
+        If metadata is already set, do not load again and return the existing value.
+        """
+        path = self.get_config_value("metadata")
+
+        if self.metadata:
+            return self.metadata
+
+        metadata_map = dict()
+        if path:
+            metadata_path = Path().joinpath(path)
+            try:
+                with open(metadata_path, "r") as csvfile:
+                    rows = csv.DictReader(csvfile)
+                    for row in rows:
+                        try:
+                            metadata_map[self.get_metadata_map_key(row)] = self.get_metadata_map_item(row)
+                        except KeyError as e:
+                            raise Exception(f"Key {e} not found in metadata file {path}")
+            except FileNotFoundError as e:
+                raise Exception(f"Metadata file not found: {e}")
+
+        self.metadata = metadata_map
+
+        return metadata_map
 
     def run(self):
         config_database = self.get_config_value("database")
@@ -246,12 +298,41 @@ class GenerateSourcesTask(BaseConfiguredTask):
             for idx, col in enumerate(columns):
                 value = data.columns[idx]
                 try:
-                    result[col] = list(json.loads(value[0]).keys())
+                    field_data = list(json.loads(value[0]).keys())
+                    # converts [field1, field2 .. ] to
+                    # {
+                    #     'field1': {'type': 'varchar', 'description': ''},
+                    #     'field2': {'type': 'varchar', 'description': ''}
+                    # }
+                    result[col] = dict(zip(field_data, [self.get_default_metadata_item()] * len(field_data)))
+                    result = self.add_metadata(schema, relation, result, col)
                 except TypeError:
                     console.print(
                         f"Column {col} in relation {relation} contains invalid JSON.\n"
                     )
         return result
+
+    def add_metadata(self, schema, relation, data, col):
+        """
+        Adds metadata info to each field if metadata was provided.
+        """
+        metadata = self.get_metadata()
+        if metadata:
+            # Iterate over fields
+            for item in data[col].keys():
+                metadata_map_key_data = {
+                    "database": self.get_config_value("database"),
+                    "schema": schema,
+                    "relation": relation,
+                    "column": "data",
+                    "key": item
+                }
+                metadata_key = self.get_metadata_map_key(metadata_map_key_data)
+                # Get metadata info or default and assign to the field.
+                metadata_info = metadata.get(metadata_key, self.get_default_metadata_item())
+                data[col][item] = metadata_info
+
+        return data
 
     def render_templates(self, relation, columns, destination, nested=None):
         context = {
