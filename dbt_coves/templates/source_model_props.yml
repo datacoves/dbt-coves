@@ -15,7 +15,10 @@ models:
     columns:
 {%- for cols in nested.values() %}
   {%- for col in cols %}
-      - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_").replace("-","_").replace("/","_") }}
+      - name: {{ cols[col]["id"] }}
+      {%- if cols[col]["description"] %}
+        description: "{{ cols[col]['description'] }}"
+      {%- endif %}
   {%- endfor %}
 {%- endfor %}
 {%- for col in columns %}
