@@ -151,7 +151,11 @@ Supports the argument *–metadata* which allows to specify a csv file
 containing field types and descriptions to be inserted into the model
 property files.
 
-Metadata format example:
+.. code:: console
+
+   dbt-coves generate sources --metadata metadata.csv
+
+Metadata format:
 
 +----------------+----------------+----------------+----------------+----------------+----------------+----------------+
 | database       | schema         | relation       | column         | key            | type           | description    |

@@ -42,7 +42,12 @@ Metadata
 
 Supports the argument `--metadata` which allows to specify a csv file containing field types and descriptions to be inserted into the model property files.
 
-Metadata format example:
+.. code-block:: console
+
+   dbt-coves generate sources --metadata metadata.csv
+
+
+Metadata format:
 
 .. list-table::
    :header-rows: 1
