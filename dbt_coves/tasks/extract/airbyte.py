@@ -40,7 +40,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         subparser.add_argument(
             "--host",
             type=str,
-            help="Airbyte's API hostname, i.e. 'airbyte-server'",
+            help="Airbyte's API hostname, i.e. 'http://airbyte-server'",
         )
         subparser.add_argument(
             "--port",
@@ -178,7 +178,6 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         Given a table name, returns the corresponding airbyte connection
         """
         for conn in self.airbyte_api_caller.airbyte_connections_list:
-
             for stream in conn["syncCatalog"]["streams"]:
                 if stream["stream"]["name"].lower() == table:
                     destination_config = self._get_airbyte_destination_from_id(
@@ -195,7 +194,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                             conn, destination_config
                         )
                         # and finally, match schema, if defined
-                        if airbyte_schema == schema or not airbyte_schema:
+                        if airbyte_schema.lower() == schema or not airbyte_schema:
                             return conn
         return None
 
