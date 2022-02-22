@@ -41,7 +41,7 @@ sqlfluff-templater-dbt = "^0.9.1"
 python-slugify = "^5.0.2"
 
 [tool.poetry.dev-dependencies]
-pytest = "^6.2.4"
+pytest = "^7.0.1"
 pytest-cov = "^2.12.1"
 mypy = "^0.910"
 towncrier = "^21.3.0"
