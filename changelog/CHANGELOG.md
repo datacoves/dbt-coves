@@ -1,3 +1,7 @@
+## dbt-coves [0.21.1-a.20] - 2022-02-22
+
+- Support --metadata argument on dbt-coves generate sources
+
 ## dbt-coves [0.21.0-a.18] - 2022-01-19
 
 - Ask user if auto-fixing linting violations

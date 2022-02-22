@@ -37,6 +37,38 @@ Code generation tool to easily generate models and model properties based on con
 
 Supports `Jinja <https://jinja.palletsprojects.com/>`_ templates to adjust how the resources are generated.
 
+Metadata
+~~~~~~~~
+
+Supports the argument `--metadata` which allows to specify a csv file containing field types and descriptions to be inserted into the model property files.
+
+Metadata format example:
+
+.. list-table::
+   :header-rows: 1
+
+   * - database
+     - schema
+     - relation
+     - column
+     - key
+     - type
+     - description
+   * - raw
+     - master
+     - person
+     - name
+     - 
+     - varchar
+     - The full name of the person
+   * - raw
+     - master
+     - person
+     - name
+     - groupName
+     - varchar
+     - The group name of the person
+
 Quality Assurance
 -----------------
 

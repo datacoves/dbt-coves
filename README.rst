@@ -144,6 +144,23 @@ Supports `Jinja <https://jinja.palletsprojects.com/>`_ templates to
 adjust how the resources are generated.
 
 
+Metadata
+--------
+
+Supports the argument *–metadata* which allows to specify a csv file
+containing field types and descriptions to be inserted into the model
+property files.
+
+Metadata format example:
+
++----------------+----------------+----------------+----------------+----------------+----------------+----------------+
+| database       | schema         | relation       | column         | key            | type           | description    |
++================+================+================+================+================+================+================+
++----------------+----------------+----------------+----------------+----------------+----------------+----------------+
+| raw            | master         | person         | name           | groupName      | varchar        | The group name |
++----------------+----------------+----------------+----------------+----------------+----------------+----------------+
+
+
 Quality Assurance
 =================
 
@@ -485,7 +502,7 @@ relations.
 ::
 
    dbt_coves generate sources [-h] [--log-level LOG_LEVEL] [-vv] [--config-path CONFIG_PATH] [--project-dir PROJECT_DIR] [--profiles-dir PROFILES_DIR] [--profile PROFILE] [-t TARGET] [--vars VARS] [--database DATABASE] [--schemas SCHEMAS]
-                              [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER]
+                              [--relations RELATIONS] [--destination DESTINATION] [--model_props_strategy MODEL_PROPS_STRATEGY] [--templates_folder TEMPLATES_FOLDER] [--metadata METADATA]
 
 
 Named Arguments
@@ -562,6 +579,10 @@ Strategy for model properties files generation, i.e.
 
 Folder with jinja templates that override default sources generation
 templates, i.e. ‘templates’
+
+--metadata
+
+Path to csv file containing metadata, i.e. ‘metadata.csv’
 
 
 check
@@ -875,7 +896,7 @@ Where json files will be generated, i.e. ‘airbyte’
 
 --host
 
-Airbyte’s API hostname, i.e. ‘airbyte-server’
+Airbyte’s API hostname, i.e. ‘http://airbyte-server’
 
 --port
 
@@ -1019,7 +1040,7 @@ Where json files will be loaded from, i.e. ‘/var/data’
 
 --host
 
-Airbyte’s API hostname, i.e. ‘airbyte-server’
+Airbyte’s API hostname, i.e. ‘http://airbyte-server’
 
 --port
 
@@ -1027,7 +1048,7 @@ Airbyte’s API port, i.e. ‘8001’
 
 --secrets
 
-Secret files location for Airbyte configuration
+Secret files location for Airbyte configuration, i.e. ‘./secrets’
 
 Select one of the available sub-commands with –help to find out more
 about them.
