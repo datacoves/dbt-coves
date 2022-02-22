@@ -58,7 +58,7 @@ Metadata format example:
      - master
      - person
      - name
-     - 
+     - (empty)
      - varchar
      - The full name of the person
    * - raw
