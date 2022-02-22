@@ -38,6 +38,7 @@ dbt = ">=0.18.0,<1.0.0"
 Jinja2 = "~2.11.2"
 cookiecutter = "^1.7.3"
 sqlfluff-templater-dbt = "^0.9.1"
+python-slugify = "^5.0.2"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"

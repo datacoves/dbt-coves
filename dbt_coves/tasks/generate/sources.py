@@ -2,6 +2,7 @@ import json
 from pathlib import Path
 import re
 import csv
+from slugify import slugify
 
 import questionary
 from questionary import Choice
@@ -306,6 +307,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     # }
                     result[col] = dict(zip(field_data, [self.get_default_metadata_item()] * len(field_data)))
                     result = self.add_metadata(schema, relation, result, col)
+                    result[col] = self.add_field_ids(result[col])
                 except TypeError:
                     console.print(
                         f"Column {col} in relation {relation} contains invalid JSON.\n"
@@ -331,6 +333,27 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 # Get metadata info or default and assign to the field.
                 metadata_info = metadata.get(metadata_key, self.get_default_metadata_item())
                 data[col][item] = metadata_info
+
+        return data
+
+    def add_field_ids(self, data):
+        """
+        Converts {
+                    "Field Name 1": {'type': 'varchar', 'description': ''},
+                    "Field Name 2": {'type': 'varchar', 'description': ''}
+                 }
+        to
+                 {
+                    "Field Name 1": {'id': 'field_name_1', 'type': 'varchar', 'description': ''},
+                    "Field Name 2": {'id': 'field_name_2','type': 'varchar', 'description': ''}
+                 }
+
+        by iterating the source dictionary and using
+                z = {**x, **y} python 3.5 or above
+        in this case:
+                {**{'type': 'varchar', 'description': ''},  **{'id': 'field_name_1'} }
+        """
+        data = dict((k, {**v, **{"id": slugify(k, separator="_")}}) for k, v in data.items())
 
         return data
 
