@@ -44,7 +44,7 @@ class LoadAirbyteTask(BaseConfiguredTask):
         subparser.add_argument(
             "--secrets",
             type=str,
-            help="Secret files location for Airbyte configuration, i.e. '/var/secrets'",
+            help="Secret files location for Airbyte configuration, i.e. './secrets'",
         )
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
