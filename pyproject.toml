@@ -37,7 +37,7 @@ rich = "^10.4.0"
 dbt = ">=0.18.0,<1.0.0"
 Jinja2 = "~2.11.2"
 cookiecutter = "^1.7.3"
-sqlfluff-templater-dbt = "^0.9.1"
+sqlfluff-templater-dbt = ">=0.9.1,<0.11.0"
 python-slugify = "^5.0.2"
 
 [tool.poetry.dev-dependencies]
