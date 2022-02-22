@@ -34,7 +34,7 @@ class LoadAirbyteTask(BaseConfiguredTask):
         subparser.add_argument(
             "--host",
             type=str,
-            help="Airbyte's API hostname, i.e. 'airbyte-server'",
+            help="Airbyte's API hostname, i.e. 'http://airbyte-server'",
         )
         subparser.add_argument(
             "--port",
@@ -44,7 +44,7 @@ class LoadAirbyteTask(BaseConfiguredTask):
         subparser.add_argument(
             "--secrets",
             type=str,
-            help="Secret files location for Airbyte configuration",
+            help="Secret files location for Airbyte configuration, i.e. './secrets'",
         )
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
@@ -117,12 +117,12 @@ class LoadAirbyteTask(BaseConfiguredTask):
                     else:
                         # raise AirbyteLoaderException(f"There is no exported source-destination combination for connection {connection_json['connectionId']}")
                         print(
-                            f"There is no exported source-destination combination for connection {connection_json['connectionId']}"
+                            f"Airbyte Connection {connection_json['connectionId']} has no exported source-destination combination. Skipping update"
                         )
                 else:
                     # raise AirbyteLoaderException(f"There is no exported Connection configuration for {source_table}")
                     print(
-                        f"There is no exported Connection configuration for {source_table}"
+                        f"dbt source {source_table} has no exported Airbyte information. Skipping"
                     )
 
             console.print(
@@ -191,11 +191,12 @@ Connections:
 
             # Only look for needed secret files == only those who have wildcards in their configuration
             if wildcard_keys:
+                file_name = exported_json_data["name"].lower()
                 # Get the secret file for that name
                 secret_file = os.path.join(
                     self.secrets_path,
                     directory,
-                    exported_json_data["name"].lower() + ".json",
+                    file_name + ".json",
                 )
 
                 if path.isfile(secret_file):
@@ -207,7 +208,7 @@ Connections:
                     # If wildcard_keys is still not empty, there are missing key:values in secrets
                     if len(wildcard_keys) > 0:
                         raise AirbyteLoaderException(
-                            f"The following keys are missing in [bold red]{secret_file}[/bold red] secret file: [bold red]{', '.join(k for k in wildcard_keys)}[/bold red]"
+                            f"The following keys are missing for [bold red]{file_name}[/bold red]: [bold red]{', '.join(k for k in wildcard_keys)}[/bold red]"
                         )
                     exported_json_data[
                         "connectionConfiguration"
@@ -215,7 +216,7 @@ Connections:
                 else:
                     raise AirbyteLoaderException(
                         f"Secret file not found\n"
-                        f"Please create [bold red]{secret_file}[/bold red] with the following keys: [bold red]{', '.join(k for k in wildcard_keys)}[/bold red]"
+                        f"Please create secret for [bold red]{file_name}[/bold red] with the following keys: [bold red]{', '.join(k for k in wildcard_keys)}[/bold red]"
                     )
             return exported_json_data
         except AirbyteLoaderException as e:
@@ -241,8 +242,8 @@ Connections:
             )
             return response["sourceId"]
 
-        except:
-            raise AirbyteApiCallerException("Could not create Airbyte Source")
+        except AirbyteApiCallerException as e:
+            raise AirbyteLoaderException(f"Could not create Airbyte Source: {e}")
 
     def _update_source(self, exported_json_data, source_id):
         exported_json_data["sourceId"] = source_id
