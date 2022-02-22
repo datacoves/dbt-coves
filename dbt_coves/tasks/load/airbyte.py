@@ -60,6 +60,11 @@ class LoadAirbyteTask(BaseConfiguredTask):
         airbyte_port = self.get_config_value("port")
         secrets_path = self.get_config_value("secrets")
 
+        if not (airbyte_host and airbyte_port and load_destination):
+            raise AirbyteLoaderException(
+                "'path', 'host', and 'port' are required parameters in order to load Airbyte configurations. Please refer to 'dbt-coves load airbyte --help' for more information."
+            )
+
         path = pathlib.Path(load_destination)
 
         connections_path = path / "connections"
@@ -255,9 +260,7 @@ Connections:
                 self.airbyte_api_caller.airbyte_endpoint_update_sources,
                 exported_json_data,
             )
-            self.loading_results["sources"]["updated"].append(
-                exported_json_data["name"]
-            )
+            self._add_update_result("sources", exported_json_data["name"])
             return response["sourceId"]
         except KeyError:
             raise AirbyteLoaderException("Could not update source")
@@ -327,13 +330,7 @@ Connections:
                 self.airbyte_api_caller.airbyte_endpoint_update_destinations,
                 exported_json_data,
             )
-            if (
-                exported_json_data["name"]
-                not in self.loading_results["destinations"]["updated"]
-            ):
-                self.loading_results["destinations"]["updated"].append(
-                    exported_json_data["name"]
-                )
+            self._add_update_result("destinations", exported_json_data["name"])
             return response["destinationId"]
         except KeyError:
             raise AirbyteLoaderException("Could not update destination")
@@ -407,13 +404,19 @@ Connections:
             conn_name = self._create_connection(
                 exported_json_data, source_id, destination_id
             )
-            self.loading_results["connections"]["updated"].append(conn_name)
+            self._add_update_result("connections", conn_name)
         else:
             # Connection creation
             conn_name = self._create_connection(
                 exported_json_data, source_id, destination_id
             )
             self.loading_results["connections"]["created"].append(conn_name)
+
+    def _add_update_result(self, obj_type, obj_name):
+        if (obj_name not in self.loading_results[obj_type]["updated"]) and (
+            obj_name not in self.loading_results[obj_type]["created"]
+        ):
+            self.loading_results[obj_type]["updated"].append(obj_name)
 
     def get_config_value(self, key):
         return self.coves_config.integrated["load"]["airbyte"][key]
