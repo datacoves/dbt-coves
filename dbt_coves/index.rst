@@ -150,7 +150,9 @@ source_model.sql
 
     with raw_source as (
 
-        select * from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
+        select
+            *
+        from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
 
     ),
 
@@ -160,24 +162,24 @@ source_model.sql
     {%- if adapter_name == 'SnowflakeAdapter' %}
     {%- for key, cols in nested.items() %}
       {%- for col in cols %}
-            {{ key }}:{{ '"' + col + '"' }}::varchar as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
+            {{ key }}:{{ '"' + col + '"' }}::{{ cols[col]["type"] }} as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
       {%- endfor %}
     {%- endfor %}
     {%- elif adapter_name == 'BigQueryAdapter' %}
     {%- for key, cols in nested.items() %}
       {%- for col in cols %}
-            cast({{ key }}.{{ col.lower() }} as string) as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
+            cast({{ key }}.{{ col }} as {{ cols[col]["type"].replace("varchar", "string") }}) as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
       {%- endfor %}
     {%- endfor %}
     {%- elif adapter_name == 'RedshiftAdapter' %}
     {%- for key, cols in nested.items() %}
       {%- for col in cols %}
-            {{ key }}.{{ col.lower() }}::varchar as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
+            {{ key }}.{{ col }}::{{ cols[col]["type"] }} as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
       {%- endfor %}
     {%- endfor %}
     {%- endif %}
     {%- for col in columns %}
-            {{ '"' + col.name.lower() + '"' }} as {{ col.name.lower() }}{% if not loop.last %},{% endif %}
+            {{ '"' + col.name + '"' }} as {{ col.name.lower() }}{% if not loop.last %},{% endif %}
     {%- endfor %}
 
         from raw_source
@@ -185,6 +187,7 @@ source_model.sql
     )
 
     select * from final
+
 
 source_model_props.yml
 ~~~~~~~~~~~~~~~~~~~~~~
@@ -208,12 +211,16 @@ source_model_props.yml
         columns:
     {%- for cols in nested.values() %}
       {%- for col in cols %}
-          - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}
+          - name: {{ cols[col]["id"] }}
+          {%- if cols[col]["description"] %}
+            description: "{{ cols[col]['description'] }}"
+          {%- endif %}
       {%- endfor %}
     {%- endfor %}
     {%- for col in columns %}
           - name: {{ col.name.lower() }}
     {%- endfor %}
+
 
 CLI Detailed Reference
 ======================
