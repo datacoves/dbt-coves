@@ -62,7 +62,7 @@ class LoadAirbyteTask(BaseConfiguredTask):
 
         if not (airbyte_host and airbyte_port and load_destination):
             raise AirbyteLoaderException(
-                "'path', 'host', and 'port' are required parameters in order to load Airbyte configurations. Please refer to 'dbt-coves load airbyte --help' for extra information."
+                "'path', 'host', and 'port' are required parameters in order to load Airbyte configurations. Please refer to 'dbt-coves load airbyte --help' for more information."
             )
 
         path = pathlib.Path(load_destination)
