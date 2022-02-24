@@ -120,7 +120,7 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     main_parser.parse_args(cli_args=cli_args)
 
     if not main_parser.task_cls:
-        raise MissingCommand()
+        raise MissingCommand(main_parser.cli_parser)
     else:
         task_cls: BaseTask = main_parser.task_cls
 
@@ -160,8 +160,8 @@ def main(
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore
-    except MissingCommand:
-        parser.print_help()
+    except MissingCommand as e:
+        e.print_help()
         return 1
     except MissingDbtProject:
         console.print(

@@ -1,6 +1,7 @@
 from dbt.adapters.factory import get_adapter
 from dbt.task.base import ConfiguredTask
 
+from dbt_coves.core.exceptions import MissingCommand
 
 class BaseTask:
     """
@@ -41,6 +42,10 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
     @classmethod
     def from_args(cls, args):
         config = cls.ConfigType.from_args(args)
+        # class cannot be instantiated with abstract methods.
+        # that means a subcommand is missing.
+        if len(cls.__abstractmethods__) > 0:
+            raise MissingCommand(cls.arg_parser)
         return cls(args, config)
 
     @classmethod

@@ -13,6 +13,8 @@ class GenerateTask(BaseConfiguredTask):
     """
     Task that code-gen dbt resources
     """
+
+    arg_parser = None
     
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
@@ -22,4 +24,5 @@ class GenerateTask(BaseConfiguredTask):
         gen_subparser.set_defaults(cls=cls, which="generate")
         sub_parsers = gen_subparser.add_subparsers(title="dbt-coves generate commands", dest="task")
         GenerateSourcesTask.register_parser(sub_parsers, base_subparser)
+        cls.arg_parser = gen_subparser
         return gen_subparser
