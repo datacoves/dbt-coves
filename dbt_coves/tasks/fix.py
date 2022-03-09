@@ -2,6 +2,7 @@ import sys
 
 from rich.console import Console
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.utils.shell import run as shell_run
 
 from .base import BaseConfiguredTask
@@ -17,7 +18,7 @@ class FixTask(BaseConfiguredTask):
     """
     Task that runs sqlfluff fix
     """
-    
+
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
@@ -27,7 +28,16 @@ class FixTask(BaseConfiguredTask):
         return subparser
 
     def run(self) -> int:
-        for source_path in self.config.source_paths:
-            console.print(f"Trying to auto-fix linting errors in [u]{source_path}[/u]...\n")
-            fix(source_path)
+        objs_to_fix = list()
+        if "source_paths" in self.config.__dict__:
+            objs_to_fix = self.config.source_paths
+        elif "model_paths" in self.config.__dict__:
+            objs_to_fix = self.config.model_paths
+        else:
+            raise DbtCovesException(
+                "Could not find [u]source_paths[/u] or [u]model_paths[/u] in [u]dbt_project.yml[/u] file"
+            )
+        for obj in objs_to_fix:
+            console.print(f"Trying to auto-fix linting errors in [u]{obj}[/u]...\n")
+            fix(obj)
         return 0

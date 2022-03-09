@@ -1,15 +1,18 @@
+import json
+import os
+import pathlib
+import subprocess
+from copy import copy
+from pathlib import Path
+from typing import Dict
+
+from requests.exceptions import RequestException
 from rich.console import Console
 
 from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.tasks.generate import sources
 from dbt_coves.utils import shell
 from dbt_coves.utils.airbyte_api import AirbyteApiCaller
-from pathlib import Path
-
-import requests, json, os, subprocess, pathlib
-from typing import Dict
-from requests.exceptions import RequestException
-from copy import copy
 
 # from dbt_coves.utils import airbyte_api
 
@@ -194,7 +197,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                             conn, destination_config
                         )
                         # and finally, match schema, if defined
-                        if airbyte_schema.lower() == schema or not airbyte_schema:
+                        if not airbyte_schema or airbyte_schema.lower() == schema:
                             return conn
         return None
 

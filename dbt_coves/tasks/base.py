@@ -6,6 +6,7 @@ class BaseTask:
     """
     Base Task Class
     """
+
     needs_config = False
 
     def __init__(self, args, config=None):

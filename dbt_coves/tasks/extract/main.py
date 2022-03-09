@@ -22,8 +22,6 @@ class ExtractTask(BaseConfiguredTask):
             help="Extracts data from different systems.",
         )
         ext_subparser.set_defaults(cls=cls, which="extract")
-        sub_parsers = ext_subparser.add_subparsers(
-            title="dbt-coves extract commands", dest="task"
-        )
+        sub_parsers = ext_subparser.add_subparsers(title="dbt-coves extract commands", dest="task")
         ExtractAirbyteTask.register_parser(sub_parsers, base_subparser)
         return ext_subparser

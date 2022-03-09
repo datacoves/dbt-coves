@@ -1,19 +1,9 @@
-from jinja2 import (
-    BaseLoader,
-    ChoiceLoader,
-    Environment,
-    FileSystemLoader,
-    PackageLoader,
-)
+from jinja2 import BaseLoader, ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 
 
-def render_template_file(
-    name, context, output_path, templates_folder=".dbt_coves/templates"
-):
+def render_template_file(name, context, output_path, templates_folder=".dbt_coves/templates"):
     env = Environment(
-        loader=ChoiceLoader(
-            [FileSystemLoader(templates_folder), PackageLoader("dbt_coves")]
-        ),
+        loader=ChoiceLoader([FileSystemLoader(templates_folder), PackageLoader("dbt_coves")]),
         keep_trailing_newline=True,
     )
     template = env.get_template(name)

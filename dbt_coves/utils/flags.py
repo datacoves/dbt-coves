@@ -41,9 +41,7 @@ class DbtCovesFlags:
         self.extract = {
             "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
         }
-        self.load = {
-            "airbyte": {"path": None, "host": None, "port": None, "secrets": None}
-        }
+        self.load = {"airbyte": {"path": None, "host": None, "port": None, "secrets": None}}
         self.init = {
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
             "current-dir": False,
@@ -94,9 +92,7 @@ class DbtCovesFlags:
                         "model_props_strategy"
                     ] = self.args.model_props_strategy
                 if self.args.templates_folder:
-                    self.generate["sources"][
-                        "templates_folder"
-                    ] = self.args.templates_folder
+                    self.generate["sources"]["templates_folder"] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
 
