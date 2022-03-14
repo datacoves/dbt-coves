@@ -43,7 +43,7 @@ python-slugify = "^5.0.2"
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
 pytest-cov = "^2.12.1"
-mypy = "^0.910"
+mypy = "^0.940"
 towncrier = "^21.3.0"
 pytest-mock = "^3.6.1"
 pytest-sugar = "^0.9.4"
