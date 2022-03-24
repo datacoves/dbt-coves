@@ -28,12 +28,8 @@ class FixTask(BaseConfiguredTask):
         return subparser
 
     def run(self) -> int:
-        objs_to_fix = list()
-        if "source_paths" in self.config.__dict__:
-            objs_to_fix = self.config.source_paths
-        elif "model_paths" in self.config.__dict__:
-            objs_to_fix = self.config.model_paths
-        else:
+        objs_to_fix = self.config.get("source_paths", self.config.get("model_paths"))
+        if not objs_to_fix:
             raise DbtCovesException(
                 "Could not find [u]source_paths[/u] or [u]model_paths[/u] in [u]dbt_project.yml[/u] file"
             )
