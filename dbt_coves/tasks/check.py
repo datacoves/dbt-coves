@@ -29,9 +29,7 @@ class CheckTask(BaseConfiguredTask):
         return subparser
 
     def run(self) -> int:
-        console.print(
-            "Running pre-commit hooks on staged and commmitted git files...\n"
-        )
+        console.print("Running pre-commit hooks on staged and commmitted git files...\n")
 
         command = shell_run(["pre-commit", "run", "-a"])
         if command.returncode != 0:

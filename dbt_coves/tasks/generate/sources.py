@@ -1,12 +1,12 @@
-import json
-from pathlib import Path
-import re
 import csv
-from slugify import slugify
+import json
+import re
+from pathlib import Path
 
 import questionary
 from questionary import Choice
 from rich.console import Console
+from slugify import slugify
 
 from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.utils.jinja import render_template, render_template_file
@@ -59,8 +59,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
         subparser.add_argument(
             "--model_props_strategy",
             type=str,
-            help="Strategy for model properties files generation,"
-            " i.e. 'one_file_per_model'",
+            help="Strategy for model properties files generation," " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
             "--templates_folder",
@@ -112,7 +111,9 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     rows = csv.DictReader(csvfile)
                     for row in rows:
                         try:
-                            metadata_map[self.get_metadata_map_key(row)] = self.get_metadata_map_item(row)
+                            metadata_map[
+                                self.get_metadata_map_key(row)
+                            ] = self.get_metadata_map_item(row)
                         except KeyError as e:
                             raise Exception(f"Key {e} not found in metadata file {path}")
             except FileNotFoundError as e:
@@ -125,9 +126,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
     def run(self):
         config_database = self.get_config_value("database")
         db = config_database or self.config.credentials.database
-        schema_name_selectors = [
-            schema.upper() for schema in self.get_config_value("schemas")
-        ]
+        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
 
         schema_wildcard_selectors = []
         for schema_name in schema_name_selectors:
@@ -156,9 +155,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 selected_schemas = questionary.checkbox(
                     "Which schemas would you like to inspect?",
                     choices=[
-                        Choice(schema, checked=True)
-                        if "RAW" in schema
-                        else Choice(schema)
+                        Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
                         for schema in schemas
                     ],
                 ).ask()
@@ -186,9 +183,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
                         break
 
             intersected_rels = [
-                relation
-                for relation in listed_relations
-                if relation.name in rel_name_selectors
+                relation for relation in listed_relations if relation.name in rel_name_selectors
             ]
             rels = (
                 intersected_rels
@@ -305,13 +300,13 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     #     'field1': {'type': 'varchar', 'description': ''},
                     #     'field2': {'type': 'varchar', 'description': ''}
                     # }
-                    result[col] = dict(zip(field_data, [self.get_default_metadata_item()] * len(field_data)))
+                    result[col] = dict(
+                        zip(field_data, [self.get_default_metadata_item()] * len(field_data))
+                    )
                     result = self.add_metadata(schema, relation, result, col)
                     result[col] = self.add_field_ids(result[col])
                 except TypeError:
-                    console.print(
-                        f"Column {col} in relation {relation} contains invalid JSON.\n"
-                    )
+                    console.print(f"Column {col} in relation {relation} contains invalid JSON.\n")
         return result
 
     def add_metadata(self, schema, relation, data, col):
@@ -327,7 +322,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
                     "schema": schema,
                     "relation": relation,
                     "column": "data",
-                    "key": item
+                    "key": item,
                 }
                 metadata_key = self.get_metadata_map_key(metadata_map_key_data)
                 # Get metadata info or default and assign to the field.
@@ -365,9 +360,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
             "adapter_name": self.adapter.__class__.__name__,
         }
         if nested:
-            context["nested"] = self.get_nested_keys(
-                nested, relation.schema, relation.name
-            )
+            context["nested"] = self.get_nested_keys(nested, relation.schema, relation.name)
             # Removing original column with JSON data
             new_cols = []
             for col in columns:

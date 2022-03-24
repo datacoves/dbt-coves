@@ -13,7 +13,7 @@ class GenerateTask(BaseConfiguredTask):
     """
     Task that code-gen dbt resources
     """
-    
+
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         gen_subparser = sub_parsers.add_parser(

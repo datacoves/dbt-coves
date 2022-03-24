@@ -1,5 +1,6 @@
-from subprocess import PIPE, Popen, run as shell_run
 import subprocess
+from subprocess import PIPE, Popen
+from subprocess import run as shell_run
 
 
 def run(cmd, cwd=None):

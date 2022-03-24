@@ -3,14 +3,15 @@ from pathlib import Path
 from urllib.parse import urlparse
 
 import questionary
-from rich.table import Table
-from rich.console import Console
 from jinja2 import Environment, meta
+from rich.console import Console
+from rich.table import Table
 
-from dbt_coves.utils.jinja import render_template
-from dbt_coves.utils.shell import run_and_capture, run
-from .base import BaseTask
 from dbt_coves.config.config import DbtCovesConfig
+from dbt_coves.utils.jinja import render_template
+from dbt_coves.utils.shell import run, run_and_capture
+
+from .base import BaseTask
 
 console = Console()
 
@@ -175,9 +176,7 @@ class SetupTask(BaseTask):
             except ValueError:
                 pass
             if port:
-                output = run_and_capture(
-                    ["ssh-keyscan", "-t", "rsa", "-p", str(port), domain]
-                )
+                output = run_and_capture(["ssh-keyscan", "-t", "rsa", "-p", str(port), domain])
             else:
                 output = run_and_capture(["ssh-keyscan", "-t", "rsa", domain])
 
@@ -194,9 +193,7 @@ class SetupTask(BaseTask):
             if domain not in hosts:
                 with open(known_hosts_path, "a") as file:
                     file.write(new_host)
-                console.print(
-                    f"[green]:heavy_check_mark: {domain} registared as a SSH known host."
-                )
+                console.print(f"[green]:heavy_check_mark: {domain} registared as a SSH known host.")
 
             if output.returncode is 0:
                 output = run(["git", "clone", repo_url, workspace_path])
@@ -207,22 +204,16 @@ class SetupTask(BaseTask):
                 else:
                     raise Exception(f"Failed to clone git repo '{repo_url}'")
             else:
-                raise Exception(
-                    f"Failed to clone git repo '{repo_url}': {output.stderr}"
-                )
+                raise Exception(f"Failed to clone git repo '{repo_url}': {output.stderr}")
 
     def git_config(self):
         config_status = "[red]MISSING[/red]"
 
-        email_output = run_and_capture(
-            ["git", "config", "--global", "--get", "user.email"]
-        )
+        email_output = run_and_capture(["git", "config", "--global", "--get", "user.email"])
         email_exists = email_output.returncode is 0 and email_output.stdout
         email = email_output.stdout.replace("\n", "")
 
-        name_output = run_and_capture(
-            ["git", "config", "--global", "--get", "user.name"]
-        )
+        name_output = run_and_capture(["git", "config", "--global", "--get", "user.name"])
         name_exists = name_output.returncode is 0 and name_output.stdout
         name = name_output.stdout.replace("\n", "")
         if email_exists and name_exists:
@@ -235,9 +226,7 @@ class SetupTask(BaseTask):
 
         if not email_exists or not name_exists:
             default_name = os.environ.get("USER_FULLNAME", "")
-            new_name = questionary.text(
-                "Please type your full name:", default=default_name
-            ).ask()
+            new_name = questionary.text("Please type your full name:", default=default_name).ask()
             if new_name:
                 default_email = os.environ.get("USER_EMAIL", "")
                 new_email = questionary.text(
@@ -256,13 +245,9 @@ class SetupTask(BaseTask):
                     if email_output.returncode is not 0:
                         console.print("Could not set user.email")
                         return 1
-                    console.print(
-                        "[green]:heavy_check_mark: Git user configured successfully."
-                    )
+                    console.print("[green]:heavy_check_mark: Git user configured successfully.")
 
-    def print_row(
-        self, key, value="[green]FOUND :heavy_check_mark:[/green]", new_section=False
-    ):
+    def print_row(self, key, value="[green]FOUND :heavy_check_mark:[/green]", new_section=False):
         grid = Table.grid(expand=False)
         grid.add_column(width=self.key_column_with)
         grid.add_column(justify="right", width=self.value_column_with)
@@ -278,9 +263,7 @@ class SetupTask(BaseTask):
         ssh_exists = key_path_abs.exists()
         if ssh_exists:
             ssh_status = "[green]FOUND :heavy_check_mark:[/green]"
-        self.print_row(
-            f"Checking for key in '{key_path}'", ssh_status, new_section=True
-        )
+        self.print_row(f"Checking for key in '{key_path}'", ssh_status, new_section=True)
         confirmed = questionary.confirm(
             "Would you like to create a new SSH key?"
             if not ssh_exists
@@ -293,6 +276,4 @@ class SetupTask(BaseTask):
             with open(key_path_abs, "w") as file:
                 file.write(ssh_key)
             os.chmod(key_path_abs, 0o600)
-            console.print(
-                f"[green]:heavy_check_mark: New SSH key stored on '{key_path}'[/green]"
-            )
+            console.print(f"[green]:heavy_check_mark: New SSH key stored on '{key_path}'[/green]")
