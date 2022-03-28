@@ -47,10 +47,29 @@ class LoadModel(BaseModel):
     airbyte: Optional[LoadAirbyteModel] = LoadAirbyteModel()
 
 
+class SetupAllModel(BaseModel):
+    templates: Optional[str] = ""
+
+
+class SetupSqlfluffModel(BaseModel):
+    templates: Optional[str] = ""
+
+
+class SetupPrecommitModel(BaseModel):
+    templates: Optional[str] = ""
+
+
+class SetupModel(BaseModel):
+    all: Optional[SetupAllModel] = SetupAllModel()
+    sqlfluff: Optional[SetupSqlfluffModel] = SetupSqlfluffModel()
+    precommit: Optional[SetupPrecommitModel] = SetupPrecommitModel()
+
+
 class ConfigModel(BaseModel):
     generate: Optional[GenerateModel] = GenerateModel()
     extract: Optional[ExtractModel] = ExtractModel()
     load: Optional[LoadModel] = LoadModel()
+    setup: Optional[SetupModel] = SetupModel()
 
 
 class DbtCovesConfig:
@@ -73,6 +92,9 @@ class DbtCovesConfig:
         "load.airbyte.host",
         "load.airbyte.port",
         "load.airbyte.secrets",
+        "setup.all.templates",
+        "setup.sqlfluff.templates",
+        "setup.precommit.templates",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:
@@ -92,6 +114,7 @@ class DbtCovesConfig:
         Returns the values read from the config file plus the overrides from cli flags
         """
         config_copy = self._config.dict()
+
         for value in self.CLI_OVERRIDE_FLAGS:
             path_items = value.split(".")
             target = config_copy
@@ -111,24 +134,31 @@ class DbtCovesConfig:
             # use pydantic to shape and validate
             self._config = ConfigModel(**yaml_dict)
 
-    def locate_config(self) -> None:
+    #
+    def validate_dbt_project(self):
+        if not self._flags.task_cls.needs_dbt_project:
+            return True
         dbt_project = Path().joinpath("dbt_project.yml")
-        if dbt_project.exists():
-            if self._config_path == Path(str()):
-                logger.debug("Trying to find .dbt_coves in current folder")
+        return dbt_project.exists()
 
-                for tentative_path in self.DBT_COVES_CONFIG_FILENAMES:
-                    config_path = Path().joinpath(tentative_path)
-                    if config_path.exists():
-                        coves_config_dir = config_path
-                        logger.debug(f"{coves_config_dir} exists and was retreived.")
-                        self._config_path = coves_config_dir
-                        break
-        else:
-            raise MissingDbtProject()
+    def locate_config(self) -> None:
+        if self._config_path == Path(str()):
+            logger.debug("Trying to find .dbt_coves in current folder")
+
+            for tentative_path in self.DBT_COVES_CONFIG_FILENAMES:
+                config_path = Path().joinpath(tentative_path)
+                if config_path.exists():
+                    coves_config_dir = config_path
+                    logger.debug(f"{coves_config_dir} exists and was retreived.")
+                    self._config_path = coves_config_dir
+                    break
 
     def load_config(self) -> None:
-        self.locate_config()
+        is_project_valid = self.validate_dbt_project()
+        if is_project_valid:
+            self.locate_config()
+        else:
+            raise MissingDbtProject()
         try:
             self.load_and_validate_config_yaml()
             logger.debug(f"Config model dict: {self._config.dict()}")

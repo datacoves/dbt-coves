@@ -14,6 +14,10 @@ def run_and_capture(args_list):
     return shell_run(args_list, capture_output=True, text=True)
 
 
+def run_and_capture_cwd(args_list, cwd):
+    return shell_run(args_list, cwd=cwd)
+
+
 def run_dbt_ls(bash_cmd, cwd=None):
     process = subprocess.run(
         bash_cmd.split(),
