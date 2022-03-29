@@ -51,13 +51,13 @@ class SetupAllTask(NonDbtBaseTask):
 
         SetupDbtTask.run_dbt_init()
 
-        SetupDbtTask.dbt_debug()
-
         SetupVscodeTask.run(context)
 
         SetupSqlfluffTask(self.args, self.coves_config).run()
 
         SetupPrecommitTask(self.args, self.coves_config).run()
+
+        SetupDbtTask.dbt_debug()
 
         return 0
 
