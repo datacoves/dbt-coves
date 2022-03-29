@@ -134,7 +134,6 @@ class DbtCovesConfig:
             # use pydantic to shape and validate
             self._config = ConfigModel(**yaml_dict)
 
-    #
     def validate_dbt_project(self):
         if not self._flags.task_cls.needs_dbt_project:
             return True

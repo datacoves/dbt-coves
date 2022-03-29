@@ -1,11 +1,15 @@
-from pathlib import Path
-
-from rich.console import Console
-
+import os
 import questionary
+
+from pathlib import Path
+from rich.console import Console
 from jinja2 import Environment, meta
+
+from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.utils.jinja import render_template
 from dbt_coves.tasks.base import NonDbtBaseTask
+
+from .dbt import SetupDbtTask
 from .utils import print_row
 
 console = Console()
@@ -30,7 +34,12 @@ class SetupVscodeTask(NonDbtBaseTask):
         return subparser
 
     @classmethod
-    def run(cls, workspace_path, config_folder, prev_context) -> int:
+    def run(cls, prev_context=None) -> int:
+        workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
+        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+        if not prev_context:
+            prev_context = SetupDbtTask.get_dbt_profiles_context(config_folder)
+
         template_path = Path(config_folder, "templates", "settings.json")
         if not template_path.exists():
             return
@@ -68,3 +77,4 @@ class SetupVscodeTask(NonDbtBaseTask):
             console.print(
                 f"[green]:heavy_check_mark: vs code settings successfully generated in {code_local_path}."
             )
+        return 0

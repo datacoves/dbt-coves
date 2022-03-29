@@ -3,8 +3,9 @@ from rich.console import Console
 from .all import SetupAllTask
 from .sqlfluff import SetupSqlfluffTask
 from .pre_commit import SetupPrecommitTask
-
-from rich.console import Console
+from .dbt import SetupDbtTask
+from .ssh import SetupSSHTask
+from .vs_code import SetupVscodeTask
 
 from dbt_coves.tasks.base import NonDbtBaseTask
 
@@ -29,6 +30,9 @@ class SetupTask(NonDbtBaseTask):
             title="dbt-coves setup commands", dest="task"
         )
         SetupAllTask.register_parser(sub_parsers, base_subparser)
+        SetupDbtTask.register_parser(sub_parsers, base_subparser)
+        SetupSSHTask.register_parser(sub_parsers, base_subparser)
+        SetupVscodeTask.register_parser(sub_parsers, base_subparser)
         SetupSqlfluffTask.register_parser(sub_parsers, base_subparser)
         SetupPrecommitTask.register_parser(sub_parsers, base_subparser)
 

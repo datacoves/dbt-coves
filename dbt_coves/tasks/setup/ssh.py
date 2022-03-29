@@ -1,7 +1,7 @@
 import os
-from pathlib import Path
-
 import questionary
+
+from pathlib import Path
 from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
@@ -22,11 +22,11 @@ class SetupSSHTask(NonDbtBaseTask):
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
-            "sshkey",
+            "ssh",
             parents=[base_subparser],
             help="Set up SSH Key for dbt-coves project",
         )
-        subparser.set_defaults(cls=cls, which="sshkey")
+        subparser.set_defaults(cls=cls, which="ssh")
         return subparser
 
     @classmethod
@@ -53,4 +53,4 @@ class SetupSSHTask(NonDbtBaseTask):
             console.print(
                 f"[green]:heavy_check_mark: New SSH key stored on '{key_path}'[/green]"
             )
-            return 0
+        return 0

@@ -63,20 +63,17 @@ class NonDbtBaseTask(BaseTask):
     needs_dbt_project = False
 
     def __init__(self, args, config):
-
         super().__init__(args, config)
         self.coves_config = config
         self.coves_flags = None
 
     @classmethod
     def from_args(cls, args):
-
         config = cls.ConfigType.from_args(args)
         return cls(args, config)
 
     @classmethod
     def get_instance(cls, flags, coves_config):
-
         instance = cls(flags.args, coves_config)
         instance.coves_config = coves_config
         instance.coves_flags = flags

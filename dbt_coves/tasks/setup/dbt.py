@@ -5,6 +5,8 @@ import questionary
 from jinja2 import Environment, meta
 from rich.console import Console
 
+from dbt_coves.config.config import DbtCovesConfig
+from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.jinja import render_template
 from dbt_coves.utils.shell import run, run_and_capture_cwd
 from .utils import print_row
@@ -13,13 +15,38 @@ from .utils import print_row
 console = Console()
 
 
-class SetupDbtTask:
+class SetupDbtTask(NonDbtBaseTask):
     """
     Task that runs ssh key generation, git repo clone and db connection setup
     """
 
-    @staticmethod
-    def get_dbt_profiles_context(config_folder):
+    @classmethod
+    def register_parser(cls, sub_parsers, base_subparser):
+        subparser = sub_parsers.add_parser(
+            "dbt",
+            parents=[base_subparser],
+            help="Set up dbt for dbt-coves project",
+        )
+        subparser.set_defaults(cls=cls, which="dbt")
+        return subparser
+
+    @classmethod
+    def run(cls) -> int:
+        config_folder = cls.get_config_folder()
+        context = cls.get_dbt_profiles_context(config_folder)
+        cls.run_dbt_init(config_folder)
+        cls.dbt_debug(config_folder)
+        return 0
+
+    @classmethod
+    def get_config_folder(cls):
+        workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
+        return DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+
+    @classmethod
+    def get_dbt_profiles_context(cls, config_folder=None):
+        if not config_folder:
+            config_folder = cls.get_config_folder()
         profiles_status = "[red]MISSING[/red]"
         default_dbt_path = Path("~/.dbt").expanduser()
         dbt_path = os.environ.get("DBT_PROFILES_DIR", default_dbt_path)
@@ -63,8 +90,10 @@ class SetupDbtTask:
         )
         return context
 
-    @staticmethod
-    def dbt_debug(config_folder):
+    @classmethod
+    def dbt_debug(cls, config_folder=None):
+        if not config_folder:
+            config_folder = cls.get_config_folder()
         debug_status = "[red]FAIL[/red]"
         console.print("\n")
 
@@ -80,19 +109,30 @@ class SetupDbtTask:
         if output.returncode > 0:
             raise Exception("dbt debug error. Check logs.")
 
-    @staticmethod
-    def run_dbt_init(config_folder):
-        init_status = "[red]FAIL[/red]"
-        console.print("\n")
+    @classmethod
+    def run_dbt_init(cls, config_folder=None):
+        if not config_folder:
+            config_folder = cls.get_config_folder()
+        dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
 
-        output = run_and_capture_cwd(["dbt", "init"], cwd=config_folder.parent)
+        if not dbt_project_yaml_path.exists():
+            output = run_and_capture_cwd(["dbt", "init"], cwd=config_folder.parent)
 
-        if output.returncode is 0:
-            init_status = "[green]SUCCESS :heavy_check_mark:[/green]"
-        print_row(
-            "dbt init",
-            init_status,
-            new_section=True,
-        )
-        if output.returncode > 0:
-            raise Exception("dbt init error. Check logs.")
+            if output.returncode is 0:
+                init_status = "[green]SUCCESS :heavy_check_mark:[/green]"
+            print_row(
+                "dbt init",
+                init_status,
+                new_section=True,
+            )
+            if output.returncode > 0:
+                raise Exception("dbt init error. Check logs.")
+        else:
+            init_status = (
+                "[green]FOUND :heavy_check_mark:[/green] project already exists"
+            )
+            print_row(
+                "dbt init",
+                init_status,
+                new_section=True,
+            )

@@ -2,11 +2,9 @@ import os
 from pathlib import Path
 
 from rich.console import Console
-
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.config.config import DbtCovesConfig
 
-from .sshkey import SetupSSHTask
+from .ssh import SetupSSHTask
 from .git import SetupGitTask
 from .dbt import SetupDbtTask
 from .vs_code import SetupVscodeTask
@@ -49,15 +47,13 @@ class SetupAllTask(NonDbtBaseTask):
 
         SetupGitTask.run(workspace_path)
 
-        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+        context = SetupDbtTask.get_dbt_profiles_context()
 
-        context = SetupDbtTask.get_dbt_profiles_context(config_folder)
+        SetupDbtTask.run_dbt_init()
 
-        SetupDbtTask.dbt_debug(config_folder)
+        SetupDbtTask.dbt_debug()
 
-        SetupVscodeTask.run(workspace_path, config_folder, context)
-
-        SetupDbtTask.run_dbt_init(config_folder)
+        SetupVscodeTask.run(context)
 
         SetupSqlfluffTask(self.args, self.coves_config).run()
 
