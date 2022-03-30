@@ -33,22 +33,41 @@ class SetupSSHTask(NonDbtBaseTask):
     @classmethod
     def run(cls) -> int:
         ssh_status = "[red]MISSING[/red]"
-        key_path = "~/.ssh/id_ecdsa"
-        public_key_path = "~/.ssh/id_ecdsa.pub"
-        key_path_abs = Path(key_path).expanduser()
-        public_key_path_abs = Path(public_key_path).expanduser()
-        ssh_exists = key_path_abs.exists()
+        ssh_keys_dir = "~/.ssh/"
+        ssh_keys_dir_abs = os.path.abspath(Path(ssh_keys_dir).expanduser())
+        key_path_abs = f"{ssh_keys_dir_abs}/id_ecdsa"
+        Path(ssh_keys_dir_abs).mkdir(parents=True, exist_ok=True)
 
-        if ssh_exists:
+        public_key_path_abs = f"{key_path_abs}.pub"
+
+        found_keys = [
+            file
+            for file in os.listdir(ssh_keys_dir_abs)
+            if "id_" in file.lower() and not ".pub" in file.lower()
+        ]
+
+        if found_keys:
             ssh_status = "[green]FOUND :heavy_check_mark:[/green]"
             print_row(
-                f"Checking for key in '{key_path}'", ssh_status, new_section=False
+                f"Checking for SSH keys in '{ssh_keys_dir}'",
+                ssh_status,
+                new_section=False,
             )
-            cls.output_public_key(public_key_path_abs)
+            if len(found_keys) == 1:
+                selected_ssh_key = found_keys[0]
+            else:
+                selected_ssh_key = questionary.select(
+                    "Which of these SSH Keys would you like to associate to your dbt-coves project?:",
+                    choices=found_keys,
+                ).ask()
 
-        if not ssh_exists:
+            key_path_abs = f"{ssh_keys_dir_abs}/{selected_ssh_key}"
+            console.print(
+                f"Please configure the Public Key for '{key_path_abs}' on your Git server (Gitlab, Github, Bitbucket, etc)"
+            )
+        else:
             print_row(
-                f"Checking for key in '{key_path}'", ssh_status, new_section=False
+                f"Checking for key in '{ssh_keys_dir}'", ssh_status, new_section=False
             )
             action = (
                 questionary.select(
@@ -60,19 +79,21 @@ class SetupSSHTask(NonDbtBaseTask):
             )
             if action == "provide":
                 ssh_key = questionary.text("Please paste your private SSH key:").ask()
-                key_path_abs.parent.mkdir(parents=True, exist_ok=True)
                 with open(key_path_abs, "w") as file:
                     file.write(ssh_key)
+
                 os.chmod(key_path_abs, 0o600)
                 console.print(
-                    f"[green]:heavy_check_mark: New SSH key stored on '{key_path}'[/green]"
+                    f"[green]:heavy_check_mark: New SSH key stored on '{key_path_abs}'[/green]"
                 )
-                cls.output_public_key(public_key_path_abs)
+                console.print(
+                    f"Please configure the Public Key for '{key_path_abs}' on your Git server (Gitlab, Github, Bitbucket, etc)"
+                )
             if action == "generate":
                 output = cls.generate_ecdsa_keys(key_path_abs)
                 if output.returncode == 0:
                     console.print(
-                        f"[green]:heavy_check_mark: SSH ecdsa key generated on '{key_path}'[/green]"
+                        f"[green]:heavy_check_mark: SSH ecdsa key generated on '{key_path_abs}'[/green]"
                     )
                     cls.output_public_key(public_key_path_abs)
 
