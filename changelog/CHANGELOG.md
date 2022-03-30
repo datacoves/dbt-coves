@@ -1,3 +1,7 @@
+## dbt-coves [1.0.4-a.1] - 2022-03-24
+
+- Make dbt compatible with dbt 1.0 (dbt-core 1.0.4)
+
 ## dbt-coves [0.21.1-a.20] - 2022-02-22
 
 - Support --metadata argument on dbt-coves generate sources
