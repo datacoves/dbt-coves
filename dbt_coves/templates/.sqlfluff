@@ -1,0 +1,76 @@
+[sqlfluff]
+verbose = 0
+nocolor = False
+dialect = snowflake
+templater = dbt
+# rules = None
+rules = L001, L003, L005, L010, L012
+# rules = L001, L003, L005, L009, L010, L012
+
+
+project_dir = ./
+
+recurse = 0
+output_line_length = 80
+runaway_limit = 10
+ignore = parsing,templating
+ignore_templated_areas = True
+
+# Comma separated list of file extensions to lint.
+# NB: This config will only apply in the root folder.
+sql_file_exts = .sql,.sql.j2,.dml,.ddl
+
+# Excluding this rule will allow USING 
+exclude_rules = L032,L044, L030, L031, L034
+
+### OPINIONATED DEFAULTS
+
+# Some rules can be configured directly from the config common to other rules.
+[sqlfluff:rules]
+tab_space_size = 4
+max_line_length = 140
+indent_unit = space
+comma_style = trailing
+allow_scalar = True
+single_table_references = unqualified
+unquoted_identifiers_policy = all
+
+[sqlfluff:indentation]
+indented_joins = False
+template_blocks_indent = True
+
+[sqlfluff:templater]
+unwrap_wrapped_queries = True
+
+
+# Some rules have their own specific config.
+[sqlfluff:rules:L003]
+lint_templated_tokens = True
+
+[sqlfluff:rules:L010]  # Keywords
+capitalisation_policy = lower
+
+[sqlfluff:rules:L014]  # Unquoted identifiers
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:L016]
+ignore_comment_lines = False
+
+[sqlfluff:rules:L029]  # Keyword identifiers
+unquoted_identifiers_policy = none
+
+[sqlfluff:rules:L030]  # Function names
+capitalisation_policy = lower
+
+[sqlfluff:rules:L038]
+select_clause_trailing_comma = forbid
+
+[sqlfluff:rules:L040]  # Null & Boolean Literals
+capitalisation_policy = lower
+
+[sqlfluff:rules:L042]
+# By default, allow subqueries in from clauses, but not join clauses.
+forbid_subquery_in = join
+
+[sqlfluff:rules:L047]  # Consistent syntax to count all rows
+prefer_count_1 = False

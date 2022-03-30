@@ -1,0 +1,46 @@
+repos:
+- repo: local
+  hooks:
+    - id: dbt-get-manifest
+      name: dbt-get-manifest
+      entry: automate/dbt/get_artifacts.sh
+      language: script
+      types: [python]
+      pass_filenames: false
+- repo: https://github.com/offbi/pre-commit-dbt
+  rev: v1.0.0
+  hooks:
+  - id: dbt-run
+    files: ^transform/models/
+    args: ["--models", "state:modified+", "--cmd-flags", "++defer", "++project+dir", "transform", "++state", "logs", "--"]
+  - id: dbt-docs-generate
+    files: ^transform/models/
+    args: ["--cmd-flags", "++project+dir", "transform", "++no+compile"] 
+  - id: check-source-table-has-description  
+    files: ^transform/models/  
+  - id: check-script-semicolon
+    files: ^transform/models/
+  # TODO agg_cases_by_month.sql breaks this
+  # - id: check-script-has-no-table-name
+  #   files: ^transform/models/
+  - id: check-script-ref-and-source
+    files: ^transform/models/
+    args: ["--manifest", "transform/target/manifest.json"]
+  # TODO Auto generate properties file, need fix to do in sql file dir
+  # - id: generate-model-properties-file
+  #   args: ["--properties-file", "/models/{schema}/{name}.yml", "--manifest", "transform/target/manifest.json", "--catalog", "transform/target/catalog.json", "--"]
+
+  - id: check-model-has-properties-file
+    args: ["--manifest", "transform/target/manifest.json"]
+    files: ^transform/models/
+  # TODO: Cannot use this with defer.
+  # open issue https://github.com/dbt-labs/dbt-core/issues/4110
+  # - id: check-model-has-all-columns
+  #   args: ["--manifest", "transform/target/manifest.json", "--catalog", "transform/target/catalog.json"]
+  #   files: ^transform/models/
+    files: ^transform/models/
+  - id: check-model-has-description
+    args: ["--manifest", "transform/target/manifest.json"]
+    files: ^transform/models/
+
+

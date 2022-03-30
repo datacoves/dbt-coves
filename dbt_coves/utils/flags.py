@@ -41,12 +41,19 @@ class DbtCovesFlags:
         self.extract = {
             "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
         }
-        self.load = {"airbyte": {"path": None, "host": None, "port": None, "secrets": None}}
+        self.load = {
+            "airbyte": {"path": None, "host": None, "port": None, "secrets": None}
+        }
         self.init = {
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
             "current-dir": False,
         }
         self.check = {"no-fix": False}
+        self.setup = {
+            "all": {"templates": None},
+            "sqlfluff": {"templates": None},
+            "precommit": {"templates": None},
+        }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
@@ -92,7 +99,9 @@ class DbtCovesFlags:
                         "model_props_strategy"
                     ] = self.args.model_props_strategy
                 if self.args.templates_folder:
-                    self.generate["sources"]["templates_folder"] = self.args.templates_folder
+                    self.generate["sources"][
+                        "templates_folder"
+                    ] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
 
@@ -124,3 +133,15 @@ class DbtCovesFlags:
                     self.extract["airbyte"]["port"] = self.args.port
                 if self.args.dbt_list_args:
                     self.extract["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
+
+            if self.args.cls.__name__ == "SetupAllTask":
+                if self.args.templates:
+                    self.setup["all"]["templates"] = self.args.templates
+
+            if self.args.cls.__name__ == "SetupSqlfluffTask":
+                if self.args.templates:
+                    self.setup["sqlfluff"]["templates"] = self.args.templates
+
+            if self.args.cls.__name__ == "SetupPrecommitTask":
+                if self.args.templates:
+                    self.setup["precommit"]["templates"] = self.args.templates

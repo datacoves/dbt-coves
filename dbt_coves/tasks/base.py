@@ -8,6 +8,7 @@ class BaseTask:
     """
 
     needs_config = False
+    needs_dbt_project = False
 
     def __init__(self, args, config=None):
         self.args = args
@@ -32,6 +33,7 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
     """
 
     needs_config = True
+    needs_dbt_project = True
 
     def __init__(self, args, config):
         super().__init__(args, config)
@@ -47,6 +49,32 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
     @classmethod
     def get_instance(cls, flags, coves_config):
         instance = cls.from_args(flags.args)
+        instance.coves_config = coves_config
+        instance.coves_flags = flags
+        return instance
+
+
+class NonDbtBaseTask(BaseTask):
+    """
+    Task class that requires a configuration
+    """
+
+    needs_config = True
+    needs_dbt_project = False
+
+    def __init__(self, args, config):
+        super().__init__(args, config)
+        self.coves_config = config
+        self.coves_flags = None
+
+    @classmethod
+    def from_args(cls, args):
+        config = cls.ConfigType.from_args(args)
+        return cls(args, config)
+
+    @classmethod
+    def get_instance(cls, flags, coves_config):
+        instance = cls(flags.args, coves_config)
         instance.coves_config = coves_config
         instance.coves_flags = flags
         return instance
