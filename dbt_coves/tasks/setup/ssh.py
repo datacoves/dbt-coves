@@ -80,7 +80,7 @@ class SetupSSHTask(NonDbtBaseTask):
 
     @classmethod
     def generate_ecdsa_keys(cls, key_path_abs):
-        shell_run(args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs])
+        return shell_run(args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs])
 
     @classmethod
     def output_public_key(cls, public_key_path_abs):
