@@ -42,7 +42,16 @@ class DbtCovesFlags:
             "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
         }
         self.load = {
-            "airbyte": {"path": None, "host": None, "port": None, "secrets": None}
+            "airbyte": {
+                "path": None,
+                "host": None,
+                "port": None,
+                "secrets_manager": None,
+                "secrets_url": None,
+                "secrets_token": None,
+                "secrets_path": None,
+                "dbt_list_args": None,
+            }
         }
         self.init = {
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
@@ -122,8 +131,16 @@ class DbtCovesFlags:
                 if self.args.host and self.args.port:
                     self.load["airbyte"]["port"] = self.args.port
                     self.load["airbyte"]["host"] = self.args.host
-                if self.args.secrets:
-                    self.load["airbyte"]["secrets"] = self.args.secrets
+                if self.args.secrets_path:
+                    self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+                if self.args.secrets_url:
+                    self.load["airbyte"]["secrets_url"] = self.args.secrets_url
+                if self.args.secrets_token:
+                    self.load["airbyte"]["secrets_token"] = self.args.secrets_token
+                if self.args.secrets_path:
+                    self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+                if self.args.secrets_path:
+                    self.load["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
 
             if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
