@@ -36,7 +36,11 @@ class LoadAirbyteModel(BaseModel):
     path: Optional[str] = ""
     host: Optional[str] = ""
     port: Optional[str] = ""
-    secrets: Optional[str] = ""
+    secrets_manager: Optional[str] = ""
+    secrets_url: Optional[str] = ""
+    secrets_token: Optional[str] = ""
+    secrets_path: Optional[str] = ""
+    dbt_list_args: Optional[str] = ""
 
 
 class ExtractModel(BaseModel):
@@ -91,7 +95,11 @@ class DbtCovesConfig:
         "load.airbyte.path",
         "load.airbyte.host",
         "load.airbyte.port",
-        "load.airbyte.secrets",
+        "load.airbyte.secrets_manager",
+        "load.airbyte.secrets_url",
+        "load.airbyte.secrets_token",
+        "load.airbyte.secrets_path",
+        "load.airbyte.dbt_list_args",
         "setup.all.templates",
         "setup.sqlfluff.templates",
         "setup.precommit.templates",
