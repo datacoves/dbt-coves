@@ -37,7 +37,6 @@ jobs:
 
       - name: Install Dependencies using Poetry
         run: poetry install
-        if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Grant execution permissions to publish script
         run: chmod +x /home/runner/work/dbt-coves/dbt-coves/publish.sh
