@@ -3,8 +3,25 @@
 # Run `poetry run towncrier create 123.feature` to update changelog
 
 # poetry run towncrier build
+die() {
+    echo >&2 "$@"
+    exit 1
+}
 
-# search and replace <current version> by <new version>, i.e. 1.0.4-a.3 by 1.0.4-a.4
-# bumpversion <new_version>
+if [ "$#" -eq 0 ]; then
+    TYPE='build'
+elif
+    [ $1 = 'major' ] ||
+        [ $1 = 'minor' ] ||
+        [ $1 = 'patch' ] ||
+        [ $1 = 'release' ] ||
+        [ $1 = 'build' ]
+then
+    TYPE=$1
+else
+    die "version type required: (major, minor, patch, release, build), $1 provided"
+
+fi
+bumpversion $TYPE
 poetry build
 poetry publish

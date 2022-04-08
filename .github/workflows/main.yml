@@ -1,0 +1,46 @@
+name: Publish new PyPi build version
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  publish:
+    name: Main
+    runs-on: ubuntu-latest
+
+    env:
+      POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
+      POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v2
+
+      - name: Set up Python 3.8
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.8
+
+      - name: Install Poetry
+        uses: Gr1N/setup-poetry@v4
+
+      - name: Cache Poetry virtualenv
+        uses: actions/cache@v1
+        id: cache
+        with:
+          path: ~/.virtualenvs
+          key: poetry-$
+          restore-keys: |
+            poetry-$
+
+      - name: Install Dependencies using Poetry
+        run: poetry install
+        if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: find Publish shell script
+        run: find / -name publish.sh
+
+      - name: Release new PyPi build version
+        run: ./publish.sh
