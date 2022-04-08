@@ -10,12 +10,6 @@ jobs:
     name: PyPi Publishing
     runs-on: ubuntu-latest
 
-    env:
-      #POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
-      #POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
-      POETRY_HTTP_BASIC_USERNAME: _token_
-      POETRY_HTTP_BASIC_PASSWORD: pypi-AgEIcHlwaS5vcmcCJGQxNWQ0YzYwLTA4NzItNGMxNy1hMjAzLTQwZGI1ZTJjYzI3NAACJXsicGVybWlzc2lvbnMiOiAidXNlciIsICJ2ZXJzaW9uIjogMX0AAAYgAZLJybLhMcYLLIE7cfq2ya2UjPRGBI3FAOXCDLsUXyo
-
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -27,15 +21,10 @@ jobs:
 
       - name: Install Poetry
         uses: Gr1N/setup-poetry@v4
-
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
-        id: cache
-        with:
-          path: ~/.virtualenvs
-          key: poetry-$
-          restore-keys: |
-            poetry-$
+      - run: poetry --version
+        env:
+          POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
+          POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
 
       - name: Install Dependencies using Poetry
         run: poetry install
