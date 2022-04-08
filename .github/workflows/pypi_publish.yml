@@ -22,9 +22,6 @@ jobs:
       - name: Install Poetry
         uses: Gr1N/setup-poetry@v4
       - run: poetry --version
-        env:
-          POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
-          POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
 
       - name: Install Dependencies using Poetry
         run: poetry install
@@ -40,3 +37,6 @@ jobs:
 
       - name: Release new PyPi build version
         run: /home/runner/work/dbt-coves/dbt-coves/publish.sh
+        env:
+          POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
+          POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
