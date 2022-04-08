@@ -22,6 +22,6 @@ else
     die "version type required: (major, minor, patch, release, build), $1 provided"
 
 fi
-petry run bumpversion $TYPE
+poetry run bumpversion $TYPE
 poetry build
 poetry publish
