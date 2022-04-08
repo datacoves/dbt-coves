@@ -39,5 +39,8 @@ jobs:
         run: poetry install
         if: steps.cache.outputs.cache-hit != 'true'
 
+      - name: test find script
+        run: find /home -name publish.sh
+
       - name: Release new PyPi build version
         run: ./home/runner/work/dbt-coves/dbt-coves/publish.sh
