@@ -40,7 +40,7 @@ jobs:
         if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Grant execution permissions to publish script
-      - run: chmod +x /home/runner/work/dbt-coves/dbt-coves/publish.sh
+        run: chmod +x /home/runner/work/dbt-coves/dbt-coves/publish.sh
 
       - name: Release new PyPi build version
         run: ./home/runner/work/dbt-coves/dbt-coves/publish.sh
