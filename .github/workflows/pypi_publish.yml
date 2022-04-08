@@ -9,6 +9,9 @@ jobs:
   publish:
     name: PyPi Publishing
     runs-on: ubuntu-latest
+    env:
+      POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
+      POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
 
     steps:
       - name: Checkout branch
@@ -21,16 +24,13 @@ jobs:
 
       - name: Install Poetry
         uses: Gr1N/setup-poetry@v4
-        env:
-          POETRY_HTTP_BASIC_USERNAME: _token_
-          POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
 
       - name: Install Dependencies using Poetry
         run: poetry install
         if: steps.cache.outputs.cache-hit != 'true'
 
-      - name: Grant execution permissions to publish script
-        run: chmod +x /home/runner/work/dbt-coves/dbt-coves/publish.sh
+      - name: Configure poetry PyPi connection
+        run: poetry config http-basic.pypi $POETRY_HTTP_BASIC_USERNAME $POETRY_HTTP_BASIC_PASSWORD
 
       - name: Configure Git
         run: |
@@ -39,6 +39,3 @@ jobs:
 
       - name: Release new PyPi build version
         run: /home/runner/work/dbt-coves/dbt-coves/publish.sh
-        env:
-          POETRY_HTTP_BASIC_USERNAME: _token_
-          POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
