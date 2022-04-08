@@ -42,5 +42,10 @@ jobs:
       - name: Grant execution permissions to publish script
         run: chmod +x /home/runner/work/dbt-coves/dbt-coves/publish.sh
 
+      - name: Configure Git
+        run: |
+          git config user.name "$GITHUB_ACTOR"
+          git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
+
       - name: Release new PyPi build version
         run: /home/runner/work/dbt-coves/dbt-coves/publish.sh
