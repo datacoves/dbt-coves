@@ -10,6 +10,10 @@ jobs:
     name: Main
     runs-on: ubuntu-latest
 
+    env:
+      POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
+      POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
+
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
