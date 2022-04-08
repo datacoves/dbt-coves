@@ -22,7 +22,7 @@ jobs:
       - name: Install Poetry
         uses: Gr1N/setup-poetry@v4
         env:
-          POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
+          POETRY_HTTP_BASIC_USERNAME: _token_
           POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
 
       - name: Install Dependencies using Poetry
