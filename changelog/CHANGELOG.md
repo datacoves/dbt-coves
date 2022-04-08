@@ -1,3 +1,11 @@
+## dbt-coves [1.0.4-a.20] - 2022-03-24
+
+### Features
+
+- dbt-coves setup splitted into individual components (dbt, git, precommit, sqlfluff, ssh, vscode, or all if installing everything)
+- removed rst documentation and replaced by markdown, including removal of 'CLI Reference' from README.md
+- automated `publish.sh` script for PyPi publishing
+
 ## dbt-coves [1.0.4-a.1] - 2022-03-24
 
 ### Features
