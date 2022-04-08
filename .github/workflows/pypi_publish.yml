@@ -49,3 +49,6 @@ jobs:
 
       - name: Release new PyPi build version
         run: /home/runner/work/dbt-coves/dbt-coves/publish.sh
+        with:
+          POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
+          POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
