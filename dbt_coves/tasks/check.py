@@ -36,20 +36,20 @@ class CheckTask(BaseConfiguredTask):
             return command.returncode
 
         sql_fluff_status = 0
-        for source_path in self.config.source_paths:
-            console.print(f"Linting files in [u]{source_path}[/u]...\n")
+        for model_path in self.config.model_paths:
+            console.print(f"Linting files in [u]{model_path}[/u]...\n")
 
-            command = shell_run(["sqlfluff", "lint", source_path])
+            command = shell_run(["sqlfluff", "lint", model_path])
 
             if command.returncode != 0:
                 sql_fluff_status = command.returncode
             if not self.coves_flags.check["no-fix"] and sql_fluff_status != 0:
                 confirmed = questionary.confirm(
-                    f"Would you like to try auto-fixing linting errors in {source_path}?",
+                    f"Would you like to try auto-fixing linting errors in {model_path}?",
                     default=True,
                 ).ask()
                 if confirmed:
-                    command = fix(source_path)
+                    command = fix(model_path)
                     if command.returncode != 0:
                         return command.returncode
         return sql_fluff_status

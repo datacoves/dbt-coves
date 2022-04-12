@@ -10,8 +10,8 @@ from .base import BaseConfiguredTask
 console = Console()
 
 
-def fix(source_path):
-    return shell_run(["sqlfluff", "fix", "-f", source_path])
+def fix(model_path):
+    return shell_run(["sqlfluff", "fix", "-f", model_path])
 
 
 class FixTask(BaseConfiguredTask):
@@ -28,12 +28,9 @@ class FixTask(BaseConfiguredTask):
         return subparser
 
     def run(self) -> int:
-        objs_to_fix = self.config.get("source_paths", self.config.get("model_paths"))
-        if not objs_to_fix:
-            raise DbtCovesException(
-                "Could not find [u]source_paths[/u] or [u]model_paths[/u] in [u]dbt_project.yml[/u] file"
+        for model_path in self.config.model_paths:
+            console.print(
+                f"Trying to auto-fix linting errors in [u]{model_path}[/u]...\n"
             )
-        for obj in objs_to_fix:
-            console.print(f"Trying to auto-fix linting errors in [u]{obj}[/u]...\n")
-            fix(obj)
+            fix(model_path)
         return 0
