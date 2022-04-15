@@ -63,6 +63,11 @@ class LoadAirbyteTask(BaseConfiguredTask):
             type=str,
             help="Secret files location for Airbyte configuration, i.e. './secrets'",
         )
+        subparser.add_argument(
+            "--dbt_list_args",
+            type=str,
+            help="Extra dbt arguments, selectors or modifiers",
+        )
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
