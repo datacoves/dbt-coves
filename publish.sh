@@ -24,5 +24,8 @@ else
 fi
 
 poetry run bumpversion $TYPE
+git show --name-only
+git push
+
 poetry build
 poetry publish
