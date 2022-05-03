@@ -24,7 +24,7 @@ class SetupPrecommitTask(NonDbtBaseTask):
         subparser = sub_parsers.add_parser(
             "precommit",
             parents=[base_subparser],
-            help="Initialises dbt project, sets up SSH keys, git repo, and db connections.",
+            help="Set up pre-commit for dbt-coves project",
         )
         subparser.add_argument(
             "--templates",

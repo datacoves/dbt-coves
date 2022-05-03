@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import pathlib
@@ -86,12 +87,18 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         self.sources_extract_destination = os.path.abspath(sources_path)
 
         self.airbyte_api_caller = AirbyteApiCaller(airbyte_host, airbyte_port)
+        
 
         console.print(
             f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(extract_destination)}\n"
         )
 
         dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
+
+        if not self.dbt_packages_exist(os.getcwd()):
+            raise AirbyteExtractorException(
+                f"Could not locate dbt_packages folder, make sure 'dbt deps' was ran."
+            )
 
         try:
             dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
@@ -151,6 +158,9 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         else:
             console.print(f"No Airbyte Connections were extracted")
         return 0
+
+    def dbt_packages_exist(self, dbt_project_path):
+        return glob.glob(f"{str(dbt_project_path)}/dbt_packages")
 
     def _clean_sources_prefixes(self, sources_list):
         return [source.lower().replace("source:", "source.") for source in sources_list]
@@ -231,9 +241,24 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                     destination["connectionConfiguration"], airbyte_secret_fields
                 )
 
+                # Add object definition version
+                destination["connectorVersion"] = self._get_connector_version(
+                    "destinationDefinitionId",
+                    self.airbyte_api_caller.destination_definitions,
+                    destination_definition["destinationDefinitionId"],
+                )
+
                 return destination
         raise AirbyteExtractorException(
             f"Airbyte extract error: there is no Airbyte Destination for id [red]{destinationId}[/red]"
+        )
+
+    def _get_connector_version(self, lookup_field, definitions_list, definition_id):
+        for definition in definitions_list:
+            if definition[lookup_field] == definition_id:
+                return definition["dockerImageTag"]
+        raise AirbyteExtractorException(
+            f"No connector definition found for ID {definition_id}"
         )
 
     def _get_airbyte_source_definition_from_id(self, definition_id):
@@ -292,6 +317,13 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                     "connectionConfiguration"
                 ] = self._hide_configuration_secret_fields(
                     source["connectionConfiguration"], airbyte_secret_fields
+                )
+
+                # Add object definition version
+                source["connectorVersion"] = self._get_connector_version(
+                    "sourceDefinitionId",
+                    self.airbyte_api_caller.source_definitions,
+                    source_definition["sourceDefinitionId"],
                 )
 
                 return source

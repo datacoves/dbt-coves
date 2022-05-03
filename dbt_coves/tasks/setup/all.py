@@ -27,7 +27,7 @@ class SetupAllTask(NonDbtBaseTask):
         subparser = sub_parsers.add_parser(
             "all",
             parents=[base_subparser],
-            help="Sets up SSH keys, git repo, and db connections.",
+            help="Set up a complete dbt-coves project.",
         )
         subparser.add_argument(
             "--templates",
@@ -49,15 +49,17 @@ class SetupAllTask(NonDbtBaseTask):
 
         context = SetupDbtTask.get_dbt_profiles_context()
 
-        SetupDbtTask.run_dbt_init()
+        SetupDbtTask.dbt_init()
+
+        SetupDbtTask.dbt_debug()
+
+        SetupDbtTask.dbt_deps()
 
         SetupVscodeTask.run(context)
 
         SetupSqlfluffTask(self.args, self.coves_config).run()
 
         SetupPrecommitTask(self.args, self.coves_config).run()
-
-        SetupDbtTask.dbt_debug()
 
         return 0
 

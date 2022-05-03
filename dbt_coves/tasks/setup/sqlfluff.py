@@ -1,4 +1,5 @@
 import os
+import glob
 from pathlib import Path
 
 from rich.console import Console
@@ -16,15 +17,16 @@ class SetupSqlfluffTask(NonDbtBaseTask):
     Task that runs ssh key generation, git repo clone and db connection setup
     """
 
-    key_column_with = 50
-    value_column_with = 30
+    KEY_COLUMN_WIDTH = 20
+    VALUE_COLUMN_WIDTH = 50
+    arg_parser = None
 
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
             "sqlfluff",
             parents=[base_subparser],
-            help="Initialises dbt project, sets up SSH keys, git repo, and db connections.",
+            help="Set up sqlfluff for dbt-coves project",
         )
         subparser.add_argument(
             "--templates",
@@ -32,32 +34,61 @@ class SetupSqlfluffTask(NonDbtBaseTask):
             help="Location of your sqlfluff, ci and pre-commit config files",
         )
         subparser.set_defaults(cls=cls, which="sqlfluff")
+        cls.arg_parser = base_subparser
         return subparser
 
+    def file_exists(self, root_path, file_name):
+        for file in glob.glob(f"{str(root_path)}/**/{file_name}"):
+            if file:
+                return file
+            else:
+                return False
+
     def run(self) -> int:
+        dbt_project_path = False
         workspace_path = workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
         config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
         templates_folder = (
             self.get_config_value("templates") or f"{config_folder}/templates"
         )
 
-        destination_path = Path(os.getcwd())
-        sqlfluff_dest_path = destination_path / ".sqlfluff"
-        sqlfluffignore_dest_path = destination_path / ".sqlfluffignore"
+        execution_path = Path(os.getcwd())
 
+        dbt_project_dest_status = "[red]MISSING[/red]"
         sqlfluff_dest_status = "[red]MISSING[/red]"
-        sqlfluff_exists = (
-            sqlfluff_dest_path.exists() and sqlfluffignore_dest_path.exists()
-        )
-        if sqlfluff_exists:
-            sqlfluff_dest_status = "[green]FOUND :heavy_check_mark:[/green]"
+        sqlfluff_file = self.file_exists(execution_path, ".sqlfluff")
+
+        if sqlfluff_file:
+            sqlfluff_dest_status = (
+                f"[green]FOUND: {sqlfluff_file} :heavy_check_mark:[/green]"
+            )
         print_row(
             f"Checking for sqlfluff settings",
             sqlfluff_dest_status,
-            new_section=True,
+            new_section=False,
+            KEY_COLUMN_WIDTH=40,
+            VALUE_COLUMN_WIDTH=100,
         )
 
-        if not sqlfluff_exists:
+        if not sqlfluff_file:
+            dbt_project_path = self.file_exists(execution_path, "dbt_project.yml")
+            if dbt_project_path:
+                execution_path = Path(dbt_project_path).parent
+                dbt_project_dest_status = (
+                    f"[green]FOUND: {execution_path} :heavy_check_mark:[/green]"
+                )
+            print_row(
+                f"Checking for dbt project existence",
+                dbt_project_dest_status,
+                new_section=False,
+            )
+            if not dbt_project_path:
+                console.print(
+                    f"Could not find sqlfluff or existent dbt project. Please initialize a dbt project before installing sqlfluff"
+                )
+                return 1
+
+            destination_path = execution_path / ".sqlfluff"
             context = {
                 "relation": "",
                 "columns": None,
@@ -67,13 +98,7 @@ class SetupSqlfluffTask(NonDbtBaseTask):
             render_template_file(
                 ".sqlfluff",
                 context,
-                sqlfluff_dest_path,
-                templates_folder,
-            )
-            render_template_file(
-                ".sqlfluffignore",
-                context,
-                sqlfluffignore_dest_path,
+                destination_path,
                 templates_folder,
             )
             console.print(f"Sqlfluff installed at [green]{destination_path}[/green]")
