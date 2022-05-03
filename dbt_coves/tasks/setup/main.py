@@ -17,8 +17,9 @@ class SetupTask(NonDbtBaseTask):
     Task that code-gen dbt resources
     """
 
-    key_column_with = 50
-    value_column_with = 30
+    key_column_with = 20
+    value_column_with = 50
+    arg_parser = None
 
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
@@ -35,5 +36,5 @@ class SetupTask(NonDbtBaseTask):
         SetupVscodeTask.register_parser(sub_parsers, base_subparser)
         SetupSqlfluffTask.register_parser(sub_parsers, base_subparser)
         SetupPrecommitTask.register_parser(sub_parsers, base_subparser)
-
+        cls.arg_parser = ext_subparser
         return ext_subparser

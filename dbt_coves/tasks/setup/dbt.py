@@ -34,7 +34,7 @@ class SetupDbtTask(NonDbtBaseTask):
     def run(cls) -> int:
         config_folder = cls.get_config_folder()
         context = cls.get_dbt_profiles_context(config_folder)
-        cls.run_dbt_init(config_folder)
+        cls.dbt_init(config_folder)
         cls.dbt_debug(config_folder)
         return 0
 
@@ -110,7 +110,7 @@ class SetupDbtTask(NonDbtBaseTask):
             raise Exception("dbt debug error. Check logs.")
 
     @classmethod
-    def run_dbt_init(cls, config_folder=None):
+    def dbt_init(cls, config_folder=None):
         if not config_folder:
             config_folder = cls.get_config_folder()
         dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
@@ -133,6 +133,34 @@ class SetupDbtTask(NonDbtBaseTask):
             )
             print_row(
                 "dbt init",
+                init_status,
+                new_section=True,
+            )
+
+    @classmethod
+    def dbt_deps(cls, config_folder=None):
+        if not config_folder:
+            config_folder = cls.get_config_folder()
+        dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
+
+        if dbt_project_yaml_path.exists():
+            output = run_and_capture_cwd(["dbt", "deps"], cwd=config_folder.parent)
+
+            if output.returncode is 0:
+                init_status = "[green]SUCCESS :heavy_check_mark:[/green]"
+            print_row(
+                "dbt deps",
+                init_status,
+                new_section=True,
+            )
+            if output.returncode > 0:
+                raise Exception("dbt deps error. Check logs.")
+        else:
+            init_status = (
+                "[green]FOUND :heavy_check_mark:[/green] dbt project not found"
+            )
+            print_row(
+                "dbt deps",
                 init_status,
                 new_section=True,
             )

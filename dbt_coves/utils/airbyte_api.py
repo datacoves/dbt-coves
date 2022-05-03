@@ -21,10 +21,12 @@ class AirbyteApiCaller:
                 return json.loads(response.text) if response.text else None
             else:
                 raise RequestException(
-                    f"Unexpected status code from airbyte in endpoint {endpoint}: {response.status_code}"
+                    f"Unexpected status code from airbyte in endpoint {endpoint}: {response.status_code}: {json.loads(response.text)['message']}"
                 )
         except RequestException as e:
-            raise AirbyteApiCallerException(f"Airbyte API error in endpoint {endpoint}: " + str(e))
+            raise AirbyteApiCallerException(
+                f"Airbyte API error in endpoint {endpoint}: " + str(e)
+            )
 
     def __init__(self, api_host, api_port):
         airbyte_host = api_host
@@ -36,12 +38,16 @@ class AirbyteApiCaller:
         self.airbyte_endpoint_list_connections = airbyte_api_list_component.format(
             component="connections"
         )
-        self.airbyte_endpoint_list_sources = airbyte_api_list_component.format(component="sources")
+        self.airbyte_endpoint_list_sources = airbyte_api_list_component.format(
+            component="sources"
+        )
         self.airbyte_endpoint_list_destinations = airbyte_api_list_component.format(
             component="destinations"
         )
 
-        airbyte_endpoint_list_workspaces = airbyte_api_list_component.format(component="workspaces")
+        airbyte_endpoint_list_workspaces = airbyte_api_list_component.format(
+            component="workspaces"
+        )
 
         airbyte_api_create_component = airbyte_api_base_endpoint + "{component}/create"
         self.airbyte_endpoint_create_connections = airbyte_api_create_component.format(
@@ -61,7 +67,9 @@ class AirbyteApiCaller:
         self.airbyte_endpoint_update_destinations = airbyte_api_update_component.format(
             component="destinations"
         )
-        self.airbyte_endpoint_delete_connection = airbyte_api_base_endpoint + "connections/delete"
+        self.airbyte_endpoint_delete_connection = (
+            airbyte_api_base_endpoint + "connections/delete"
+        )
 
         self.airbyte_endpoint_list_destination_definitions = (
             airbyte_api_base_endpoint + "destination_definitions/list"
@@ -93,6 +101,8 @@ class AirbyteApiCaller:
             self.airbyte_destinations_list = self.api_call(
                 self.airbyte_endpoint_list_destinations, self.standard_request_body
             )["destinations"]
+
+            self.load_definitions()
         except AirbyteApiCallerException as e:
             raise AirbyteApiCallerException(
                 f"Couldn't retrieve Airbyte connections, sources and destinations {e}"

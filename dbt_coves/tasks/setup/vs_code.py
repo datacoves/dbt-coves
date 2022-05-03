@@ -28,7 +28,7 @@ class SetupVscodeTask(NonDbtBaseTask):
         subparser = sub_parsers.add_parser(
             "vscode",
             parents=[base_subparser],
-            help="Initialises dbt project, sets up SSH keys, git repo, and db connections.",
+            help="Set up vscode settings for dbt-coves",
         )
         subparser.set_defaults(cls=cls, which="vscode")
         return subparser
