@@ -47,15 +47,13 @@ class SetupAllTask(NonDbtBaseTask):
 
         SetupGitTask.run(workspace_path)
 
-        context = SetupDbtTask.get_dbt_profiles_context()
-
         SetupDbtTask.dbt_init()
 
         SetupDbtTask.dbt_debug()
 
         SetupDbtTask.dbt_deps()
 
-        SetupVscodeTask.run(context)
+        SetupVscodeTask.run()
 
         SetupSqlfluffTask(self.args, self.coves_config).run()
 
