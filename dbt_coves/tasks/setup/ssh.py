@@ -77,7 +77,9 @@ class SetupSSHTask(NonDbtBaseTask):
                 .lower()
             )
             if action == "provide":
-                ssh_key = questionary.text("Please paste your private SSH key:").ask()
+                ssh_key = questionary.text(
+                    "Please paste your private ECDSA SSH key:"
+                ).ask()
                 with open(key_path_abs, "w") as file:
                     file.write(ssh_key)
 
@@ -100,10 +102,9 @@ class SetupSSHTask(NonDbtBaseTask):
         if ssh_configured:
             return 0
         else:
-            console.print(
-                f"You must first configure you SSH key in your Git server then rerun [i]'dbt-coves setup'[/i]"
+            raise Exception(
+                f"You must first configure you SSH key in your Git server then rerun 'dbt-coves setup'"
             )
-            return 1
 
     @classmethod
     def generate_ecdsa_keys(cls, key_path_abs):
