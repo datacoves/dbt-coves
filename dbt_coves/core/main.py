@@ -15,7 +15,6 @@ from dbt_coves.tasks.check import CheckTask
 from dbt_coves.tasks.extract.main import ExtractTask
 from dbt_coves.tasks.fix import FixTask
 from dbt_coves.tasks.generate.main import GenerateTask
-from dbt_coves.tasks.init import InitTask
 from dbt_coves.tasks.load.main import LoadTask
 from dbt_coves.tasks.setup.main import SetupTask
 from dbt_coves.ui.traceback import DbtCovesTraceback
@@ -103,7 +102,6 @@ sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 [
     task.register_parser(sub_parsers, base_subparser)
     for task in [
-        InitTask,
         GenerateTask,
         CheckTask,
         FixTask,
