@@ -34,7 +34,7 @@ class SetupVscodeTask(NonDbtBaseTask):
         return subparser
 
     @classmethod
-    def run(cls, prev_context=None) -> int:
+    def run(cls) -> int:
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
         config_folder = DbtCovesConfig.get_config_folder(
             workspace_path=workspace_path, mandatory=False
@@ -47,9 +47,6 @@ class SetupVscodeTask(NonDbtBaseTask):
                 new_section=True,
             )
             return 0
-
-        if not prev_context:
-            prev_context = SetupDbtTask.get_dbt_profiles_context(config_folder)
 
         template_path = Path(config_folder, "templates", "settings.json")
         if not template_path.exists():
@@ -71,7 +68,7 @@ class SetupVscodeTask(NonDbtBaseTask):
 
             env = Environment()
             parsed_content = env.parse(template_text)
-            context = prev_context or dict()
+            context = dict()
             for key in meta.find_undeclared_variables(parsed_content):
                 if key not in context:
                     if "password" in key or "token" in key:
