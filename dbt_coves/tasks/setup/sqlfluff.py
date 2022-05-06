@@ -7,7 +7,7 @@ from rich.console import Console
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.jinja import render_template_file
-from .utils import print_row
+from .utils import print_row, file_exists
 
 console = Console()
 
@@ -37,17 +37,12 @@ class SetupSqlfluffTask(NonDbtBaseTask):
         cls.arg_parser = base_subparser
         return subparser
 
-    def file_exists(self, root_path, file_name):
-        for file in glob.glob(f"{str(root_path)}/**/{file_name}"):
-            if file:
-                return file
-            else:
-                return False
-
     def run(self) -> int:
         dbt_project_path = False
         workspace_path = workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
-        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+        config_folder = DbtCovesConfig.get_config_folder(
+            workspace_path=workspace_path, mandatory=False
+        )
         templates_folder = (
             self.get_config_value("templates") or f"{config_folder}/templates"
         )
@@ -56,7 +51,7 @@ class SetupSqlfluffTask(NonDbtBaseTask):
 
         dbt_project_dest_status = "[red]MISSING[/red]"
         sqlfluff_dest_status = "[red]MISSING[/red]"
-        sqlfluff_file = self.file_exists(execution_path, ".sqlfluff")
+        sqlfluff_file = file_exists(execution_path, ".sqlfluff")
 
         if sqlfluff_file:
             sqlfluff_dest_status = (
@@ -71,7 +66,7 @@ class SetupSqlfluffTask(NonDbtBaseTask):
         )
 
         if not sqlfluff_file:
-            dbt_project_path = self.file_exists(execution_path, "dbt_project.yml")
+            dbt_project_path = file_exists(execution_path, "dbt_project.yml")
             if dbt_project_path:
                 execution_path = Path(dbt_project_path).parent
                 dbt_project_dest_status = (
@@ -81,6 +76,8 @@ class SetupSqlfluffTask(NonDbtBaseTask):
                 f"Checking for dbt project existence",
                 dbt_project_dest_status,
                 new_section=False,
+                KEY_COLUMN_WIDTH=40,
+                VALUE_COLUMN_WIDTH=100,
             )
             if not dbt_project_path:
                 console.print(

@@ -36,7 +36,18 @@ class SetupVscodeTask(NonDbtBaseTask):
     @classmethod
     def run(cls, prev_context=None) -> int:
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
-        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+        config_folder = DbtCovesConfig.get_config_folder(
+            workspace_path=workspace_path, mandatory=False
+        )
+
+        if not config_folder:
+            print_row(
+                "VSCode settings",
+                f"settings weren't generated: .dbt_coves folder not found",
+                new_section=True,
+            )
+            return 0
+
         if not prev_context:
             prev_context = SetupDbtTask.get_dbt_profiles_context(config_folder)
 

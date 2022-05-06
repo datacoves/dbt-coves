@@ -36,7 +36,9 @@ class SetupPrecommitTask(NonDbtBaseTask):
 
     def run(self):
         workspace_path = workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
-        config_folder = DbtCovesConfig.get_config_folder(workspace_path=workspace_path)
+        config_folder = DbtCovesConfig.get_config_folder(
+            workspace_path=workspace_path, mandatory=False
+        )
         templates_folder = (
             self.get_config_value("templates") or f"{config_folder}/templates"
         )

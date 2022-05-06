@@ -98,7 +98,8 @@ class SetupGitTask(NonDbtBaseTask):
             return
 
         if any(os.scandir(workspace_path)):
-            raise Exception(f"Folder '{workspace_path}' is not empty.")
+            console.print(f"Folder '{workspace_path}' is not empty.")
+            return
 
         default_repo_url = os.environ.get("GIT_REPO_URL", "")
         repo_url = questionary.text(
