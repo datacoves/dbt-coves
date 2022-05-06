@@ -31,6 +31,7 @@ class CheckTask(BaseConfiguredTask):
     def run(self) -> int:
         console.print("Running pre-commit hooks on staged and commmitted git files...\n")
 
+        # TODO: We are going to make this CI friendly
         command = shell_run(["pre-commit", "run", "-a"])
         if command.returncode != 0:
             return command.returncode
