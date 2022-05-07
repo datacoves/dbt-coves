@@ -41,7 +41,16 @@ class CheckTask(BaseConfiguredTask):
         )
 
         if self.coves_flags.check["slim"]:
-            dbt_ls = ["dbt", "ls", "--select", "state:modified", "--state", "logs"]
+            dbt_ls = [
+                "dbt",
+                "ls",
+                "--select",
+                "state:modified",
+                "--state",
+                "logs",
+                "--project-dir",
+                self.config.project_root,
+            ]
             command = shell_run(
                 [
                     "pre-commit",
