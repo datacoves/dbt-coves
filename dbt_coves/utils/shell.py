@@ -16,11 +16,11 @@ def run(
     return proc
 
 
-def run_and_capture(args_list: List) -> CompletedProcess[str]:
+def run_and_capture(args_list: List) -> CompletedProcess:
     return shell_run(args_list, capture_output=True, text=True)
 
 
-def run_and_capture_cwd(args_list, cwd) -> CompletedProcess[bytes]:
+def run_and_capture_cwd(args_list, cwd) -> CompletedProcess:
     return shell_run(args_list, cwd=cwd)
 
 
