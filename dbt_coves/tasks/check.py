@@ -2,7 +2,7 @@ import questionary
 from rich.console import Console
 
 from dbt_coves.tasks.fix import fix
-from dbt_coves.utils.shell import run as shell_run
+from dbt_coves.utils.shell import run as shell_run, run_and_capture
 
 from .base import BaseConfiguredTask
 
@@ -25,14 +25,33 @@ class CheckTask(BaseConfiguredTask):
             action="store_true",
             default=False,
         )
+        subparser.add_argument(
+            "--slim",
+            help="Run precommit checks only on changed model files. This requires a manifest for comparison \
+                via dbt state:modified. We expect this in the dbt project directory in a subdirectory called logs.",
+            action="store_true",
+            default=False,
+        )
         subparser.set_defaults(cls=cls, which="check")
         return subparser
 
     def run(self) -> int:
-        console.print("Running pre-commit hooks on staged and commmitted git files...\n")
+        console.print(
+            "Running pre-commit hooks on staged and commmitted git files...\n"
+        )
 
-        # TODO: We are going to make this CI friendly
-        command = shell_run(["pre-commit", "run", "-a"])
+        if self.coves_flags.check["slim"]:
+            dbt_ls = ["dbt", "ls", "--select", "state:modified", "--state", "logs"]
+            command = shell_run(
+                [
+                    "pre-commit",
+                    "run",
+                    "--files",
+                    *run_and_capture(dbt_ls).stdout.splitlines(),
+                ]
+            )
+        else:
+            command = shell_run(["pre-commit", "run", "--all-files"])
         if command.returncode != 0:
             return command.returncode
 
