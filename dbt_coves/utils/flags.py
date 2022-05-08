@@ -123,6 +123,7 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "CheckTask":
                 if self.args.no_fix:
                     self.check["no-fix"] = self.args.no_fix
+                if self.args.slim:
                     self.check["slim"] = self.args.slim
 
             if self.args.cls.__name__ == "LoadAirbyteTask":
