@@ -78,17 +78,18 @@ class SetupDbtTask(NonDbtBaseTask):
             else:
                 dbt_project_yaml_path = file_exists(Path.cwd(), "dbt_project.yml")
 
-        init_status = "[green]FOUND :heavy_check_mark:[/green] project already exists"
-        print_row(
-            "dbt init",
-            init_status,
-            new_section=True,
-        )
-
         if not dbt_project_yaml_path:
             output = run_and_capture_cwd(["dbt", "init"], Path.cwd())
 
         else:
+            init_status = (
+                "[green]FOUND :heavy_check_mark:[/green] project already exists"
+            )
+            print_row(
+                "dbt init",
+                init_status,
+                new_section=True,
+            )
             output = run_and_capture_cwd(["dbt", "init"], dbt_project_yaml_path.parent)
         if output.returncode is 0:
             init_status = "[green]SUCCESS :heavy_check_mark:[/green]"
