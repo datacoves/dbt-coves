@@ -87,11 +87,7 @@ class SetupSSHTask(NonDbtBaseTask):
                 console.print(
                     f"[green]:heavy_check_mark: New SSH key stored on '{key_path_abs}'[/green]"
                 )
-                ssh_configured = cls.output_public_key_for_private(
-                    key_path_abs, public_key_path_abs
-                )
-
-                # ssh_configured = cls.output_public_key(public_key_path_abs)
+                ssh_configured = cls.output_public_key_for_private(key_path_abs)
             if action == "generate":
                 output = cls.generate_ecdsa_keys(key_path_abs)
                 if output.returncode == 0:
