@@ -283,3 +283,11 @@ work done.
 # About
 
 Learn more about [Datacoves](https://datacoves.com).
+
+# CLI Reference
+
+For a complete detail of usage, please run:
+
+``` console
+dbt-coves -h
+```
