@@ -5,7 +5,7 @@ from pathlib import Path
 from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils.shell import shell_run
+from dbt_coves.utils.shell import shell_run, run_and_capture
 from .utils import print_row
 
 
@@ -36,7 +36,7 @@ class SetupSSHTask(NonDbtBaseTask):
         ssh_configured = False
         ssh_keys_dir = "~/.ssh/"
         ssh_keys_dir_abs = os.path.abspath(Path(ssh_keys_dir).expanduser())
-        key_path_abs = f"{ssh_keys_dir_abs}/id_ecdsa"
+        key_path_abs = f"{ssh_keys_dir_abs}/id_dbtcoves"
         Path(ssh_keys_dir_abs).mkdir(parents=True, exist_ok=True)
 
         public_key_path_abs = f"{key_path_abs}.pub"
@@ -63,7 +63,9 @@ class SetupSSHTask(NonDbtBaseTask):
                 ).ask()
 
             key_path_abs = f"{ssh_keys_dir_abs}/{selected_ssh_key}"
-            ssh_configured = cls.output_public_key_for_private(key_path_abs)
+            ssh_configured = cls.output_public_key_for_private(
+                key_path_abs, public_key_path_abs
+            )
         else:
             print_row(
                 f"Checking for key in '{ssh_keys_dir}'", ssh_status, new_section=False
@@ -77,9 +79,7 @@ class SetupSSHTask(NonDbtBaseTask):
                 .lower()
             )
             if action == "provide":
-                ssh_key = questionary.text(
-                    "Please paste your private ECDSA SSH key:"
-                ).ask()
+                ssh_key = questionary.text("Please paste your private SSH key:").ask()
                 with open(key_path_abs, "w") as file:
                     file.write(ssh_key)
 
@@ -87,7 +87,9 @@ class SetupSSHTask(NonDbtBaseTask):
                 console.print(
                     f"[green]:heavy_check_mark: New SSH key stored on '{key_path_abs}'[/green]"
                 )
-                ssh_configured = cls.output_public_key_for_private(key_path_abs)
+                ssh_configured = cls.output_public_key_for_private(
+                    key_path_abs, public_key_path_abs
+                )
             if action == "generate":
                 output = cls.generate_ecdsa_keys(key_path_abs)
                 if output.returncode == 0:
@@ -119,15 +121,14 @@ class SetupSSHTask(NonDbtBaseTask):
         return shell_run(args=keygen_args)
 
     @classmethod
-    def output_public_key_for_private(cls, private_path_abs):
-        console.print(
-            f"Please configure the following public key in your Git server (Gitlab, Github, Bitbucket, etc):\n"
-        )
+    def output_public_key_for_private(cls, private_path_abs, public_key_path_abs):
         keygen_args = ["ssh-keygen", "-y", "-f", private_path_abs]
-        shell_run(args=keygen_args)
-        return questionary.confirm(
-            "Have you configured your Git provider with the key above?"
-        ).ask()
+        public_output = run_and_capture(keygen_args)
+        if public_output.stdout:
+            public_ssh_key = public_output.stdout
+            with open(public_key_path_abs, "w") as file:
+                file.write(public_ssh_key)
+            return cls.output_public_key(public_key_path_abs)
 
     @classmethod
     def output_public_key(cls, public_key_path_abs):
