@@ -50,13 +50,23 @@ class CheckTask(BaseConfiguredTask):
                 "logs",
                 "--project-dir",
                 self.config.project_root,
+                "--resource-type",
+                "model",
+                "--output",
+                "path",
             ]
             command = shell_run(
                 [
                     "pre-commit",
                     "run",
                     "--files",
-                    *run_and_capture(dbt_ls).stdout.splitlines(),
+                    *[
+                        change
+                        for change in map(
+                            lambda f: f"{self.config.project_root}/{f}",
+                            run_and_capture(dbt_ls).stdout.splitlines(),
+                        )
+                    ],
                 ]
             )
         else:
