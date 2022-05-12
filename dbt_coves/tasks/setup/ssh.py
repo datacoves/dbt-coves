@@ -36,7 +36,7 @@ class SetupSSHTask(NonDbtBaseTask):
         ssh_configured = False
         ssh_keys_dir = "~/.ssh/"
         ssh_keys_dir_abs = os.path.abspath(Path(ssh_keys_dir).expanduser())
-        key_path_abs = f"{ssh_keys_dir_abs}/id_dbtcoves"
+        key_path_abs = f"{ssh_keys_dir_abs}/id_ecdsa"
         Path(ssh_keys_dir_abs).mkdir(parents=True, exist_ok=True)
 
         public_key_path_abs = f"{key_path_abs}.pub"
