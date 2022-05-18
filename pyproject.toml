@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbt_coves"
-version = "1.0.5-a.3"
+version = "1.1.0-a.0"
 description = "CLI tool for dbt users adopting analytics engineering best practices."
 authors = ["Datacoves <hello@datacoves.com>"]
 license = "Apache 2.0"
@@ -22,7 +22,7 @@ documentation = "https://datacoves.gitbook.io/dbt-coves/"
 repository = "https://github.com/datacoves/dbt-coves"
 
 [tool.poetry.dependencies]
-python = ">=3.7,<3.10"
+python = ">=3.7.2,<3.10"
 luddite = "^1.0.1"
 packaging = "^20.8"
 pretty-errors = "^1.2.19"
@@ -67,7 +67,7 @@ build-backend = "poetry.core.masonry.api"
 dbt-coves="dbt_coves.core.main:main"
 
 [tool.towncrier]
-version = "1.0.5-a.3"
+version = "1.1.0-a.0"
 package = "dbt_coves"
 package_dir = "dbt_coves/"
 filename = "changelog/CHANGELOG.md"
