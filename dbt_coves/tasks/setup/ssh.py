@@ -1,4 +1,5 @@
 import os
+from subprocess import CalledProcessError
 import questionary
 
 from pathlib import Path
@@ -10,6 +11,10 @@ from .utils import print_row
 
 
 console = Console()
+
+
+class SetupSSHException(Exception):
+    pass
 
 
 class SetupSSHTask(NonDbtBaseTask):
@@ -80,6 +85,7 @@ class SetupSSHTask(NonDbtBaseTask):
             )
             if action == "provide":
                 ssh_key = questionary.text("Please paste your private SSH key:").ask()
+                ssh_key += "\n"
                 with open(key_path_abs, "w") as file:
                     file.write(ssh_key)
 
@@ -106,7 +112,12 @@ class SetupSSHTask(NonDbtBaseTask):
 
     @classmethod
     def generate_ecdsa_keys(cls, key_path_abs):
-        return shell_run(args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs])
+        try:
+            return shell_run(
+                args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs]
+            )
+        except CalledProcessError as e:
+            raise SetupSSHException(e.output)
 
     @classmethod
     def generate_ecdsa_public_key(cls, private_path_abs):
@@ -118,12 +129,19 @@ class SetupSSHTask(NonDbtBaseTask):
             ">>",
             f"{private_path_abs}.pub",
         ]
-        return shell_run(args=keygen_args)
+        try:
+            return shell_run(args=keygen_args)
+        except CalledProcessError as e:
+            raise SetupSSHException(e.output)
 
     @classmethod
     def output_public_key_for_private(cls, private_path_abs, public_key_path_abs):
         keygen_args = ["ssh-keygen", "-y", "-f", private_path_abs]
         public_output = run_and_capture(keygen_args)
+
+        if public_output.stderr:
+            raise SetupSSHException(public_output.stderr)
+
         if public_output.stdout:
             public_ssh_key = public_output.stdout
             with open(public_key_path_abs, "w") as file:
