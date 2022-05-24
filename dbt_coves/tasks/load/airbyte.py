@@ -80,8 +80,6 @@ class LoadAirbyteTask(BaseConfiguredTask):
         secrets_token = os.getenv("DBT_COVES_SECRETS_TOKEN") or self.get_config_value(
             "secrets_token"
         )
-        # secrets_url = self.get_config_value("secrets_url")
-        # secrets_token = self.get_config_value("secrets_token")
         if not (secrets_url and secrets_token):
             raise AirbyteLoaderException(
                 f"[b]secrets_url[/b] and [b]secrets_token[/b] must be provided when using a Secrets Manager"

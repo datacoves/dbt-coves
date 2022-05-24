@@ -29,7 +29,5 @@ def print_row(
 
 def file_exists(root_path, file_name):
     for file in glob.glob(f"{str(root_path)}/**/{file_name}"):
-        if file:
-            return Path(file)
-        else:
-            return False
+        return Path(file)
+    return False
