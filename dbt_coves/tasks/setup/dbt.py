@@ -35,6 +35,7 @@ class SetupDbtTask(NonDbtBaseTask):
         config_folder = cls.get_config_folder(mandatory=False)
         cls.dbt_init(config_folder)
         cls.dbt_debug(config_folder)
+        cls.dbt_deps(config_folder)
         return 0
 
     @classmethod
@@ -48,12 +49,12 @@ class SetupDbtTask(NonDbtBaseTask):
     def dbt_debug(cls, config_folder=None):
         if not config_folder:
             config_folder = cls.get_config_folder(mandatory=False)
-            if config_folder:
-                dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
-            else:
-                dbt_project_yaml_path = file_exists(
-                    Path(os.getcwd()), "dbt_project.yml"
-                )
+
+        if config_folder:
+            dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
+        else:
+            dbt_project_yaml_path = file_exists(Path(os.getcwd()), "dbt_project.yml")
+
         debug_status = "[red]FAIL[/red]"
         console.print("\n")
 
@@ -73,10 +74,11 @@ class SetupDbtTask(NonDbtBaseTask):
     def dbt_init(cls, config_folder=None):
         if not config_folder:
             config_folder = cls.get_config_folder(mandatory=False)
-            if config_folder:
-                dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
-            else:
-                dbt_project_yaml_path = file_exists(Path.cwd(), "dbt_project.yml")
+
+        if config_folder:
+            dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
+        else:
+            dbt_project_yaml_path = file_exists(Path.cwd(), "dbt_project.yml")
 
         if not dbt_project_yaml_path:
             output = run_and_capture_cwd(["dbt", "init"], Path.cwd())
@@ -105,12 +107,11 @@ class SetupDbtTask(NonDbtBaseTask):
     def dbt_deps(cls, config_folder=None):
         if not config_folder:
             config_folder = cls.get_config_folder(mandatory=False)
-            if config_folder:
-                dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
-            else:
-                dbt_project_yaml_path = file_exists(
-                    Path(os.getcwd()), "dbt_project.yml"
-                )
+
+        if config_folder:
+            dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
+        else:
+            dbt_project_yaml_path = file_exists(Path(os.getcwd()), "dbt_project.yml")
 
         if dbt_project_yaml_path.exists():
             output = run_and_capture_cwd(["dbt", "deps"], dbt_project_yaml_path.parent)
