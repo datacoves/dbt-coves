@@ -12,10 +12,7 @@ from dbt_coves.utils.yaml import open_yaml
 
 
 class GeneratePropertiesModel(BaseModel):
-    database: Optional[str] = ""
-    relations: Optional[List[str]] = [""]
-    schemas: Optional[List[str]] = ["raw"]
-    destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
+    #destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
     model_props_strategy: Optional[str] = "one_file_per_model"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
@@ -69,8 +66,6 @@ class DbtCovesConfig:
 
     DBT_COVES_CONFIG_FILENAMES = [".dbt_coves.yml", ".dbt_coves/config.yml"]
     CLI_OVERRIDE_FLAGS = [
-        "generate.properties.database",
-        "generate.properties.schemas",
         "generate.properties.select",
         "generate.sources.relations",
         "generate.sources.database",

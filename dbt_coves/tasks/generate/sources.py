@@ -334,3 +334,28 @@ class GenerateSourcesTask(BaseGenerateTask):
         data = dict((k, {**v, **{"id": slugify(k, separator="_")}}) for k, v in data.items())
 
         return data
+
+    def run(self):
+        config_database = self.get_config_value("database")
+        self.db = config_database or self.config.credentials.database
+
+        # initiate connection
+        with self.adapter.connection_named("master"):
+
+            filtered_schemas = self.get_schemas()
+            if not filtered_schemas:
+                return 0
+
+            relations = self.get_relations(filtered_schemas)
+            if relations:
+                selected_relations = self.select_relations(relations)
+                if selected_relations:
+                    self.generate(selected_relations)
+                else:
+                    return 0
+            else:
+                schema_nlg = f"schema{'s' if len(filtered_schemas) > 1 else ''}"
+                console.print(
+                    f"No tables/views found in [u]{', '.join(filtered_schemas)}[/u] {schema_nlg}."
+                )
+        return 0

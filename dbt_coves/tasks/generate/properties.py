@@ -1,3 +1,4 @@
+import glob
 import json
 import os
 import subprocess
@@ -24,17 +25,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
             help="Generate source dbt models by inspecting the database schemas and relations.",
         )
         subparser.add_argument(
-            "--database",
-            type=str,
-            help="Database where source relations live, if different than target",
-        )
-        subparser.add_argument(
-            "--schemas",
-            type=str,
-            help="Comma separated list of schemas where raw data resides, "
-            "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
-        )
-        subparser.add_argument(
             "--select",
             type=str,
             help="dbt select. Specify the nodes to include.",
@@ -53,73 +43,64 @@ class GeneratePropertiesTask(BaseGenerateTask):
         super().__init__(*args, **kwargs)
         self.json_from_dbt_ls = None
 
-    def list_json_from_dbt_ls(self):
+    def list_from_dbt_ls(self, output):
 
         if self.json_from_dbt_ls:
             return self.json_from_dbt_ls
 
-        dbt_params = ["dbt", "ls", "--output", "json", "--resource-type", "model"]
+        dbt_params = ["dbt", "ls", "--output", output, "--resource-type", "model"]
         select_argument = self.get_config_value('select')
         if select_argument:
             dbt_params += ["--select", select_argument]
 
+        print(dbt_params)
         result = subprocess.run(dbt_params, capture_output=True, text=True)
         manifest_json_lines = filter(lambda i: len(i) > 0, result.stdout.splitlines())
+
         manifest_data = [json.loads(model) for model in manifest_json_lines]
         manifest_data = filter(lambda d: d["resource_type"] == "model", manifest_data)
-        # TODO: handle errors
 
-        data = [x for x in manifest_data]
+        return manifest_data
 
-        self.json_from_dbt_ls = data
+    def load_manifest_nodes(self):
+
+        path_pattern = f"{os.getcwd()}/**/manifest.json"
+        manifest_path = glob.glob(path_pattern)[0]
+        with open(manifest_path, "r") as manifest:
+            manifest_data = manifest.read()
+
+        data = json.loads(manifest_data)
 
         return data
 
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["properties"].get(key)
 
-    def get_relations(self, filtered_schemas):
 
-        target_relations = []
-        for schema in filtered_schemas:
-            relations = self.adapter.list_relations(self.db, schema)
-            target_relations += relations
+    def get_models(self):
 
-        filtered_relation_names = self.filter_relation_names()
-        not_found = [x for x in filtered_relation_names if x.lower() not in [t.name.lower() for t in target_relations]]
-        if not_found:
-            relation_nlg = f"relation{'s' if len(not_found) > 1 else ''}"
-            console.print(
-                f"Provided {relation_nlg} [u]{', '.join(not_found)}[/u] not found in Database.\n"
-            )
+        models = self.list_from_dbt_ls("json")
 
-        target_relations = [x for x in target_relations if x.name.lower() in filtered_relation_names]
+        return models
 
-        return target_relations
+    def generate(self, models):
+        manifest = self.load_manifest_nodes()
+        for model in models:
+            # TODO better key formatting
+            column_data = manifest['nodes'][model['resource_type'] + "." + model["package_name"]  + "."  + model['name'] ]['columns']
+            if not column_data:
+                continue
+            destination = {"name": model["name"], "path": model["original_file_path"]}
+            self.generate_properties(model, column_data, destination)
 
-    def filter_relation_names(self):
 
-        manifest = self.list_json_from_dbt_ls()
-        paths = [item["original_file_path"] for item in manifest]
-        relation_names = [
-            item.split("/")[-1].split(".sql")[0].lower()
-            for item in paths
-            if not os.path.exists(item.replace(".sql", ".yml"))
-        ]
+    def generate_properties(self, model, column_data, destination):
+        self.render_templates(model, column_data, destination)
 
-        return relation_names
+    def render_templates(self, model, column_data, destination):
 
-    def generate(self, rels):
-        manifest = self.list_json_from_dbt_ls()
-        for rel in rels:
-            destinations = [{"name": x["name"], "path": x["original_file_path"]} for x in manifest if x["name"].lower() == rel.name.lower()]
-            if destinations:
-                destination = destinations[0]
-                self.generate_properties(rel, destination)
-
-    def generate_properties(self, relation, destination):
-        columns = self.adapter.get_columns_in_relation(relation)
-        self.render_templates(relation, columns, destination)
+        context = {} # TODO fill context
+        self.render_templates_render_context(context,  destination)
 
     def render_templates_render_context(self, context, destination):
         context["model"] = destination["name"].lower()
@@ -130,3 +111,18 @@ class GeneratePropertiesTask(BaseGenerateTask):
             str(destination["path"]).replace(".sql", ".yml"),
             templates_folder=templates_folder,
         )
+
+    def run(self):
+
+        models = self.get_models()
+        print("*******")
+        print(models)
+        if models:
+            self.generate(models)
+        else:
+            schema_nlg = f"schema{'s' if len(models) > 1 else ''}"
+            console.print(
+                f"No models found in [u]{', '.join(models)}[/u] {schema_nlg}."
+            )
+
+        return 0
