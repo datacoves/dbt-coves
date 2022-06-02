@@ -60,6 +60,12 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
         print(dbt_params)
         result = subprocess.run(dbt_params, capture_output=True, text=True)
+
+        if result.returncode != 0:
+            raise GeneratePropertiesException(
+                f"An error occurred listing your dbt models: \n {result.stdout or result.stderr}"
+            )
+
         manifest_json_lines = filter(lambda i: len(i) > 0, result.stdout.splitlines())
 
         manifest_data = [json.loads(model) for model in manifest_json_lines]
@@ -113,15 +119,10 @@ class GeneratePropertiesTask(BaseGenerateTask):
         if dbt_models_missing_profile:
             return self.select_properties(dbt_models_missing_profile)
         else:
-            raise GeneratePropertiesException(
-                f"No models with missing property file were found"
-            )
+            return list()
 
     def generate(self, models, manifest):
-        import ipdb  # TODO ipdb import
-
         for model in models:
-            ipdb.set_trace()  # TODO remove trace()
             model_data = manifest["nodes"][model]
             # TODO better key formatting
             column_data = model_data["columns"]
@@ -153,12 +154,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
     def run(self):
         manifest = self.load_manifest_nodes()
-        import ipdb  # TODO ipdb import
-
-        ipdb.set_trace()  # TODO remove trace()
         models = self.get_models(manifest)
-        print("*******")
-        print(models)
         if models:
             self.generate(models, manifest)
         else:
