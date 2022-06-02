@@ -36,7 +36,12 @@ class DbtCovesFlags:
                 "model_props_strategy": None,
                 "templates_folder": None,
                 "metadata": None,
+            },
+            "properties": {
+                "database": None,
+                "schemas": [],
             }
+
         }
         self.extract = {
             "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
@@ -113,6 +118,10 @@ class DbtCovesFlags:
                     ] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
+
+            if self.args.cls.__name__ == "GeneratePropertiesTask":
+                if self.args.select:
+                    self.generate["properties"]["select"] = self.args.select
 
             if self.args.cls.__name__ == "InitTask":
                 if self.args.template:

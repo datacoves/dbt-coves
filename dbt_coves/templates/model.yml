@@ -1,0 +1,16 @@
+version: 2
+
+models:
+  - name: {{ model.lower() }}
+    columns:
+{%- for cols in nested.values() %}
+  {%- for col in cols %}
+      - name: {{ cols[col]["id"] }}
+      {%- if cols[col]["description"] %}
+        description: "{{ cols[col]['description'] }}"
+      {%- endif %}
+  {%- endfor %}
+{%- endfor %}
+{%- for col in columns %}
+      - name: {{ col.name.lower() }}
+{%- endfor %}
