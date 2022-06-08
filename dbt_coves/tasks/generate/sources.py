@@ -74,6 +74,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             type=str,
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
         )
+        cls.arg_parser = base_subparser
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
 
@@ -134,9 +135,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         selected_schemas = questionary.checkbox(
             "Which schemas would you like to inspect?",
             choices=[
-                Choice(schema, checked=True)
-                if "RAW" in schema
-                else Choice(schema)
+                Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
                 for schema in schemas
             ],
         ).ask()

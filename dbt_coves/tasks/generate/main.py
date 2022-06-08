@@ -31,7 +31,8 @@ class GenerateTask(BaseConfiguredTask):
         sub_parsers = gen_subparser.add_subparsers(
             title="dbt-coves generate commands", dest="task"
         )
+
         # Register a separate sub parser for each sub task.
         [x.register_parser(sub_parsers, base_subparser) for x in cls.tasks]
-
+        cls.arg_parser = gen_subparser
         return gen_subparser

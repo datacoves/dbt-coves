@@ -12,6 +12,8 @@ class BaseGenerateTask(BaseConfiguredTask):
     Provides common functionality for all "Generate" sub tasks.
     """
 
+    arg_parser = None
+
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db = None
@@ -64,7 +66,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def render_templates(self, relation, columns, destination, nested=None):
 
         context = self.render_templates_get_context(relation, columns, nested)
-        self.render_templates_render_context(context,  destination)
+        self.render_templates_render_context(context, destination)
 
     def render_templates_get_context(self, relation, columns, nested=None):
         context = {
@@ -88,6 +90,3 @@ class BaseGenerateTask(BaseConfiguredTask):
             context["source_database"] = config_db
 
         return context
-
-
-

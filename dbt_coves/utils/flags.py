@@ -40,8 +40,7 @@ class DbtCovesFlags:
             "properties": {
                 "database": None,
                 "schemas": [],
-            }
-
+            },
         }
         self.extract = {
             "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
@@ -120,6 +119,12 @@ class DbtCovesFlags:
                     self.generate["sources"]["metadata"] = self.args.metadata
 
             if self.args.cls.__name__ == "GeneratePropertiesTask":
+                if self.args.schemas:
+                    self.generate["properties"]["schemas"] = [
+                        schema.strip() for schema in self.args.schemas.split(",")
+                    ]
+                if self.args.database:
+                    self.generate["properties"]["database"] = self.args.database
                 if self.args.select:
                     self.generate["properties"]["select"] = self.args.select
 

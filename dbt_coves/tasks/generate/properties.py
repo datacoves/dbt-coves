@@ -27,7 +27,18 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser = sub_parsers.add_parser(
             "properties",
             parents=[base_subparser],
-            help="Generate source dbt models by inspecting the database schemas and relations.",
+            help="Generate dbt models property files by inspecting the database schemas and relations.",
+        )
+        subparser.add_argument(
+            "--database",
+            type=str,
+            help="Database where source relations live, if different than target",
+        )
+        subparser.add_argument(
+            "--schemas",
+            type=str,
+            help="Comma separated list of schemas where raw data resides, "
+            "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
             "--select",
@@ -40,6 +51,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             help="Folder with jinja templates that override default "
             "sources generation templates, i.e. 'templates'",
         )
+        cls.arg_parser = base_subparser
 
         subparser.set_defaults(cls=cls, which="properties")
         return subparser
@@ -58,7 +70,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
         if select_argument:
             dbt_params += select_argument.split()
 
-        print(dbt_params)
         result = subprocess.run(dbt_params, capture_output=True, text=True)
 
         if result.returncode != 0:
@@ -77,6 +88,10 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
         path_pattern = f"{os.getcwd()}/**/manifest.json"
         manifest_path = glob.glob(path_pattern)[0]
+
+        if not manifest_path:
+            raise GeneratePropertiesException(f"Could not find manifest.json")
+
         with open(manifest_path, "r") as manifest:
             manifest_data = manifest.read()
 
@@ -105,8 +120,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
         return selected_properties
 
-    def get_models(self, manifest):
-        dbt_models = self.list_from_dbt_ls("json")
+    def select_models(self, manifest, dbt_models):
         dbt_models_manifest_naming = [
             f"{model['resource_type']}.{model['package_name']}.{model['name']}"
             for model in dbt_models
@@ -121,43 +135,59 @@ class GeneratePropertiesTask(BaseGenerateTask):
         else:
             return list()
 
+    def get_column_data_for_relation(self, relation):
+        columns = self.adapter.get_columns_in_relation(relation)
+        column_data = list()
+        for col in columns:
+            column_dict = dict()
+            column_dict["id"] = col.column
+            column_dict["description"] = ""
+            column_data.append(column_dict)
+        return column_data
+
     def generate(self, models, manifest):
         for model in models:
             model_data = manifest["nodes"][model]
-            # TODO better key formatting
+            database, schema, table = (
+                model_data["database"],
+                model_data["schema"],
+                model_data["name"],
+            )
+            relation = self.adapter.get_relation(database, schema, table)
+            columns = self.adapter.get_columns_in_relation(relation)
             column_data = model_data["columns"]
             if not column_data:
-                continue
+                column_data = self.get_column_data_for_relation(relation)
             destination = {
                 "name": model_data["name"],
                 "path": model_data["original_file_path"],
             }
-            self.generate_properties(model, column_data, destination)
+            self.generate_properties(relation, columns, destination)
 
-    def generate_properties(self, model, column_data, destination):
-        self.render_templates(model, column_data, destination)
-
-    def render_templates(self, model, column_data, destination):
-
-        context = {}  # TODO fill context
-        self.render_templates_render_context(context, destination)
+    def generate_properties(self, relation, columns, destination):
+        self.render_templates(relation, columns, destination)
 
     def render_templates_render_context(self, context, destination):
         context["model"] = destination["name"].lower()
         templates_folder = self.get_config_value("templates_folder")
         render_template_file(
-            "model.yml",
+            "source_model_props.yml",
             context,
             str(destination["path"]).replace(".sql", ".yml"),
             templates_folder=templates_folder,
         )
 
     def run(self):
-        manifest = self.load_manifest_nodes()
-        models = self.get_models(manifest)
-        if models:
-            self.generate(models, manifest)
-        else:
-            console.print(f"No models found with missing properties file")
+        config_database = self.get_config_value("database")
+        self.db = config_database or self.config.credentials.database
 
-        return 0
+        with self.adapter.connection_named("master"):
+            dbt_models = self.list_from_dbt_ls("json")
+            manifest = self.load_manifest_nodes()
+            models = self.select_models(manifest, dbt_models)
+            if models:
+                self.generate(models, manifest)
+            else:
+                console.print(f"No models found with missing properties file")
+
+            return 0
