@@ -215,8 +215,15 @@ class SetupSSHTask(NonDbtBaseTask):
         if openssl_public_output.returncode != 0:
             raise SetupSSHException(openssl_public_output.stderr)
 
-        console.print(f"OpenSSL public key saved at {openssl_public_key_path}:\n")
-        print(open(openssl_public_key_path, "r").read())
+        console.print(f"\nOpenSSL public key saved at {openssl_public_key_path}")
+        console.print(
+            "Please configure the following key (yellow text) in services that require OpenSSL public keys to authenticate you (snowflake, etc.)\n"
+        )
+        openssl_public_key = open(openssl_public_key_path, "r").read()
+        openssl_public_key = openssl_public_key.replace(
+            "-----BEGIN PUBLIC KEY-----\n", ""
+        ).replace("-----END PUBLIC KEY-----\n", "")
+        console.print(f"[yellow]{openssl_public_key}[/yellow]")
 
     def gen_print_openssl_key(self, openssl_private_key_path, openssl_public_key_path):
         self.gen_openssl_private_key(openssl_private_key_path)
@@ -246,9 +253,9 @@ class SetupSSHTask(NonDbtBaseTask):
                 openssl_private_key_path, openssl_public_key_path
             )
         console.print(
-            f"Please configure the following public key in your Git server (Gitlab, Github, Bitbucket, etc):\n"
+            "Please configure the following key (yellow text) in your Git server (Gitlab, Github, Bitbucket, etc):\n"
         )
-        print(open(public_key_path_abs, "r").read())
+        console.print(f"[yellow]{open(public_key_path_abs, 'r').read()}[/yellow]")
         return questionary.confirm(
             "Have you configured your Git provider with the key above?"
         ).ask()

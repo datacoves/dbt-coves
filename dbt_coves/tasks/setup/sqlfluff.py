@@ -103,4 +103,4 @@ class SetupSqlfluffTask(NonDbtBaseTask):
         return 0
 
     def get_config_value(self, key):
-        return self.coves_config.integrated["setup"]["sqlfluff"][key]
+        return self.coves_config.integrated["setup"][self.args.task][key]
