@@ -74,4 +74,4 @@ class SetupPrecommitTask(NonDbtBaseTask):
         return 0
 
     def get_config_value(self, key):
-        return self.coves_config.integrated["setup"]["precommit"][key]
+        return self.coves_config.integrated["setup"][self.args.task][key]
