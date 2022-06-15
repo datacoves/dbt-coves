@@ -59,9 +59,10 @@ class DbtCovesFlags:
         }
         self.check = {"no-fix": False, "slim": False}
         self.setup = {
-            "all": {"templates": None},
+            "all": {"templates": None, "open_ssl_public_key": False},
             "sqlfluff": {"templates": None},
             "precommit": {"templates": None},
+            "ssh": {"open_ssl_public_key": False},
         }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
@@ -156,6 +157,10 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "SetupAllTask":
                 if self.args.templates:
                     self.setup["all"]["templates"] = self.args.templates
+                if self.args.open_ssl_public_key:
+                    self.setup["all"][
+                        "open_ssl_public_key"
+                    ] = self.args.open_ssl_public_key
 
             if self.args.cls.__name__ == "SetupSqlfluffTask":
                 if self.args.templates:
@@ -164,3 +169,9 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "SetupPrecommitTask":
                 if self.args.templates:
                     self.setup["precommit"]["templates"] = self.args.templates
+
+            if self.args.cls.__name__ == "SetupSSHTask":
+                if self.args.open_ssl_public_key:
+                    self.setup["ssh"][
+                        "open_ssl_public_key"
+                    ] = self.args.open_ssl_public_key

@@ -34,6 +34,12 @@ class SetupAllTask(NonDbtBaseTask):
             type=str,
             help="Location of your sqlfluff, ci and pre-commit config files",
         )
+        subparser.add_argument(
+            "--open_ssl_public_key",
+            help="Generate and output OpenSSL key alongside Git OpenSSH one",
+            action="store_true",
+            default=False,
+        )
         subparser.set_defaults(cls=cls, which="all")
         return subparser
 
@@ -43,7 +49,7 @@ class SetupAllTask(NonDbtBaseTask):
         """
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
 
-        SetupSSHTask.run()
+        SetupSSHTask.run(SetupSSHTask(self.args, self.coves_config))
 
         SetupGitTask.run(workspace_path)
 
