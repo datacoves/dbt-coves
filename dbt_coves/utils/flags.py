@@ -33,24 +33,24 @@ class DbtCovesFlags:
                 "database": None,
                 "schemas": [],
                 "destination": None,
-                "model_props_strategy": None,
-                "templates_folder": None,
+                "model-props-strategy": None,
+                "templates-folder": None,
                 "metadata": None,
             }
         }
         self.extract = {
-            "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
+            "airbyte": {"path": None, "host": None, "port": None, "dbt-list-args": None}
         }
         self.load = {
             "airbyte": {
                 "path": None,
                 "host": None,
                 "port": None,
-                "secrets_manager": None,
-                "secrets_url": None,
-                "secrets_token": None,
-                "secrets_path": None,
-                "dbt_list_args": None,
+                "secrets-manager": None,
+                "secrets-url": None,
+                "secrets-token": None,
+                "secrets-path": None,
+                "dbt-list-args": None,
             }
         }
         self.init = {
@@ -59,10 +59,10 @@ class DbtCovesFlags:
         }
         self.check = {"no-fix": False, "slim": False}
         self.setup = {
-            "all": {"templates": None, "open_ssl_public_key": False},
+            "all": {"templates": None, "open-ssl-public-key": False},
             "sqlfluff": {"templates": None},
             "precommit": {"templates": None},
-            "ssh": {"open_ssl_public_key": False},
+            "ssh": {"open-ssl-public-key": False},
         }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
@@ -106,11 +106,11 @@ class DbtCovesFlags:
                     self.generate["sources"]["destination"] = self.args.destination
                 if self.args.model_props_strategy:
                     self.generate["sources"][
-                        "model_props_strategy"
+                        "model-props-strategy"
                     ] = self.args.model_props_strategy
                 if self.args.templates_folder:
                     self.generate["sources"][
-                        "templates_folder"
+                        "templates-folder"
                     ] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
@@ -135,15 +135,15 @@ class DbtCovesFlags:
                     self.load["airbyte"]["port"] = self.args.port
                     self.load["airbyte"]["host"] = self.args.host
                 if self.args.secrets_path:
-                    self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+                    self.load["airbyte"]["secrets-path"] = self.args.secrets_path
                 if self.args.secrets_url:
-                    self.load["airbyte"]["secrets_url"] = self.args.secrets_url
+                    self.load["airbyte"]["secrets-url"] = self.args.secrets_url
                 if self.args.secrets_token:
-                    self.load["airbyte"]["secrets_token"] = self.args.secrets_token
+                    self.load["airbyte"]["secrets-token"] = self.args.secrets_token
                 if self.args.secrets_path:
-                    self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+                    self.load["airbyte"]["secrets-path"] = self.args.secrets_path
                 if self.args.secrets_path:
-                    self.load["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
+                    self.load["airbyte"]["dbt-list-args"] = self.args.dbt_list_args
 
             if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
@@ -152,14 +152,14 @@ class DbtCovesFlags:
                     self.extract["airbyte"]["host"] = self.args.host
                     self.extract["airbyte"]["port"] = self.args.port
                 if self.args.dbt_list_args:
-                    self.extract["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
+                    self.extract["airbyte"]["dbt-list-args"] = self.args.dbt_list_args
 
             if self.args.cls.__name__ == "SetupAllTask":
                 if self.args.templates:
                     self.setup["all"]["templates"] = self.args.templates
                 if self.args.open_ssl_public_key:
                     self.setup["all"][
-                        "open_ssl_public_key"
+                        "open-ssl-public-key"
                     ] = self.args.open_ssl_public_key
 
             if self.args.cls.__name__ == "SetupSqlfluffTask":
@@ -173,5 +173,5 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "SetupSSHTask":
                 if self.args.open_ssl_public_key:
                     self.setup["ssh"][
-                        "open_ssl_public_key"
+                        "open-ssl-public-key"
                     ] = self.args.open_ssl_public_key

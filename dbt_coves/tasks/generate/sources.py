@@ -57,13 +57,13 @@ class GenerateSourcesTask(BaseConfiguredTask):
             "'models/{schema_name}/{relation_name}.sql'",
         )
         subparser.add_argument(
-            "--model_props_strategy",
+            "--model-props-strategy",
             type=str,
             help="Strategy for model properties files generation,"
             " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
-            "--templates_folder",
+            "--templates-folder",
             type=str,
             help="Folder with jinja templates that override default "
             "sources generation templates, i.e. 'templates'",
@@ -391,7 +391,7 @@ class GenerateSourcesTask(BaseConfiguredTask):
         if config_db:
             context["source_database"] = config_db
 
-        templates_folder = self.get_config_value("templates_folder")
+        templates_folder = self.get_config_value("templates-folder")
         render_template_file(
             "source_model.sql", context, destination, templates_folder=templates_folder
         )

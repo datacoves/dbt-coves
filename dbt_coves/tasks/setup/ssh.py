@@ -34,7 +34,7 @@ class SetupSSHTask(NonDbtBaseTask):
             help="Set up SSH Key for dbt-coves project",
         )
         subparser.add_argument(
-            "--open_ssl_public_key",
+            "--open-ssl-public-key",
             help="Generate and output OpenSSL key alongside Git OpenSSH one",
             action="store_true",
             default=False,
@@ -245,7 +245,7 @@ class SetupSSHTask(NonDbtBaseTask):
         return self.output_public_keys(public_key_path_abs)
 
     def output_public_keys(self, public_key_path_abs):
-        openssl = self.get_config_value("open_ssl_public_key")
+        openssl = self.get_config_value("open-ssl-public-key")
         if openssl:
             openssl_private_key_path = f"{self.ssh_keys_dir_abs}/rsa_key.p8"
             openssl_public_key_path = f"{self.ssh_keys_dir_abs}/rsa_key.pub"

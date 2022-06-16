@@ -52,7 +52,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             help="Airbyte's API port, i.e. '8001'",
         )
         subparser.add_argument(
-            "--dbt_list_args",
+            "--dbt-list-args",
             type=str,
             help="Extra dbt arguments, selectors or modifiers",
         )
@@ -69,7 +69,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         extract_destination = self.get_config_value("path")
         airbyte_host = self.get_config_value("host")
         airbyte_port = self.get_config_value("port")
-        dbt_modifiers = self.get_config_value("dbt_list_args")
+        dbt_modifiers = self.get_config_value("dbt-list-args")
 
         if not extract_destination or not airbyte_host or not airbyte_port:
             raise AirbyteExtractorException(
@@ -87,7 +87,6 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         self.sources_extract_destination = os.path.abspath(sources_path)
 
         self.airbyte_api_caller = AirbyteApiCaller(airbyte_host, airbyte_port)
-        
 
         console.print(
             f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(extract_destination)}\n"

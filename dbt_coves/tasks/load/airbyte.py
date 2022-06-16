@@ -49,23 +49,23 @@ class LoadAirbyteTask(BaseConfiguredTask):
             help="Airbyte's API port, i.e. '8001'",
         )
         subparser.add_argument(
-            "--secrets_manager",
+            "--secrets-manager",
             type=str,
             help="Secret credentials provider, i.e. 'datacoves'",
         )
         subparser.add_argument(
-            "--secrets_url", type=str, help="Secret credentials provider url"
+            "--secrets-url", type=str, help="Secret credentials provider url"
         )
         subparser.add_argument(
-            "--secrets_token", type=str, help="Secret credentials provider token"
+            "--secrets-token", type=str, help="Secret credentials provider token"
         )
         subparser.add_argument(
-            "--secrets_path",
+            "--secrets-path",
             type=str,
             help="Secret files location for Airbyte configuration, i.e. './secrets'",
         )
         subparser.add_argument(
-            "--dbt_list_args",
+            "--dbt-list-args",
             type=str,
             help="Extra dbt arguments, selectors or modifiers",
         )
@@ -75,10 +75,10 @@ class LoadAirbyteTask(BaseConfiguredTask):
     def _load_secret_data(self) -> dict:
         # Contact the manager and retrieve Service Credentials
         secrets_url = os.getenv("DBT_COVES_SECRETS_URL") or self.get_config_value(
-            "secrets_url"
+            "secrets-url"
         )
         secrets_token = os.getenv("DBT_COVES_SECRETS_TOKEN") or self.get_config_value(
-            "secrets_token"
+            "secrets-token"
         )
         if not (secrets_url and secrets_token):
             raise AirbyteLoaderException(
@@ -98,9 +98,9 @@ class LoadAirbyteTask(BaseConfiguredTask):
         self.load_destination = self.get_config_value("path")
         self.airbyte_host = self.get_config_value("host")
         self.airbyte_port = self.get_config_value("port")
-        self.secrets_path = self.get_config_value("secrets_path")
-        self.secrets_manager = self.get_config_value("secrets_manager")
-        self.dbt_modifiers = self.get_config_value("dbt_list_args")
+        self.secrets_path = self.get_config_value("secrets-path")
+        self.secrets_manager = self.get_config_value("secrets-manager")
+        self.dbt_modifiers = self.get_config_value("dbt-list-args")
 
         if not (self.airbyte_host and self.airbyte_port and self.load_destination):
             raise AirbyteLoaderException(
