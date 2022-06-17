@@ -35,7 +35,7 @@ class SetupAllTask(NonDbtBaseTask):
             help="Location of your sqlfluff, ci and pre-commit config files",
         )
         subparser.add_argument(
-            "--open_ssl_public_key",
+            "--open-ssl-public-key",
             help="Generate and output OpenSSL key alongside Git OpenSSH one",
             action="store_true",
             default=False,

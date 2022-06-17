@@ -49,23 +49,23 @@ class LoadAirbyteTask(BaseConfiguredTask):
             help="Airbyte's API port, i.e. '8001'",
         )
         subparser.add_argument(
-            "--secrets_manager",
+            "--secrets-manager",
             type=str,
             help="Secret credentials provider, i.e. 'datacoves'",
         )
         subparser.add_argument(
-            "--secrets_url", type=str, help="Secret credentials provider url"
+            "--secrets-url", type=str, help="Secret credentials provider url"
         )
         subparser.add_argument(
-            "--secrets_token", type=str, help="Secret credentials provider token"
+            "--secrets-token", type=str, help="Secret credentials provider token"
         )
         subparser.add_argument(
-            "--secrets_path",
+            "--secrets-path",
             type=str,
             help="Secret files location for Airbyte configuration, i.e. './secrets'",
         )
         subparser.add_argument(
-            "--dbt_list_args",
+            "--dbt-list-args",
             type=str,
             help="Extra dbt arguments, selectors or modifiers",
         )
