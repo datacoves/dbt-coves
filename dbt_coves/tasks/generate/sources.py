@@ -8,8 +8,9 @@ from questionary import Choice
 from rich.console import Console
 from slugify import slugify
 
-from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.utils.jinja import render_template, render_template_file
+
+from .base import BaseGenerateTask
 
 console = Console()
 
@@ -21,7 +22,7 @@ NESTED_FIELD_TYPES = {
 }
 
 
-class GenerateSourcesTask(BaseConfiguredTask):
+class GenerateSourcesTask(BaseGenerateTask):
     """
     Task that generate sources, models and model properties automatically
     """
@@ -73,12 +74,16 @@ class GenerateSourcesTask(BaseConfiguredTask):
             type=str,
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
         )
+        cls.arg_parser = base_subparser
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
 
     def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
         self.metadata = None
-        return super().__init__(*args, **kwargs)
+
+    def get_config_value(self, key):
+        return self.coves_config.integrated["generate"]["sources"][key]
 
     def get_metadata_map_key(self, row):
         map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}-{row['column']}-{row['key']}"
@@ -126,103 +131,61 @@ class GenerateSourcesTask(BaseConfiguredTask):
 
         return metadata_map
 
-    def run(self):
-        config_database = self.get_config_value("database")
-        db = config_database or self.config.credentials.database
-        schema_name_selectors = [
-            schema.upper() for schema in self.get_config_value("schemas")
+    def select_schemas(self, schemas):
+        selected_schemas = questionary.checkbox(
+            "Which schemas would you like to inspect?",
+            choices=[
+                Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
+                for schema in schemas
+            ],
+        ).ask()
+
+        return selected_schemas
+
+    def get_relations(self, filtered_schemas):
+        rel_name_selectors = [
+            relation.upper() for relation in self.get_config_value("relations")
         ]
+        rel_wildcard_selectors = []
+        for rel_name in rel_name_selectors:
+            if "*" in rel_name:
+                rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
 
-        schema_wildcard_selectors = []
-        for schema_name in schema_name_selectors:
-            if "*" in schema_name:
-                schema_wildcard_selectors.append(schema_name.replace("*", ".*"))
-        with self.adapter.connection_named("master"):
-            schemas = [
-                schema.upper()
-                for schema in self.adapter.list_schemas(db)
-                # TODO: fix this for different adapters
-                if schema != "INFORMATION_SCHEMA"
-            ]
+        listed_relations = []
+        for schema in filtered_schemas:
+            listed_relations += self.adapter.list_relations(self.db, schema)
 
-            for schema in schemas:
-                for selector in schema_wildcard_selectors:
-                    if re.search(selector, schema):
-                        schema_name_selectors.append(schema)
-                        break
+        for rel in listed_relations:
+            for selector in rel_wildcard_selectors:
+                if re.search(selector, rel.name):
+                    rel_name_selectors.append(rel.name)
+                    break
 
-            filtered_schemas = list(set(schemas).intersection(schema_name_selectors))
-            if not filtered_schemas:
-                schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
-                console.print(
-                    f"Provided {schema_nlg} [u]{', '.join(schema_name_selectors)}[/u] not found in Database.\n"
-                )
-                selected_schemas = questionary.checkbox(
-                    "Which schemas would you like to inspect?",
-                    choices=[
-                        Choice(schema, checked=True)
-                        if "RAW" in schema
-                        else Choice(schema)
-                        for schema in schemas
-                    ],
-                ).ask()
-                if selected_schemas:
-                    filtered_schemas = selected_schemas
-                else:
-                    return 0
+        intersected_rels = [
+            relation
+            for relation in listed_relations
+            if relation.name in rel_name_selectors
+        ]
+        rels = (
+            intersected_rels
+            if rel_name_selectors and rel_name_selectors[0]
+            else listed_relations
+        )
 
-            rel_name_selectors = [
-                relation.upper() for relation in self.get_config_value("relations")
-            ]
-            rel_wildcard_selectors = []
-            for rel_name in rel_name_selectors:
-                if "*" in rel_name:
-                    rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
+        return rels
 
-            listed_relations = []
-            for schema in filtered_schemas:
-                listed_relations += self.adapter.list_relations(db, schema)
+    def select_relations(self, rels):
+        selected_rels = questionary.checkbox(
+            "Which sources would you like to generate?",
+            choices=[
+                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
+                for rel in rels
+            ],
+        ).ask()
 
-            for rel in listed_relations:
-                for selector in rel_wildcard_selectors:
-                    if re.search(selector, rel.name):
-                        rel_name_selectors.append(rel.name)
-                        break
+        return selected_rels
 
-            intersected_rels = [
-                relation
-                for relation in listed_relations
-                if relation.name in rel_name_selectors
-            ]
-            rels = (
-                intersected_rels
-                if rel_name_selectors and rel_name_selectors[0]
-                else listed_relations
-            )
-
-            if rels:
-                selected_rels = questionary.checkbox(
-                    "Which sources would you like to generate?",
-                    choices=[
-                        Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
-                        for rel in rels
-                    ],
-                ).ask()
-                if selected_rels:
-                    self.generate_sources(selected_rels)
-                else:
-                    return 0
-            else:
-                schema_nlg = f"schema{'s' if len(filtered_schemas) > 1 else ''}"
-                console.print(
-                    f"No tables/views found in [u]{', '.join(filtered_schemas)}[/u] {schema_nlg}."
-                )
-        return 0
-
-    def get_config_value(self, key):
-        return self.coves_config.integrated["generate"]["sources"][key]
-
-    def generate_sources(self, rels):
+    def generate(self, rels):
         dest = self.get_config_value("destination")
         options = {"override_all": None, "flatten_all": None}
         for rel in rels:
@@ -287,6 +250,20 @@ class GenerateSourcesTask(BaseConfiguredTask):
                 self.render_templates(relation, columns, destination, nested=nested)
         else:
             self.render_templates(relation, columns, destination)
+
+    def render_templates_render_context(self, context, destination):
+
+        templates_folder = self.get_config_value("templates_folder")
+        render_template_file(
+            "source_model.sql", context, destination, templates_folder=templates_folder
+        )
+        context["model"] = destination.name.lower().replace(".sql", "")
+        render_template_file(
+            "source_model_props.yml",
+            context,
+            str(destination).replace(".sql", ".yml"),
+            templates_folder=templates_folder,
+        )
 
     def get_nested_keys(self, columns, schema, relation):
         config_db = self.get_config_value("database")
@@ -370,35 +347,27 @@ class GenerateSourcesTask(BaseConfiguredTask):
 
         return data
 
-    def render_templates(self, relation, columns, destination, nested=None):
-        context = {
-            "relation": relation,
-            "columns": columns,
-            "nested": {},
-            "adapter_name": self.adapter.__class__.__name__,
-        }
-        if nested:
-            context["nested"] = self.get_nested_keys(
-                nested, relation.schema, relation.name
-            )
-            # Removing original column with JSON data
-            new_cols = []
-            for col in columns:
-                if col.name.lower() not in context["nested"]:
-                    new_cols.append(col)
-            context["columns"] = new_cols
-        config_db = self.get_config_value("database")
-        if config_db:
-            context["source_database"] = config_db
+    def run(self):
+        config_database = self.get_config_value("database")
+        self.db = config_database or self.config.credentials.database
 
-        templates_folder = self.get_config_value("templates_folder")
-        render_template_file(
-            "source_model.sql", context, destination, templates_folder=templates_folder
-        )
-        context["model"] = destination.name.lower().replace(".sql", "")
-        render_template_file(
-            "source_model_props.yml",
-            context,
-            str(destination).replace(".sql", ".yml"),
-            templates_folder=templates_folder,
-        )
+        # initiate connection
+        with self.adapter.connection_named("master"):
+
+            filtered_schemas = self.get_schemas()
+            if not filtered_schemas:
+                return 0
+
+            relations = self.get_relations(filtered_schemas)
+            if relations:
+                selected_relations = self.select_relations(relations)
+                if selected_relations:
+                    self.generate(selected_relations)
+                else:
+                    return 0
+            else:
+                schema_nlg = f"schema{'s' if len(filtered_schemas) > 1 else ''}"
+                console.print(
+                    f"No tables/views found in [u]{', '.join(filtered_schemas)}[/u] {schema_nlg}."
+                )
+        return 0

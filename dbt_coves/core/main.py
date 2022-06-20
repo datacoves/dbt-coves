@@ -165,6 +165,8 @@ def main(
             "No [u]dbt_project.yml[/u] found. Current folder doesn't look like a dbt project."
         )
     except Exception as ex:
+        import traceback
+        traceback.print_exc()
         logger.debug(ex)
         console.print(f"[red]:cross_mark:[/red] {ex}")
 
