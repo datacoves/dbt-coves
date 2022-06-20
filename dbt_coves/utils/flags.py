@@ -38,8 +38,10 @@ class DbtCovesFlags:
                 "metadata": None,
             },
             "properties": {
-                "database": None,
-                "schemas": [],
+                "templates_folder": None,
+                "select": None,
+                "model_props_strategy": None,
+                "metadata": None,
             },
         }
         self.extract = {
@@ -120,14 +122,22 @@ class DbtCovesFlags:
                     self.generate["sources"]["metadata"] = self.args.metadata
 
             if self.args.cls.__name__ == "GeneratePropertiesTask":
-                if self.args.schemas:
-                    self.generate["properties"]["schemas"] = [
-                        schema.strip() for schema in self.args.schemas.split(",")
-                    ]
-                if self.args.database:
-                    self.generate["properties"]["database"] = self.args.database
+                if self.args.templates_folder:
+                    self.generate["properties"][
+                        "templates_folder"
+                    ] = self.args.templates_folder
+                if self.args.model_props_strategy:
+                    self.generate["properties"][
+                        "model_props_strategy"
+                    ] = self.args.model_props_strategy
                 if self.args.select:
                     self.generate["properties"]["select"] = self.args.select
+                if self.args.model_props_strategy:
+                    self.generate["properties"][
+                        "model_props_strategy"
+                    ] = self.args.model_props_strategy
+                if self.args.metadata:
+                    self.generate["properties"]["metadata"] = self.args.metadata
 
             if self.args.cls.__name__ == "InitTask":
                 if self.args.template:

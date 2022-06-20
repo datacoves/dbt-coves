@@ -22,5 +22,8 @@ models:
   {%- endfor %}
 {%- endfor %}
 {%- for col in columns %}
-      - name: {{ col.name.lower() }}
+      - name: {{ col['id'] }}
+      {%- if col['description'] %}
+        description: "{{ col['description'] }}"
+      {%- endif %}
 {%- endfor %}

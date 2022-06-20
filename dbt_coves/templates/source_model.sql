@@ -29,7 +29,7 @@ final as (
 {%- endfor %}
 {%- endif %}
 {%- for col in columns %}
-        {{ '"' + col.name + '"' }} as {{ col.name.lower() }}{% if not loop.last %},{% endif %}
+        {{ '"' + col['name'] + '"' }} as {{ col['id'] }}{% if not loop.last %},{% endif %}
 {%- endfor %}
 
     from raw_source

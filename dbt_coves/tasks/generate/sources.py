@@ -1,4 +1,4 @@
-import csv
+from __future__ import nested_scopes
 import json
 import re
 from pathlib import Path
@@ -6,7 +6,6 @@ from pathlib import Path
 import questionary
 from questionary import Choice
 from rich.console import Console
-from slugify import slugify
 
 from dbt_coves.utils.jinja import render_template, render_template_file
 
@@ -80,56 +79,10 @@ class GenerateSourcesTask(BaseGenerateTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.metadata = None
+        self.db = None
 
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["sources"][key]
-
-    def get_metadata_map_key(self, row):
-        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}-{row['column']}-{row['key']}"
-        return map_key
-
-    def get_metadata_map_item(self, row):
-        data = {
-            "type": row["type"],
-            "description": row["description"].strip(),
-        }
-        return data
-
-    def get_default_metadata_item(self):
-        return {"type": "varchar", "description": ""}
-
-    def get_metadata(self):
-        """
-        If metadata path is configured, returns a dictionary with column keys and their corresponding values.
-        If metadata is already set, do not load again and return the existing value.
-        """
-        path = self.get_config_value("metadata")
-
-        if self.metadata:
-            return self.metadata
-
-        metadata_map = dict()
-        if path:
-            metadata_path = Path().joinpath(path)
-            try:
-                with open(metadata_path, "r") as csvfile:
-                    rows = csv.DictReader(csvfile)
-                    for row in rows:
-                        try:
-                            metadata_map[
-                                self.get_metadata_map_key(row)
-                            ] = self.get_metadata_map_item(row)
-                        except KeyError as e:
-                            raise Exception(
-                                f"Key {e} not found in metadata file {path}"
-                            )
-            except FileNotFoundError as e:
-                raise Exception(f"Metadata file not found: {e}")
-
-        self.metadata = metadata_map
-
-        return metadata_map
 
     def select_schemas(self, schemas):
         selected_schemas = questionary.checkbox(
@@ -234,7 +187,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                     default="Yes",
                 ).ask()
                 if flatten == "Yes":
-                    self.render_templates(relation, columns, destination, nested=nested)
+                    self.render_templates(relation, columns, destination, json_cols=nested)
                 elif flatten == "No":
                     self.render_templates(relation, columns, destination)
                 elif flatten == "No for all":
@@ -242,16 +195,38 @@ class GenerateSourcesTask(BaseGenerateTask):
                     self.render_templates(relation, columns, destination)
                 elif flatten == "Yes for all":
                     options["flatten_all"] = "Yes"
-                    self.render_templates(relation, columns, destination, nested=nested)
+                    self.render_templates(relation, columns, destination, json_cols=nested)
             else:
                 self.render_templates(relation, columns, destination)
         elif options["flatten_all"] == "Yes":
             if nested:
-                self.render_templates(relation, columns, destination, nested=nested)
+                self.render_templates(relation, columns, destination, json_cols=nested)
         else:
             self.render_templates(relation, columns, destination)
 
-    def render_templates_render_context(self, context, destination):
+    def get_templates_context(self, relation, columns, json_cols=None):
+        metadata_cols = self.get_metadata_columns(relation, columns)
+        context = {
+            "relation": relation,
+            "columns": metadata_cols,
+            "nested": {},
+            "adapter_name": self.adapter.__class__.__name__,
+        }
+        if json_cols:
+            context["nested"] = self.get_nested_keys(json_cols, relation)
+            # Removing original column with JSON data
+            new_cols = []
+            for col in metadata_cols:
+                if col['id'].lower() not in context["nested"]:
+                    new_cols.append(col)
+            context["columns"] = new_cols
+        config_db = self.get_config_value("database")
+        if config_db:
+            context["source_database"] = config_db
+
+        return context
+
+    def render_templates_with_context(self, context, destination):
 
         templates_folder = self.get_config_value("templates_folder")
         render_template_file(
@@ -265,87 +240,53 @@ class GenerateSourcesTask(BaseGenerateTask):
             templates_folder=templates_folder,
         )
 
-    def get_nested_keys(self, columns, schema, relation):
+    def get_nested_keys(self, json_cols, relation):
         config_db = self.get_config_value("database")
         if config_db:
             config_db += "."
         else:
             config_db = ""
         _, data = self.adapter.execute(
-            f"SELECT {', '.join(columns)} FROM {config_db}{schema}.{relation} limit 1",
+            f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} limit 1",
             fetch=True,
         )
         result = dict()
         if len(data.rows) > 0:
-            for idx, col in enumerate(columns):
+            for idx, json_col in enumerate(json_cols):
                 value = data.columns[idx]
                 try:
-                    field_data = list(json.loads(value[0]).keys())
-                    # converts [field1, field2 .. ] to
-                    # {
-                    #     'field1': {'type': 'varchar', 'description': ''},
-                    #     'field2': {'type': 'varchar', 'description': ''}
-                    # }
-                    result[col] = dict(
-                        zip(
-                            field_data,
-                            [self.get_default_metadata_item()] * len(field_data),
-                        )
-                    )
-                    result = self.add_metadata(schema, relation, result, col)
-                    result[col] = self.add_field_ids(result[col])
+                    nested_key_names = list(json.loads(value[0]).keys())
+                    result[json_col] = {}
+                    for key_name in nested_key_names:
+                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                    self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(
-                        f"Column {col} in relation {relation} contains invalid JSON.\n"
+                        f"Column {json_col} in relation {relation.name} contains invalid JSON.\n"
                     )
         return result
 
-    def add_metadata(self, schema, relation, data, col):
+    def add_metadata_to_nested(self, relation, data, col):
         """
-        Adds metadata info to each field if metadata was provided.
+        Adds metadata info to each nested field if metadata was provided.
         """
         metadata = self.get_metadata()
         if metadata:
             # Iterate over fields
             for item in data[col].keys():
                 metadata_map_key_data = {
-                    "database": self.get_config_value("database"),
-                    "schema": schema,
-                    "relation": relation,
-                    "column": "data",
+                    "database": relation.database,
+                    "schema": relation.schema,
+                    "relation": relation.name,
+                    "column": col,
                     "key": item,
                 }
                 metadata_key = self.get_metadata_map_key(metadata_map_key_data)
                 # Get metadata info or default and assign to the field.
                 metadata_info = metadata.get(
-                    metadata_key, self.get_default_metadata_item()
+                    metadata_key, self.get_default_metadata_item(item)
                 )
                 data[col][item] = metadata_info
-
-        return data
-
-    def add_field_ids(self, data):
-        """
-        Converts {
-                    "Field Name 1": {'type': 'varchar', 'description': ''},
-                    "Field Name 2": {'type': 'varchar', 'description': ''}
-                 }
-        to
-                 {
-                    "Field Name 1": {'id': 'field_name_1', 'type': 'varchar', 'description': ''},
-                    "Field Name 2": {'id': 'field_name_2','type': 'varchar', 'description': ''}
-                 }
-
-        by iterating the source dictionary and using
-                z = {**x, **y} python 3.5 or above
-        in this case:
-                {**{'type': 'varchar', 'description': ''},  **{'id': 'field_name_1'} }
-        """
-        data = dict(
-            (k, {**v, **{"id": slugify(k, separator="_")}}) for k, v in data.items()
-        )
-
-        return data
 
     def run(self):
         config_database = self.get_config_value("database")

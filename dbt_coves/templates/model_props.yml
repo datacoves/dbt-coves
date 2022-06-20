@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: {{ model.lower() }}
+    columns:
+{%- for col in columns %}
+      - name: {{ col['id'] }}
+      {%- if col['description'] %}
+        description: "{{ col['description'] }}"
+      {%- endif %}
+{%- endfor %}

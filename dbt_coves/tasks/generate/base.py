@@ -1,7 +1,9 @@
 import re
+import csv
+from pathlib import Path
+from slugify import slugify
 
 from rich.console import Console
-
 from dbt_coves.tasks.base import BaseConfiguredTask
 
 console = Console()
@@ -16,7 +18,7 @@ class BaseGenerateTask(BaseConfiguredTask):
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
-        self.db = None
+        self.metadata = None
 
     def get_schemas(self):
 
@@ -63,30 +65,87 @@ class BaseGenerateTask(BaseConfiguredTask):
     def run(self) -> int:
         raise NotImplementedError()
 
-    def render_templates(self, relation, columns, destination, nested=None):
+    def get_metadata_map_key(self, row):
+        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}-{row['column'].lower()}-{row.get('key', '').lower()}"
+        return map_key
 
-        context = self.render_templates_get_context(relation, columns, nested)
-        self.render_templates_render_context(context, destination)
+    def get_metadata_map_item(self, row):
+        data = {
+            "type": row["type"],
+            "description": row["description"].strip(),
+        }
+        return data
 
-    def render_templates_get_context(self, relation, columns, nested=None):
-        context = {
+    def get_default_metadata_item(self, name, type="varchar", description=""):
+        return {"name": name, "id": slugify(name, separator="_"), "type": type, "description": description}
+
+    def get_metadata(self):
+        """
+        If metadata path is configured, returns a dictionary with column keys and their corresponding values.
+        If metadata is already set, do not load again and return the existing value.
+        """
+        path = self.get_config_value("metadata")
+
+        if self.metadata:
+            return self.metadata
+
+        metadata_map = dict()
+        if path:
+            metadata_path = Path().joinpath(path)
+            try:
+                with open(metadata_path, "r") as csvfile:
+                    rows = csv.DictReader(csvfile, skipinitialspace=True)
+                    for row in rows:
+                        try:
+                            metadata_map[
+                                self.get_metadata_map_key(row)
+                            ] = self.get_metadata_map_item(row)
+                        except KeyError as e:
+                            raise Exception(
+                                f"Key {e} not found in metadata file {path}"
+                            )
+            except FileNotFoundError as e:
+                raise Exception(f"Metadata file not found: {e}")
+
+        self.metadata = metadata_map
+
+        return metadata_map
+
+    def render_templates(self, relation, columns, destination, json_cols=None):
+
+        context = self.get_templates_context(relation, columns, json_cols)
+        self.render_templates_with_context(context, destination)
+
+    def get_templates_context(self, relation, columns, json_cols=None):
+        return {
             "relation": relation,
-            "columns": columns,
+            "columns": self.get_metadata_columns(relation, columns),
             "nested": {},
             "adapter_name": self.adapter.__class__.__name__,
         }
-        if nested:
-            context["nested"] = self.get_nested_keys(
-                nested, relation.schema, relation.name
-            )
-            # Removing original column with JSON data
-            new_cols = []
-            for col in columns:
-                if col.name.lower() not in context["nested"]:
-                    new_cols.append(col)
-            context["columns"] = new_cols
-        config_db = self.get_config_value("database")
-        if config_db:
-            context["source_database"] = config_db
 
-        return context
+    def get_metadata_columns(self, relation, cols):
+        """
+        Get metadata col
+        """
+        metadata = self.get_metadata()
+        metadata_cols = []
+        for col in cols:
+            new_col = None
+            if metadata:
+                metadata_map_key_data = {
+                    "database": relation.database,
+                    "schema": relation.schema,
+                    "relation": relation.name,
+                    "column": col.name
+                }
+                metadata_key = self.get_metadata_map_key(metadata_map_key_data)
+                new_col = metadata.get(metadata_key)
+                if new_col:
+                    # FIXME: DRY this
+                    new_col["name"] = col.name
+                    new_col["id"] = slugify(col.name, separator="_")
+            if not new_col:
+                new_col = self.get_default_metadata_item(col.name, type=col.dtype)
+            metadata_cols.append(new_col)
+        return metadata_cols
