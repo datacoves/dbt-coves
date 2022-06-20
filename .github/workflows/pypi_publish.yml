@@ -4,6 +4,19 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      bumpType:
+        description: Bump type
+        required: true
+        default: build
+        type: choice
+        options:
+          - major
+          - minor
+          - patch
+          - release
+          - build
 
 jobs:
   publish:
@@ -38,4 +51,6 @@ jobs:
           git config user.email "$GITHUB_ACTOR@users.noreply.github.com"
 
       - name: Release new PyPi build version
-        run: /home/runner/work/dbt-coves/dbt-coves/publish.sh
+        env:
+          BUMP_TYPE: ${{ inputs.bumpType }}
+        run: "/home/runner/work/dbt-coves/dbt-coves/publish.sh $BUMP_TYPE"
