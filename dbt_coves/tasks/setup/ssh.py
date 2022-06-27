@@ -163,8 +163,7 @@ class SetupSSHTask(NonDbtBaseTask):
         with open(public_key_path, "w") as file:
             file.write(public_output)
 
-        if public_type == "ssh-rsa":
-            openssl_private_path = private_key_path
+        openssl_private_path = private_key_path if public_type == "ssh-rsa" else None
 
         # Return public key to configure
         return self.output_public_keys(public_key_path, openssl_private_path)
