@@ -166,8 +166,7 @@ def main(
         )
     except Exception as ex:
         import traceback
-        traceback.print_exc()
-        logger.debug(ex)
+        logger.debug(traceback.format_exc())
         console.print(f"[red]:cross_mark:[/red] {ex}")
 
     if exit_code > 0:
