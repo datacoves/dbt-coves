@@ -34,7 +34,7 @@ class SetupSSHTask(NonDbtBaseTask):
             help="Set up SSH Key for dbt-coves project",
         )
         subparser.add_argument(
-            "--open_ssl_public_key",
+            "--open-ssl-public-key",
             help="Generate and output OpenSSL key alongside Git OpenSSH one",
             action="store_true",
             default=False,
