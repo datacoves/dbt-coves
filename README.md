@@ -85,7 +85,7 @@ template to make it easier to maintain.
 dbt-coves generate <resource>
 ```
 
-Where *\<resource\>* could be *sources*.
+Where *\<resource\>* could be *sources* or *properties*.
 
 Code generation tool to easily generate models and model properties
 based on configuration and existing data.
@@ -126,12 +126,47 @@ hooks](https://pre-commit.com/#creating-new-hooks).
 
 ## Environment setup
 
+Setting up your environment can be done in two different ways:
+
 ``` console
-dbt-coves setup
+dbt-coves setup all
 ```
 
-Runs a set of checks in your local environment and helps you configure
-it properly: ssh key, git, dbt profiles.yml, vscode extensions.
+Runs a set of checks in your local environment and helps you configure every project component properly: ssh key, git, dbt profiles.yml, vscode extensions, sqlfluff and precommit.
+
+You can also configure individual components:
+
+``` console
+dbt-coves setup git
+```
+Set up Git repository of dbt-coves project
+
+
+``` console
+dbt-coves setup dbt
+```
+Set up `dbt` of dbt-coves project
+
+
+``` console
+dbt-coves setup ssh
+```
+Set up SSH Keys for dbt-coves project. Supports the argument `--open_ssl_public_key` which generates an extra Public Key in Open SSL format, useful for configuring certain providers (i.e. Snowflake authentication)
+
+``` console
+dbt-coves setup vscode
+```
+Set up `vscode` of dbt-coves project
+
+``` console
+dbt-coves setup sqlfluff
+```
+Set up `sqlfluff` of dbt-coves project. Supports `--templates` argument for using your custom `.sqlfluff` configuration file
+
+``` console
+dbt-coves setup precommit
+```
+Set up `precommit` of dbt-coves project. Supports `--templates` argument for using your custom `.pre-commit-config.yaml` configuration file
 
 ## Extract configuration from Airbyte
 
@@ -225,7 +260,7 @@ final as (
 {%- endfor %}
 {%- endif %}
 {%- for col in columns %}
-        {{ '"' + col.name + '"' }} as {{ col.name.lower() }}{% if not loop.last %},{% endif %}
+        {{ '"' + col['name'] + '"' }} as {{ col['id'] }}{% if not loop.last %},{% endif %}
 {%- endfor %}
 
     from raw_source
@@ -249,6 +284,46 @@ sources:
     tables:
       - name: {{ relation.name.lower() }}
         identifier: {{ relation.name }}
+
+models:
+  - name: {{ model.lower() }}
+    columns:
+{%- for cols in nested.values() %}
+  {%- for col in cols %}
+      - name: {{ cols[col]["id"] }}
+      {%- if cols[col]["description"] %}
+        description: "{{ cols[col]['description'] }}"
+      {%- endif %}
+  {%- endfor %}
+{%- endfor %}
+{%- for col in columns %}
+      - name: {{ col['id'] }}
+      {%- if col['description'] %}
+        description: "{{ col['description'] }}"
+      {%- endif %}
+{%- endfor %}
+
+```
+
+### model_props.yml
+```yaml
+version: 2
+
+models:
+  - name: {{ model.lower() }}
+    columns:
+{%- for col in columns %}
+      - name: {{ col['id'] }}
+      {%- if col['description'] %}
+        description: "{{ col['description'] }}"
+      {%- endif %}
+{%- endfor %}
+
+```
+
+### model.yml
+```yaml
+version: 2
 
 models:
   - name: {{ model.lower() }}
