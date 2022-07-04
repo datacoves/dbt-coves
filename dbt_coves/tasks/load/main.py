@@ -21,7 +21,7 @@ class LoadTask(BaseConfiguredTask):
         ext_subparser = sub_parsers.add_parser(
             "load",
             parents=[base_subparser],
-            help="Loads data from different systems.",
+            help="Loads configurations from Airbyte",
         )
         ext_subparser.set_defaults(cls=cls, which="load")
         sub_parsers = ext_subparser.add_subparsers(

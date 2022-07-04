@@ -365,4 +365,5 @@ For a complete detail of usage, please run:
 
 ``` console
 dbt-coves -h
+dbt-coves <command> -h
 ```
