@@ -69,6 +69,7 @@ class DbtCovesFlags:
             "sqlfluff": {"templates": None},
             "precommit": {"templates": None},
             "ssh": {"open_ssl_public_key": False},
+            "git": {"no_prompt": False},
         }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
@@ -199,3 +200,7 @@ class DbtCovesFlags:
                     self.setup["ssh"][
                         "open_ssl_public_key"
                     ] = self.args.open_ssl_public_key
+
+            if self.args.cls.__name__ == "SetupGitTask":
+                if self.args.no_prompt:
+                    self.setup["git"]["no_prompt"] = self.args.no_prompt
