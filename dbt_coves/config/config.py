@@ -76,11 +76,16 @@ class SetupSshModel(BaseModel):
     open_ssl_public_key: Optional[bool] = False
 
 
+class SetupGitModel(BaseModel):
+    no_prompt: Optional[bool] = False
+
+
 class SetupModel(BaseModel):
     all: Optional[SetupAllModel] = SetupAllModel()
     sqlfluff: Optional[SetupSqlfluffModel] = SetupSqlfluffModel()
     precommit: Optional[SetupPrecommitModel] = SetupPrecommitModel()
     ssh: Optional[SetupSshModel] = SetupSshModel()
+    git: Optional[SetupGitModel] = SetupGitModel()
 
 
 class ConfigModel(BaseModel):
@@ -123,6 +128,7 @@ class DbtCovesConfig:
         "setup.sqlfluff.templates",
         "setup.precommit.templates",
         "setup.ssh.open_ssl_public_key",
+        "setup.git.no_prompt",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

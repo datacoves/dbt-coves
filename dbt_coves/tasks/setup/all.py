@@ -49,9 +49,9 @@ class SetupAllTask(NonDbtBaseTask):
         """
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
 
-        SetupSSHTask.run(SetupSSHTask(self.args, self.coves_config))
+        SetupSSHTask(self.args, self.coves_config).run()
 
-        SetupGitTask.run(workspace_path)
+        SetupGitTask(self.args, self.coves_config).run(workspace_path)
 
         SetupDbtTask.dbt_init()
 

@@ -142,7 +142,7 @@ class SetupSSHTask(NonDbtBaseTask):
             "ssh-dss": "id_dsa",
             "ecdsa-sha2-nistp256": "id_ecdsa",
             "ssh-ed25519": "id_ed25519",
-            "ssh-rsa": "id_rsa"
+            "ssh-rsa": "id_rsa",
         }
         # Get public key from private
         public_output, public_type = self.ssh_keygen_get_public_key(provided_key_path)
@@ -209,7 +209,9 @@ class SetupSSHTask(NonDbtBaseTask):
             if private_generated:
                 raise SetupSSHException(openssl_public_output.stderr)
             else:
-                raise ValueError("The private key provided can't be used to generate public RSA openssl keys.")
+                raise ValueError(
+                    "The private key provided can't be used to generate public RSA openssl keys."
+                )
 
         console.print(f"\nOpenSSL public key saved at {openssl_public_key_path}")
         console.print(
@@ -221,7 +223,9 @@ class SetupSSHTask(NonDbtBaseTask):
         ).replace("-----END PUBLIC KEY-----\n", "")
         console.print(f"[yellow]{openssl_public_key}[/yellow]")
 
-    def gen_print_openssl_key(self, generate_private, openssl_private_key_path, openssl_public_key_path):
+    def gen_print_openssl_key(
+        self, generate_private, openssl_private_key_path, openssl_public_key_path
+    ):
         if generate_private:
             self.gen_openssl_private_key(openssl_private_key_path)
         self.gen_print_openssl_public_key(
@@ -247,18 +251,23 @@ class SetupSSHTask(NonDbtBaseTask):
     def output_public_keys(self, public_key_path_abs, openssl_private_path=None):
         openssl = self.get_config_value("open_ssl_public_key")
         if openssl:
-            openssl_private_key_path = openssl_private_path or f"{self.ssh_keys_dir_abs}/rsa_key.p8"
+            openssl_private_key_path = (
+                openssl_private_path or f"{self.ssh_keys_dir_abs}/rsa_key.p8"
+            )
             openssl_public_key_path = f"{self.ssh_keys_dir_abs}/rsa_key.pub"
             self.gen_print_openssl_key(
-                openssl_private_path is None, openssl_private_key_path, openssl_public_key_path
+                openssl_private_path is None,
+                openssl_private_key_path,
+                openssl_public_key_path,
             )
         console.print(
             "Please configure the following key (yellow text) in your Git server (Gitlab, Github, Bitbucket, etc):\n"
         )
         console.print(f"[yellow]{open(public_key_path_abs, 'r').read()}[/yellow]")
         return questionary.confirm(
-            "Have you configured your services and Git server with the keys above?" if openssl else 
-                "Have you configured your Git server with the key above?"
+            "Have you configured your services and Git server with the keys above?"
+            if openssl
+            else "Have you configured your Git server with the key above?"
         ).ask()
 
     def get_config_value(self, key):
