@@ -145,7 +145,7 @@ Set up Git repository of dbt-coves project
 ``` console
 dbt-coves setup dbt
 ```
-Set up `dbt` of dbt-coves project
+Setup `dbt` within the project (delegates to dbt init)
 
 
 ``` console
@@ -156,7 +156,7 @@ Set up SSH Keys for dbt-coves project. Supports the argument `--open_ssl_public_
 ``` console
 dbt-coves setup vscode
 ```
-Set up `vscode` of dbt-coves project
+Setup of predefined `settings.json` for `vscode`, `settings.json` may be added to .dbt_coves/templates/ folder
 
 ``` console
 dbt-coves setup sqlfluff
@@ -166,7 +166,7 @@ Set up `sqlfluff` of dbt-coves project. Supports `--templates` argument for usin
 ``` console
 dbt-coves setup precommit
 ```
-Set up `precommit` of dbt-coves project. Supports `--templates` argument for using your custom `.pre-commit-config.yaml` configuration file
+Setup of default `pre-commit` template of dbt-coves project. Supports `--templates` argument for using your custom `.pre-commit-config.yaml` configuration file
 
 ## Extract configuration from Airbyte
 

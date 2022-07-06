@@ -21,7 +21,7 @@ class ExtractTask(BaseConfiguredTask):
         ext_subparser = sub_parsers.add_parser(
             "extract",
             parents=[base_subparser],
-            help="Extracts configurations from Airbyte",
+            help="Extracts configurations from different systems.",
         )
         ext_subparser.set_defaults(cls=cls, which="extract")
         sub_parsers = ext_subparser.add_subparsers(

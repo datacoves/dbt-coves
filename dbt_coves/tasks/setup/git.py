@@ -25,7 +25,7 @@ class SetupGitTask(NonDbtBaseTask):
         subparser = sub_parsers.add_parser(
             "git",
             parents=[base_subparser],
-            help="Set up Git repository of dbt-coves project",
+            help="Set up Git repository of dbt project",
         )
         subparser.set_defaults(cls=cls, which="git")
         return subparser
