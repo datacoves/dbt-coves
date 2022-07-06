@@ -76,7 +76,7 @@ class SetupGitTask(NonDbtBaseTask):
                 email = os.environ.get("USER_EMAIL", "")
                 if not (name and email):
                     raise SetupGitException(
-                        f"USER_FULLNAME [yellow]({name or 'missing'})[/yellow] and USER_EMAIL [yellow]({email or 'missing'})[/yellow] environment variables must be set in order to setup Git with --no-prompt"
+                        f"[yellow]USER_FULLNAME ({name or 'missing'})[/yellow] and [yellow]USER_EMAIL ({email or 'missing'})[/yellow] environment variables must be set in order to setup Git with [i]--no-prompt[/i]"
                     )
             else:
                 default_name = os.environ.get("USER_FULLNAME", "")
@@ -106,6 +106,7 @@ class SetupGitTask(NonDbtBaseTask):
                 )
 
     def _run_git_clone(self, workspace_path):
+        repo_url = ""
         cloned_status = "[red]MISSING[/red]"
         cloned_exists = Path(workspace_path, ".git").exists()
         if cloned_exists:
@@ -119,10 +120,19 @@ class SetupGitTask(NonDbtBaseTask):
             console.print(f"Folder '{workspace_path}' is not empty.")
             return
 
-        default_repo_url = os.environ.get("GIT_REPO_URL", "")
-        repo_url = questionary.text(
-            "Please type the git repo SSH url:", default=default_repo_url
-        ).ask()
+        no_prompt = self.get_config_value("no_prompt")
+        if no_prompt:
+            repo_url = os.environ.get("GIT_REPO_URL", "")
+            if not repo_url:
+                raise SetupGitException(
+                    f"[yellow]GIT_REPO_URL[/yellow] environment variable must be set in order to clone Git repository with [i]--no-prompt[/i]"
+                )
+        else:
+            default_repo_url = os.environ.get("GIT_REPO_URL", "")
+            repo_url = questionary.text(
+                "Please type the git repo SSH url:", default=default_repo_url
+            ).ask()
+
         if repo_url:
             ssh_repo_url = f"ssh://{repo_url}" if "ssh://" not in repo_url else repo_url
             url_parsed = urlparse(ssh_repo_url)
