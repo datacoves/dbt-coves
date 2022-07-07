@@ -29,8 +29,7 @@ dbt-coves helps with the generation of scaffold for dbt by analyzing
 your data warehouse schema in Redshift, Snowflake, or Big Query and
 creating the necessary configuration files (sql and yml).
 
-⚠️ **dbt-coves is in alpha version. Don't use on your prod models unless
-you have tested it before.**
+⚠️ **dbt-coves is in alpha, make sure to test it for your dbt project version and DW before using in production**
 
 ### Here\'s the tool in action
 
@@ -40,16 +39,16 @@ you have tested it before.**
 
   |Version          |Status|
   |---------------- |------------------|
-  |\<= 0.17.0       |❌ Not supported|
-  |0.18.x - 0.21x   |✅ Tested|
-  |1.x              |✅ Tested|
+  |\< 1.0       |❌ Not supported|
+  |>= 1.0            |✅ Tested|
 
 ## Supported adapters
 
-  |Feature|                  Snowflake|   Redshift|         BigQuery|        Postgres|
-  |------------------------| -----------| ----------------| ---------------| ---------------|
-  |profile.yml generation|   ✅ Tested|   🕥 In progress|   ❌ Not tested|   ❌ Not tested|
-  |sources generation|       ✅ Tested|   🕥 In progress|   ❌ Not tested|   ❌ Not tested|
+  |Feature|                  Snowflake|   Redshift|         BigQuery|       
+  |------------------------| -----------| ----------------| ---------------|
+  |dbt project setup|   ✅ Tested|   🕥 In progress|   ❌ Not tested|  
+  |source model (sql) generation|       ✅ Tested|   🕥 In progress|   ❌ Not tested|  
+  |model properties (yml) generation|       ✅ Tested|   🕥 In progress|   ❌ Not tested|  
 
 # Installation
 
@@ -61,10 +60,14 @@ We recommend using [python
 virtualenvs](https://docs.python.org/3/tutorial/venv.html) and create
 one separate environment per project.
 
-⚠️ **if you have dbt \< 0.18.0 installed, dbt-coves will automatically
-upgrade dbt to the latest version**
-
 # Main Features
+
+For a complete detail of usage, please run:
+
+``` console
+dbt-coves -h
+dbt-coves <command> -h
+```
 
 ## Project initialization
 
@@ -351,19 +354,14 @@ work done.
 # Authors
 
 -   Sebastian Sassi [\@sebasuy](https://twitter.com/sebasuy) --
-    [Convexa](https://convexa.ai)
+    [Datacoves](https://datacoves.com/)
 -   Noel Gomez [\@noel_g](https://twitter.com/noel_g) --
-    [Ninecoves](https://ninecoves.com)
+    [Datacoves](https://datacoves.com/)
+-   Bruno Antonellini --
+    [Datacoves](https://datacoves.com/)
 
 # About
 
 Learn more about [Datacoves](https://datacoves.com).
 
-# CLI Reference
 
-For a complete detail of usage, please run:
-
-``` console
-dbt-coves -h
-dbt-coves <command> -h
-```
