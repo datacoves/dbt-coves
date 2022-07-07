@@ -46,8 +46,9 @@ creating the necessary configuration files (sql and yml).
 
   |Feature|                  Snowflake|   Redshift|         BigQuery|       
   |------------------------| -----------| ----------------| ---------------|
-  |profile.yml generation|   ✅ Tested|   🕥 In progress|   ❌ Not tested|  
-  |sources generation|       ✅ Tested|   🕥 In progress|   ❌ Not tested|  
+  |dbt project setup|   ✅ Tested|   🕥 In progress|   ❌ Not tested|  
+  |source model (sql) generation|       ✅ Tested|   🕥 In progress|   ❌ Not tested|  
+  |model properties (yml) generation|       ✅ Tested|   🕥 In progress|   ❌ Not tested|  
 
 # Installation
 
