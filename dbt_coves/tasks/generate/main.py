@@ -25,7 +25,7 @@ class GenerateTask(BaseConfiguredTask):
         gen_subparser = sub_parsers.add_parser(
             "generate",
             parents=[base_subparser],
-            help="Generates sources and models with defaults.",
+            help="Generates sources, models and properties(yml) files for sources and dbt models",
         )
         gen_subparser.set_defaults(cls=cls, which="generate")
         sub_parsers = gen_subparser.add_subparsers(

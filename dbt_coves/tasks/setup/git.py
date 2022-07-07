@@ -29,7 +29,7 @@ class SetupGitTask(NonDbtBaseTask):
         subparser = sub_parsers.add_parser(
             "git",
             parents=[base_subparser],
-            help="Set up SSH Key for dbt-coves project",
+            help="Set up Git repository of dbt project",
         )
         subparser.add_argument(
             "--no-prompt",

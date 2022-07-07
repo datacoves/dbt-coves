@@ -26,7 +26,9 @@ class SetupTask(NonDbtBaseTask):
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         ext_subparser = sub_parsers.add_parser(
-            "setup", parents=[base_subparser], help="Set up dbt-coves components."
+            "setup",
+            parents=[base_subparser],
+            help="Set up project components (git, dbt, vscode, sqlfluff, pre-commit, etc)",
         )
         ext_subparser.set_defaults(cls=cls, which="setup")
         sub_parsers = ext_subparser.add_subparsers(

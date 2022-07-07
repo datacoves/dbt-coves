@@ -61,6 +61,7 @@ class SetupSSHTask(NonDbtBaseTask):
             for file in os.listdir(self.ssh_keys_dir_abs)
             if "id_" in file.lower() and not ".p" in file.lower()
         ]
+
         if found_keys:
             ssh_status = "[green]FOUND :heavy_check_mark:[/green]"
             print_row(
@@ -77,6 +78,8 @@ class SetupSSHTask(NonDbtBaseTask):
                 ).ask()
 
             key_path_abs = f"{self.ssh_keys_dir_abs}/{selected_ssh_key}"
+            public_key_path_abs = f"{key_path_abs}.pub"
+
             ssh_configured = self.output_public_key_for_private(
                 key_path_abs, public_key_path_abs
             )
