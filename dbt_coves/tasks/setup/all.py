@@ -51,7 +51,7 @@ class SetupAllTask(NonDbtBaseTask):
 
         SetupSSHTask(self.args, self.coves_config).run()
 
-        SetupGitTask.run(workspace_path)
+        SetupGitTask(self.args, self.coves_config).run(workspace_path)
 
         SetupDbtTask.dbt_init()
 
