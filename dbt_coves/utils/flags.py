@@ -63,7 +63,6 @@ class DbtCovesFlags:
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
             "current-dir": False,
         }
-        self.check = {"no-fix": False, "slim": False}
         self.setup = {
             "all": {"templates": None, "open_ssl_public_key": False},
             "sqlfluff": {"templates": None},
@@ -145,12 +144,6 @@ class DbtCovesFlags:
                     self.init["template"] = self.args.template
                 if self.args.current_dir:
                     self.init["current-dir"] = self.args.current_dir
-
-            if self.args.cls.__name__ == "CheckTask":
-                if self.args.no_fix:
-                    self.check["no-fix"] = self.args.no_fix
-                if self.args.slim:
-                    self.check["slim"] = self.args.slim
 
             if self.args.cls.__name__ == "LoadAirbyteTask":
                 if self.args.path:
