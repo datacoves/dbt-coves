@@ -114,19 +114,6 @@ Metadata format:
   |raw|        master|     person|     name|       (empty)|     varchar|    The full name|
   |raw|        master|     person|     name|       groupName|   varchar|    The group name|
   
-
-## Quality Assurance
-
-``` console
-dbt-coves check
-```
-
-Runs a set of checks in your local environment to ensure high code
-quality.
-
-Checks can be extended by implementing [pre-commit
-hooks](https://pre-commit.com/#creating-new-hooks).
-
 ## Environment setup
 
 Setting up your environment can be done in two different ways:

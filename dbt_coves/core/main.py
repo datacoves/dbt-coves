@@ -11,9 +11,7 @@ from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
 from dbt_coves.tasks.base import BaseTask
-from dbt_coves.tasks.check import CheckTask
 from dbt_coves.tasks.extract.main import ExtractTask
-from dbt_coves.tasks.fix import FixTask
 from dbt_coves.tasks.generate.main import GenerateTask
 from dbt_coves.tasks.load.main import LoadTask
 from dbt_coves.tasks.setup.main import SetupTask
@@ -103,8 +101,6 @@ sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
     task.register_parser(sub_parsers, base_subparser)
     for task in [
         GenerateTask,
-        CheckTask,
-        FixTask,
         SetupTask,
         ExtractTask,
         LoadTask,
@@ -166,6 +162,7 @@ def main(
         )
     except Exception as ex:
         import traceback
+
         logger.debug(traceback.format_exc())
         console.print(f"[red]:cross_mark:[/red] {ex}")
 
