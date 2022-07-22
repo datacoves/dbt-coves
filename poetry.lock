@@ -36,18 +36,6 @@ optional = false
 python-versions = "*"
 
 [[package]]
-name = "arrow"
-version = "1.2.2"
-description = "Better dates & times for Python"
-category = "main"
-optional = false
-python-versions = ">=3.6"
-
-[package.dependencies]
-python-dateutil = ">=2.7.0"
-typing-extensions = {version = "*", markers = "python_version < \"3.8\""}
-
-[[package]]
 name = "asciinema"
 version = "2.1.0"
 description = "Terminal session recorder"
@@ -95,17 +83,6 @@ description = "Specifications for callback functions passed in to an API"
 category = "dev"
 optional = false
 python-versions = "*"
-
-[[package]]
-name = "binaryornot"
-version = "0.4.4"
-description = "Ultra-lightweight pure Python package to check if a file is binary or text."
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-chardet = ">=3.0.2"
 
 [[package]]
 name = "black"
@@ -170,14 +147,6 @@ python-versions = "*"
 pycparser = "*"
 
 [[package]]
-name = "chardet"
-version = "4.0.0"
-description = "Universal encoding detector for Python 2 and 3"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[[package]]
 name = "charset-normalizer"
 version = "2.0.12"
 description = "The Real First Universal Charset Detector. Open, modern and actively maintained alternative to Chardet."
@@ -231,24 +200,6 @@ python-versions = "*"
 test = ["flake8 (==3.7.8)", "hypothesis (==3.55.3)"]
 
 [[package]]
-name = "cookiecutter"
-version = "1.7.3"
-description = "A command-line utility that creates projects from project templates, e.g. creating a Python package project from a Python package project template."
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
-
-[package.dependencies]
-binaryornot = ">=0.4.4"
-click = ">=7.0"
-Jinja2 = ">=2.7,<4.0.0"
-jinja2-time = ">=0.2.0"
-poyo = ">=0.5.0"
-python-slugify = ">=4.0.0"
-requests = ">=2.23.0"
-six = ">=1.10"
-
-[[package]]
 name = "coverage"
 version = "6.3.2"
 description = "Code coverage measurement for Python"
@@ -278,7 +229,7 @@ idna = ">=2.5,<4"
 isodate = ">=0.6,<0.7"
 Jinja2 = "2.11.3"
 logbook = ">=1.5,<1.6"
-MarkupSafe = ">=0.23,<2.1"
+MarkupSafe = "2.0.1"
 mashumaro = "2.9"
 minimal-snowplow-tracker = "0.0.2"
 networkx = ">=2.3,<3"
@@ -500,18 +451,6 @@ MarkupSafe = ">=0.23"
 
 [package.extras]
 i18n = ["Babel (>=0.8)"]
-
-[[package]]
-name = "jinja2-time"
-version = "0.2.0"
-description = "Jinja2 Extension for Dates and Times"
-category = "main"
-optional = false
-python-versions = "*"
-
-[package.dependencies]
-arrow = "*"
-jinja2 = "*"
 
 [[package]]
 name = "jsonschema"
@@ -765,14 +704,6 @@ python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*, !=3.4.*"
 
 [package.dependencies]
 importlib-metadata = {version = ">=1.7.0,<2.0.0", markers = "python_version >= \"2.7\" and python_version < \"2.8\" or python_version >= \"3.5\" and python_version < \"3.8\""}
-
-[[package]]
-name = "poyo"
-version = "0.5.0"
-description = "A lightweight YAML Parser for Python. 🐓"
-category = "main"
-optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
 
 [[package]]
 name = "pretty-errors"
@@ -1404,7 +1335,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.10"
-content-hash = "d0a2031a72914ab6e546571d154cf103278c4ecadf4681825692de657012a089"
+content-hash = "2eea160a8357b484d590366f13069d162928742561a2e6caa043259a87a71efc"
 
 [metadata.files]
 agate = [
@@ -1418,10 +1349,6 @@ alabaster = [
 appnope = [
     {file = "appnope-0.1.2-py2.py3-none-any.whl", hash = "sha256:93aa393e9d6c54c5cd570ccadd8edad61ea0c4b9ea7a01409020c9aa019eb442"},
     {file = "appnope-0.1.2.tar.gz", hash = "sha256:dd83cd4b5b460958838f6eb3000c660b1f9caf2a5b1de4264e941512f603258a"},
-]
-arrow = [
-    {file = "arrow-1.2.2-py3-none-any.whl", hash = "sha256:d622c46ca681b5b3e3574fcb60a04e5cc81b9625112d5fb2b44220c36c892177"},
-    {file = "arrow-1.2.2.tar.gz", hash = "sha256:05caf1fd3d9a11a1135b2b6f09887421153b94558e5ef4d090b567b47173ac2b"},
 ]
 asciinema = [
     {file = "asciinema-2.1.0-py3-none-any.whl", hash = "sha256:00afd5ba5b07197ec5454c70fa2a5d064ee27736654cd5cbe816dfc87576366f"},
@@ -1442,10 +1369,6 @@ babel = [
 backcall = [
     {file = "backcall-0.2.0-py2.py3-none-any.whl", hash = "sha256:fbbce6a29f263178a1f7915c1940bde0ec2b2a967566fe1c65c1dfb7422bd255"},
     {file = "backcall-0.2.0.tar.gz", hash = "sha256:5cbdbf27be5e7cfadb448baf0aa95508f91f2bbc6c6437cd9cd06e2a4c215e1e"},
-]
-binaryornot = [
-    {file = "binaryornot-0.4.4-py2.py3-none-any.whl", hash = "sha256:b8b71173c917bddcd2c16070412e369c3ed7f0528926f70cac18a6c97fd563e4"},
-    {file = "binaryornot-0.4.4.tar.gz", hash = "sha256:359501dfc9d40632edc9fac890e19542db1a287bbcfa58175b66658392018061"},
 ]
 black = [
     {file = "black-21.12b0-py3-none-any.whl", hash = "sha256:a615e69ae185e08fdd73e4715e260e2479c861b5740057fde6e8b4e3b7dd589f"},
@@ -1515,10 +1438,6 @@ cffi = [
     {file = "cffi-1.15.0-cp39-cp39-win_amd64.whl", hash = "sha256:3773c4d81e6e818df2efbc7dd77325ca0dcb688116050fb2b3011218eda36139"},
     {file = "cffi-1.15.0.tar.gz", hash = "sha256:920f0d66a896c2d99f0adbb391f990a84091179542c205fa53ce5787aff87954"},
 ]
-chardet = [
-    {file = "chardet-4.0.0-py2.py3-none-any.whl", hash = "sha256:f864054d66fd9118f2e67044ac8981a54775ec5b67aed0441892edb553d21da5"},
-    {file = "chardet-4.0.0.tar.gz", hash = "sha256:0d6f53a15db4120f2b08c94f11e7d93d2c911ee118b6b30a04ec3ee8310179fa"},
-]
 charset-normalizer = [
     {file = "charset-normalizer-2.0.12.tar.gz", hash = "sha256:2857e29ff0d34db842cd7ca3230549d1a697f96ee6d3fb071cfa6c7393832597"},
     {file = "charset_normalizer-2.0.12-py3-none-any.whl", hash = "sha256:6881edbebdb17b39b4eaaa821b438bf6eddffb4468cf344f09f89def34a8b1df"},
@@ -1537,10 +1456,6 @@ colorama = [
 commonmark = [
     {file = "commonmark-0.9.1-py2.py3-none-any.whl", hash = "sha256:da2f38c92590f83de410ba1a3cbceafbc74fee9def35f9251ba9a971d6d66fd9"},
     {file = "commonmark-0.9.1.tar.gz", hash = "sha256:452f9dc859be7f06631ddcb328b6919c67984aca654e5fefb3914d54691aed60"},
-]
-cookiecutter = [
-    {file = "cookiecutter-1.7.3-py2.py3-none-any.whl", hash = "sha256:f8671531fa96ab14339d0c59b4f662a4f12a2ecacd94a0f70a3500843da588e2"},
-    {file = "cookiecutter-1.7.3.tar.gz", hash = "sha256:6b9a4d72882e243be077a7397d0f1f76fe66cf3df91f3115dbb5330e214fa457"},
 ]
 coverage = [
     {file = "coverage-6.3.2-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:9b27d894748475fa858f9597c0ee1d4829f44683f3813633aaf94b19cb5453cf"},
@@ -1672,10 +1587,6 @@ jedi = [
 jinja2 = [
     {file = "Jinja2-2.11.3-py2.py3-none-any.whl", hash = "sha256:03e47ad063331dd6a3f04a43eddca8a966a26ba0c5b7207a9a9e4e08f1b29419"},
     {file = "Jinja2-2.11.3.tar.gz", hash = "sha256:a6d58433de0ae800347cab1fa3043cebbabe8baa9d29e668f1c768cb87a333c6"},
-]
-jinja2-time = [
-    {file = "jinja2-time-0.2.0.tar.gz", hash = "sha256:d14eaa4d315e7688daa4969f616f226614350c48730bfa1692d2caebd8c90d40"},
-    {file = "jinja2_time-0.2.0-py2.py3-none-any.whl", hash = "sha256:d3eab6605e3ec8b7a0863df09cc1d23714908fa61aa6986a845c20ba488b4efa"},
 ]
 jsonschema = [
     {file = "jsonschema-3.1.1-py2.py3-none-any.whl", hash = "sha256:94c0a13b4a0616458b42529091624e66700a17f847453e52279e35509a5b7631"},
@@ -1886,10 +1797,6 @@ pluggy = [
 poetry-core = [
     {file = "poetry-core-1.0.8.tar.gz", hash = "sha256:951fc7c1f8d710a94cb49019ee3742125039fc659675912ea614ac2aa405b118"},
     {file = "poetry_core-1.0.8-py2.py3-none-any.whl", hash = "sha256:54b0fab6f7b313886e547a52f8bf52b8cf43e65b2633c65117f8755289061924"},
-]
-poyo = [
-    {file = "poyo-0.5.0-py2.py3-none-any.whl", hash = "sha256:3e2ca8e33fdc3c411cd101ca395668395dd5dc7ac775b8e809e3def9f9fe041a"},
-    {file = "poyo-0.5.0.tar.gz", hash = "sha256:e26956aa780c45f011ca9886f044590e2d8fd8b61db7b1c1cf4e0869f48ed4dd"},
 ]
 pretty-errors = [
     {file = "pretty_errors-1.2.25-py3-none-any.whl", hash = "sha256:8ce68ccd99e0f2a099265c8c1f1c23b7c60a15d69bb08816cb336e237d5dc983"},
