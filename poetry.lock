@@ -1214,7 +1214,7 @@ testing = ["flaky (>=3.4.0)", "freezegun (>=0.3.11)", "pytest (>=4.0.0)", "pytes
 
 [[package]]
 name = "tox-poetry-installer"
-version = "0.8.3"
+version = "0.8.4"
 description = "A plugin for Tox that lets you install test environment dependencies from the Poetry lockfile"
 category = "dev"
 optional = false
@@ -1335,7 +1335,7 @@ testing = ["pytest (>=6)", "pytest-checkdocs (>=2.4)", "pytest-flake8", "pytest-
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.10"
-content-hash = "2eea160a8357b484d590366f13069d162928742561a2e6caa043259a87a71efc"
+content-hash = "9d02a60f6b35c1543455e2b6c7e6250d69a87e4cbfb99e587c46eb73f925eb79"
 
 [metadata.files]
 agate = [
@@ -2046,8 +2046,8 @@ tox = [
     {file = "tox-3.24.5.tar.gz", hash = "sha256:67e0e32c90e278251fea45b696d0fef3879089ccbe979b0c556d35d5a70e2993"},
 ]
 tox-poetry-installer = [
-    {file = "tox-poetry-installer-0.8.3.tar.gz", hash = "sha256:04b6c7d368b67ef3cc4409e275b26eef3564a6487259bd9cc671587f5aaf4b4f"},
-    {file = "tox_poetry_installer-0.8.3-py3-none-any.whl", hash = "sha256:4cefad997ef5b8533811ceb5308b5cb6e6d6997af377c0b7d03b2dd43179c235"},
+    {file = "tox-poetry-installer-0.8.4.tar.gz", hash = "sha256:c1d4e25768c127c577c0930dec9a82e107a5c2c3b1ec60b95c88dbd2695ba6aa"},
+    {file = "tox_poetry_installer-0.8.4-py3-none-any.whl", hash = "sha256:fb67d78794a5aeedcaf34b0db7440f089076a17400f950665a95eed3d87781d0"},
 ]
 traitlets = [
     {file = "traitlets-5.1.1-py3-none-any.whl", hash = "sha256:2d313cc50a42cd6c277e7d7dc8d4d7fedd06a2c215f78766ae7b1a66277e0033"},
