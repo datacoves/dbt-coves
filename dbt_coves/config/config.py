@@ -12,7 +12,6 @@ from dbt_coves.utils.yaml import open_yaml
 
 
 class GeneratePropertiesModel(BaseModel):
-    model_props_strategy: Optional[str] = "one_file_per_model"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     select: Optional[str] = ""
     metadata: Optional[str] = ""
@@ -22,8 +21,12 @@ class GenerateSourcesModel(BaseModel):
     database: Optional[str] = ""
     relations: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = [""]
-    destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.sql"
-    model_props_strategy: Optional[str] = "one_file_per_model"
+    sources_destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.yml"
+    models_destination: Optional[str] = "models/inlets/{{schema}}/{{relation}}.sql"
+    models_props_destination: Optional[
+        str
+    ] = "models/inlets/{{schema}}/{{relation}}.yml"
+    update_strategy: Optional[str] = "update"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
 
@@ -107,8 +110,10 @@ class DbtCovesConfig:
         "generate.sources.relations",
         "generate.sources.database",
         "generate.sources.schemas",
-        "generate.sources.destination",
-        "generate.sources.model_props_strategy",
+        "generate.sources.sources_destination",
+        "generate.sources.models_destination",
+        "generate.sources.models_props_destination",
+        "generate.sources.update_strategy",
         "generate.sources.templates_folder",
         "generate.sources.metadata",
         "extract.airbyte.path",

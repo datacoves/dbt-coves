@@ -1,11 +1,16 @@
 from __future__ import nested_scopes
+from collections import OrderedDict
+import copy
 import json
 import re
+import yaml
 from pathlib import Path
 
 import questionary
+
 from questionary import Choice
 from rich.console import Console
+
 
 from dbt_coves.utils.jinja import render_template, render_template_file
 
@@ -51,16 +56,28 @@ class GenerateSourcesTask(BaseGenerateTask):
             "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
         )
         subparser.add_argument(
-            "--destination",
+            "--sources-destination",
             type=str,
-            help="Where models sql files will be generated, i.e. "
-            "'models/{schema_name}/{relation_name}.sql'",
+            help="Where sources yml files will be generated, i.e. "
+            "'models/sources/{schema}/{relation}.yml'",
         )
         subparser.add_argument(
-            "--model-props-strategy",
+            "--models-destination",
             type=str,
-            help="Strategy for model properties files generation,"
-            " i.e. 'one_file_per_model'",
+            help="Where models sql files will be generated, i.e. "
+            "'models/inlets/{schema}/{relation}.sql'",
+        )
+        subparser.add_argument(
+            "--models-props-destination",
+            type=str,
+            help="Where models yml files will be generated, i.e. "
+            "'models/inlets/{schema}/{relation}.yml'",
+        )
+        subparser.add_argument(
+            "--update-strategy",
+            type=str,
+            help="Where models yml files will be generated, i.e. "
+            "'models/inlets/{schema}/{relation}.yml'",
         )
         subparser.add_argument(
             "--templates-folder",
@@ -138,13 +155,28 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         return selected_rels
 
+    def generate_template(self, destination_path, relation):
+        template_context = dict()
+        if "{{schema}}" in destination_path.replace(" ", ""):
+            template_context["schema"] = relation.schema.lower()
+        if "{{relation}}" in destination_path.replace(" ", ""):
+            template_context["relation"] = relation.name.lower()
+        return render_template(destination_path, template_context)
+
     def generate(self, rels):
-        dest = self.get_config_value("destination")
-        options = {"override_all": None, "flatten_all": None}
+        models_destination = self.get_config_value("models_destination")
+        options = {
+            "override_all": None,
+            "flatten_all": None,
+            "model_prop_is_single_file": None,
+            "model_prop_update_all": None,
+            "model_prop_recreate_all": None,
+            "source_prop_is_single_file": None,
+            "source_prop_update_all": None,
+            "source_prop_recreate_all": None,
+        }
         for rel in rels:
-            model_dest = render_template(
-                dest, {"schema": rel.schema.lower(), "relation": rel.name.lower()}
-            )
+            model_dest = self.generate_template(models_destination, rel)
             model_sql = Path().joinpath(model_dest)
             if not options["override_all"]:
                 if model_sql.exists():
@@ -154,19 +186,35 @@ class GenerateSourcesTask(BaseGenerateTask):
                         default="No",
                     ).ask()
                     if overwrite == "Yes":
-                        self.generate_model(rel, model_sql, options)
+                        self.generate_model(
+                            rel,
+                            model_sql,
+                            options,
+                        )
                     elif overwrite == "No for all":
                         options["override_all"] = "No"
                     elif overwrite == "Yes for all":
                         options["override_all"] = "Yes"
-                        self.generate_model(rel, model_sql, options)
+                        self.generate_model(
+                            rel,
+                            model_sql,
+                            options,
+                        )
                 else:
-                    self.generate_model(rel, model_sql, options)
+                    self.generate_model(
+                        rel,
+                        model_sql,
+                        options,
+                    )
             elif options["override_all"] == "Yes":
                 self.generate_model(rel, model_sql, options)
             else:
                 if not model_sql.exists():
-                    self.generate_model(rel, model_sql, options)
+                    self.generate_model(
+                        rel,
+                        model_sql,
+                        options,
+                    )
 
     def generate_model(self, relation, destination, options):
         destination.parent.mkdir(parents=True, exist_ok=True)
@@ -187,22 +235,40 @@ class GenerateSourcesTask(BaseGenerateTask):
                     default="Yes",
                 ).ask()
                 if flatten == "Yes":
-                    self.render_templates(relation, columns, destination, json_cols=nested)
+                    self.render_templates(
+                        relation,
+                        columns,
+                        destination,
+                        options,
+                        json_cols=nested,
+                    )
                 elif flatten == "No":
-                    self.render_templates(relation, columns, destination)
+                    self.render_templates(relation, columns, destination, options)
                 elif flatten == "No for all":
                     options["flatten_all"] = "No"
-                    self.render_templates(relation, columns, destination)
+                    self.render_templates(relation, columns, destination, options)
                 elif flatten == "Yes for all":
                     options["flatten_all"] = "Yes"
-                    self.render_templates(relation, columns, destination, json_cols=nested)
+                    self.render_templates(
+                        relation,
+                        columns,
+                        destination,
+                        options,
+                        json_cols=nested,
+                    )
             else:
-                self.render_templates(relation, columns, destination)
+                self.render_templates(relation, columns, destination, options)
         elif options["flatten_all"] == "Yes":
             if nested:
-                self.render_templates(relation, columns, destination, json_cols=nested)
+                self.render_templates(
+                    relation,
+                    columns,
+                    destination,
+                    options,
+                    json_cols=nested,
+                )
         else:
-            self.render_templates(relation, columns, destination)
+            self.render_templates(relation, columns, destination, options)
 
     def get_templates_context(self, relation, columns, json_cols=None):
         metadata_cols = self.get_metadata_columns(relation, columns)
@@ -217,7 +283,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             # Removing original column with JSON data
             new_cols = []
             for col in metadata_cols:
-                if col['id'].lower() not in context["nested"]:
+                if col["id"].lower() not in context["nested"]:
                     new_cols.append(col)
             context["columns"] = new_cols
         config_db = self.get_config_value("database")
@@ -226,18 +292,215 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         return context
 
-    def render_templates_with_context(self, context, destination):
-
+    def render_templates_with_context(self, context, destination, options):
         templates_folder = self.get_config_value("templates_folder")
+
+        # Render model SQL
         render_template_file(
             "source_model.sql", context, destination, templates_folder=templates_folder
         )
-        context["model"] = destination.name.lower().replace(".sql", "")
+
+        # Render model and source YMLs
+        self.render_properties(context, options, templates_folder)
+
+    def update_model_columns(self, columns_a: list, columns_b: list):
+        model_a_column_names = [col.get("name") for col in columns_a]
+        for new_column in columns_b:
+            if new_column.get("name") in model_a_column_names:
+                # If column exists in A, update it's description
+                # and leave as-is to avoid overriding tests
+                for current_column in columns_a:
+                    if (
+                        current_column.get("name") == new_column.get("name")
+                    ) and new_column.get("description"):
+                        current_column["description"] = new_column.get("description")
+            else:
+                columns_a.append(new_column)
+
+    def update_model_properties(self, model_a: dict, model_b: dict):
+        if model_b.get("description"):
+            model_a["description"] = model_b.get("description")
+        self.update_model_columns(model_a.get("columns"), model_b.get("columns"))
+
+    def merge_models(self, models_a: list, models_b: list):
+        models_a_names = [model.get("name") for model in models_a]
+        for new_model in models_b:
+            if not new_model.get("name") in models_a_names:
+                models_a.append(new_model)
+            else:
+                for current_model in models_a:
+                    if current_model.get("name") == new_model.get("name"):
+                        self.update_model_properties(current_model, new_model)
+
+        return models_a
+
+    def update_source_tables(self, tables_a: list, tables_b: list):
+        source_a_table_names = [table.get("name") for table in tables_a]
+        for new_table in tables_b:
+            if new_table.get("name") in source_a_table_names:
+                # If table exists in A, update it's description and identifier
+                # and leave as-is to avoid overriding tests
+                for current_table in tables_a:
+                    if current_table.get("name") == new_table.get("name"):
+                        if new_table.get("description"):
+                            current_table["description"] = new_table.get("description")
+                        if new_table.get("identifier"):
+                            current_table["identifier"] = new_table.get("identifier")
+            else:
+                tables_a.append(new_table)
+
+    def update_sources_properties(self, source_a: dict, source_b: dict):
+        source_a["database"] = source_b.get("database")
+        source_a["schema"] = source_b.get("schema")
+        self.update_source_tables(source_a.get("tables"), source_b.get("tables"))
+
+    def merge_sources(self, sources_a, sources_b):
+        sources_a_names = [source.get("name") for source in sources_a]
+        for new_source in sources_b:
+            if not new_source.get("name") in sources_a_names:
+                sources_a.append(new_source)
+            else:
+                for current_source in sources_a:
+                    if current_source.get("name") == new_source.get("name"):
+                        self.update_sources_properties(current_source, new_source)
+        return sources_a
+
+    def merge_property_files(self, dict_a, dict_b):
+        result_dict = copy.deepcopy(dict_a)
+        if "sources" in result_dict:
+            result_dict["sources"] = self.merge_sources(
+                result_dict["sources"], dict_b["sources"]
+            )
+        if "models" in result_dict:
+            result_dict["models"] = self.merge_models(
+                result_dict["models"], dict_b["models"]
+            )
+
+        return result_dict
+
+    def update_property_file(self, template, context, yml_path, templates_folder):
+        # Grab and open current yml dict
+        current_yml = dict()
+        new_yml = dict()
+        with open(yml_path, "r") as file:
+            current_yml = yaml.safe_load(file)
+
+        # Render new one
         render_template_file(
-            "source_model_props.yml",
+            template,
             context,
-            str(destination).replace(".sql", ".yml"),
+            yml_path,
             templates_folder=templates_folder,
+        )
+
+        # Open it
+        with open(yml_path, "r") as file:
+            new_yml = yaml.safe_load(file)
+
+        # Deep merge with old content
+        merged_ymls = self.merge_property_files(current_yml, new_yml)
+
+        with open(yml_path, "w") as file:
+            yaml.safe_dump(merged_ymls, file, sort_keys=False)
+
+    def render_property_file(self, template, context, model_yml, templates_folder):
+        model_yml.parent.mkdir(parents=True, exist_ok=True)
+        render_template_file(
+            template,
+            context,
+            model_yml,
+            templates_folder=templates_folder,
+        )
+
+    def render_property_files(
+        self, context, options, templates_folder, update_strategy, object
+    ):
+        strategy_key_update_all = ""
+        strategy_key_recreate_all = ""
+
+        if object == "Models":
+            template = "source_model_props.yml"
+            yml_cfg_destination = self.get_config_value("models_props_destination")
+            if not re.search(
+                r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
+            ):
+                options["model_prop_is_single_file"] = "Yes"
+            strategy_key_update_all = "model_prop_update_all"
+            strategy_key_recreate_all = "model_prop_recreate_all"
+        if object == "Sources":
+            template = "source_props.yml"
+            yml_cfg_destination = self.get_config_value("sources_destination")
+            strategy_key_update_all = "source_prop_update_all"
+            strategy_key_recreate_all = "source_prop_recreate_all"
+            if not re.search(
+                r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
+            ):
+                options["source_prop_is_single_file"] = "Yes"
+
+        rel = context["relation"]
+        yml_dest = self.generate_template(yml_cfg_destination, rel)
+        yml_path = Path().joinpath(yml_dest)
+
+        context["model"] = rel.name.lower()
+
+        if (
+            not options[strategy_key_recreate_all]
+            and not options[strategy_key_update_all]
+        ):
+            if yml_path.exists():
+                if update_strategy == "ask":
+                    overwrite = questionary.select(
+                        f"Property file {yml_path} already exists. What would you like to do with it?",
+                        choices=[
+                            "Update",
+                            "Update all",
+                            "Recreate",
+                            "Recreate all",
+                            "Skip",
+                            "Cancel",
+                        ],
+                        default="Recreate",
+                    ).ask()
+                    if overwrite == "Recreate":
+                        self.render_property_file(
+                            template, context, yml_path, templates_folder
+                        )
+                    if overwrite == "Recreate all":
+                        options[strategy_key_recreate_all] = "Yes"
+                        self.render_property_file(
+                            template, context, yml_path, templates_folder
+                        )
+                    if overwrite == "Update":
+                        if options.get("source_prop_is_single_file") or options.get(
+                            "model_prop_is_single_file"
+                        ):
+                            options[strategy_key_update_all] = "Yes"
+                        self.update_property_file(
+                            template, context, yml_path, templates_folder
+                        )
+
+                    if overwrite == "Update all":
+                        options[strategy_key_update_all] = "Yes"
+                        self.update_property_file(
+                            template, context, yml_path, templates_folder
+                        )
+                    if overwrite == "Cancel":
+                        exit
+            else:
+                self.render_property_file(template, context, yml_path, templates_folder)
+        if options[strategy_key_recreate_all]:
+            self.render_property_file(template, context, yml_path, templates_folder)
+        if options[strategy_key_update_all]:
+            self.update_property_file(template, context, yml_path, templates_folder)
+
+    def render_properties(self, context, options, templates_folder):
+        update_strategy = self.get_config_value("update_strategy")
+
+        self.render_property_files(
+            context, options, templates_folder, update_strategy, "Models"
+        )
+        self.render_property_files(
+            context, options, templates_folder, update_strategy, "Sources"
         )
 
     def get_nested_keys(self, json_cols, relation):
@@ -258,7 +521,9 @@ class GenerateSourcesTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                        result[json_col][key_name] = self.get_default_metadata_item(
+                            key_name
+                        )
                     self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(
