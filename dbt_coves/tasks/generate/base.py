@@ -77,7 +77,12 @@ class BaseGenerateTask(BaseConfiguredTask):
         return data
 
     def get_default_metadata_item(self, name, type="varchar", description=""):
-        return {"name": name, "id": slugify(name, separator="_"), "type": type, "description": description}
+        return {
+            "name": name,
+            "id": slugify(name, separator="_"),
+            "type": type,
+            "description": description,
+        }
 
     def get_metadata(self):
         """
@@ -111,10 +116,12 @@ class BaseGenerateTask(BaseConfiguredTask):
 
         return metadata_map
 
-    def render_templates(self, relation, columns, destination, json_cols=None):
+    def render_templates(
+        self, relation, columns, destination, options=None, json_cols=None
+    ):
 
         context = self.get_templates_context(relation, columns, json_cols)
-        self.render_templates_with_context(context, destination)
+        self.render_templates_with_context(context, destination, options)
 
     def get_templates_context(self, relation, columns, json_cols=None):
         return {
@@ -137,7 +144,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                     "database": relation.database,
                     "schema": relation.schema,
                     "relation": relation.name,
-                    "column": col.name
+                    "column": col.name,
                 }
                 metadata_key = self.get_metadata_map_key(metadata_map_key_data)
                 new_col = metadata.get(metadata_key)
