@@ -96,6 +96,28 @@ based on configuration and existing data.
 Supports [Jinja](https://jinja.palletsprojects.com/) templates to adjust
 how the resources are generated.
 
+### Arguments
+
+```console
+--sources-destination
+# Where sources yml files will be generated, i.e. 'models/sources/{{schema}}/{{relation}}.yml'
+```
+
+```console
+--models-destination
+# Where models sql files will be generated, i.e 'models/staging/{{schema}}/{{relation}}.sql'
+```
+
+```console
+--model-props-destination
+# Where models yml files will be generated, i.e. 'models/staging/{{schema}}/{{relation}}.yml'
+```
+
+```console
+--update-strategy
+# Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
+```
+
 ### Metadata
 
 Supports the argument *--metadata* which allows to specify a csv file

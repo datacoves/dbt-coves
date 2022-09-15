@@ -59,19 +59,19 @@ class GenerateSourcesTask(BaseGenerateTask):
             "--sources-destination",
             type=str,
             help="Where sources yml files will be generated, i.e. "
-            "'models/sources/{schema}/{relation}.yml'",
+            "'models/sources/{{schema}}/{{relation}}.yml'",
         )
         subparser.add_argument(
             "--models-destination",
             type=str,
             help="Where models sql files will be generated, i.e. "
-            "'models/staging/{schema}/{relation}.sql'",
+            "'models/staging/{{schema}}/{{relation}}.sql'",
         )
         subparser.add_argument(
             "--model-props-destination",
             type=str,
             help="Where models yml files will be generated, i.e. "
-            "'models/staging/{schema}/{relation}.yml'",
+            "'models/staging/{{schema}}/{{relation}}.yml'",
         )
         subparser.add_argument(
             "--update-strategy",
@@ -168,12 +168,12 @@ class GenerateSourcesTask(BaseGenerateTask):
         options = {
             "override_all": None,
             "flatten_all": None,
-            "model_prop_is_single_file": None,
-            "model_prop_update_all": None,
-            "model_prop_recreate_all": None,
-            "source_prop_is_single_file": None,
-            "source_prop_update_all": None,
-            "source_prop_recreate_all": None,
+            "model_prop_is_single_file": False,
+            "model_prop_update_all": False,
+            "model_prop_recreate_all": False,
+            "source_prop_is_single_file": False,
+            "source_prop_update_all": False,
+            "source_prop_recreate_all": False,
         }
         for rel in rels:
             model_dest = self.generate_template(models_destination, rel)
@@ -426,7 +426,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             if not re.search(
                 r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
             ):
-                options["model_prop_is_single_file"] = "Yes"
+                options["model_prop_is_single_file"] = True
             strategy_key_update_all = "model_prop_update_all"
             strategy_key_recreate_all = "model_prop_recreate_all"
         if object == "Sources":
@@ -437,7 +437,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             if not re.search(
                 r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
             ):
-                options["source_prop_is_single_file"] = "Yes"
+                options["source_prop_is_single_file"] = True
 
         rel = context["relation"]
         yml_dest = self.generate_template(yml_cfg_destination, rel)
@@ -461,14 +461,14 @@ class GenerateSourcesTask(BaseGenerateTask):
                             "Skip",
                             "Cancel",
                         ],
-                        default="Recreate",
+                        default="Update",
                     ).ask()
                     if overwrite == "Recreate":
                         self.render_property_file(
                             template, context, yml_path, templates_folder
                         )
                     if overwrite == "Recreate all":
-                        options[strategy_key_recreate_all] = "Yes"
+                        options[strategy_key_recreate_all] = True
                         self.render_property_file(
                             template, context, yml_path, templates_folder
                         )
@@ -476,13 +476,13 @@ class GenerateSourcesTask(BaseGenerateTask):
                         if options.get("source_prop_is_single_file") or options.get(
                             "model_prop_is_single_file"
                         ):
-                            options[strategy_key_update_all] = "Yes"
+                            options[strategy_key_update_all] = True
                         self.update_property_file(
                             template, context, yml_path, templates_folder
                         )
 
                     if overwrite == "Update all":
-                        options[strategy_key_update_all] = "Yes"
+                        options[strategy_key_update_all] = True
                         self.update_property_file(
                             template, context, yml_path, templates_folder
                         )
