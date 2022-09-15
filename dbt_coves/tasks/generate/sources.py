@@ -65,19 +65,19 @@ class GenerateSourcesTask(BaseGenerateTask):
             "--models-destination",
             type=str,
             help="Where models sql files will be generated, i.e. "
-            "'models/inlets/{schema}/{relation}.sql'",
+            "'models/staging/{schema}/{relation}.sql'",
         )
         subparser.add_argument(
             "--model-props-destination",
             type=str,
             help="Where models yml files will be generated, i.e. "
-            "'models/inlets/{schema}/{relation}.yml'",
+            "'models/staging/{schema}/{relation}.yml'",
         )
         subparser.add_argument(
             "--update-strategy",
             type=str,
-            help="Where models yml files will be generated, i.e. "
-            "'models/inlets/{schema}/{relation}.yml'",
+            help="Action to perform when a property file already exists"
+            "'update', 'recreate', 'fail', 'ask' (per file)",
         )
         subparser.add_argument(
             "--templates-folder",
@@ -421,6 +421,8 @@ class GenerateSourcesTask(BaseGenerateTask):
         if object == "Models":
             template = "source_model_props.yml"
             yml_cfg_destination = self.get_config_value("model_props_destination")
+            # If destination does not contain Jinja syntax it's a single file,
+            # and update/recreate must behave as 'update all' or 'recreate all'
             if not re.search(
                 r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
             ):

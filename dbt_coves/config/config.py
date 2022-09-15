@@ -22,9 +22,11 @@ class GenerateSourcesModel(BaseModel):
     relations: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = [""]
     sources_destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.yml"
-    models_destination: Optional[str] = "models/inlets/{{schema}}/{{relation}}.sql"
-    model_props_destination: Optional[str] = "models/inlets/{{schema}}/{{relation}}.yml"
-    update_strategy: Optional[str] = "update"
+    models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
+    model_props_destination: Optional[
+        str
+    ] = "models/staging/{{schema}}/{{relation}}.yml"
+    update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
 
