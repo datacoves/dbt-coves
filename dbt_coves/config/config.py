@@ -23,9 +23,7 @@ class GenerateSourcesModel(BaseModel):
     schemas: Optional[List[str]] = [""]
     sources_destination: Optional[str] = "models/sources/{{schema}}/{{relation}}.yml"
     models_destination: Optional[str] = "models/inlets/{{schema}}/{{relation}}.sql"
-    models_props_destination: Optional[
-        str
-    ] = "models/inlets/{{schema}}/{{relation}}.yml"
+    model_props_destination: Optional[str] = "models/inlets/{{schema}}/{{relation}}.yml"
     update_strategy: Optional[str] = "update"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
@@ -112,7 +110,7 @@ class DbtCovesConfig:
         "generate.sources.schemas",
         "generate.sources.sources_destination",
         "generate.sources.models_destination",
-        "generate.sources.models_props_destination",
+        "generate.sources.model_props_destination",
         "generate.sources.update_strategy",
         "generate.sources.templates_folder",
         "generate.sources.metadata",

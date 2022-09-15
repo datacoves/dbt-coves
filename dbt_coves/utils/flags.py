@@ -34,7 +34,7 @@ class DbtCovesFlags:
                 "schemas": [],
                 "sources_destination": None,
                 "models_destination": None,
-                "models_props_destination": None,
+                "model_props_destination": None,
                 "update_strategy": None,
                 "templates_folder": None,
                 "metadata": None,
@@ -118,10 +118,10 @@ class DbtCovesFlags:
                     self.generate["sources"][
                         "models_destination"
                     ] = self.args.models_destination
-                if self.args.models_props_destination:
+                if self.args.model_props_destination:
                     self.generate["sources"][
-                        "models_props_destination"
-                    ] = self.args.models_props_destination
+                        "model_props_destination"
+                    ] = self.args.model_props_destination
                 if self.args.update_strategy:
                     self.generate["sources"][
                         "update_strategy"

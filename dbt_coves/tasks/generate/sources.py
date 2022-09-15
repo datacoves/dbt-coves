@@ -68,7 +68,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             "'models/inlets/{schema}/{relation}.sql'",
         )
         subparser.add_argument(
-            "--models-props-destination",
+            "--model-props-destination",
             type=str,
             help="Where models yml files will be generated, i.e. "
             "'models/inlets/{schema}/{relation}.yml'",
@@ -420,7 +420,7 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         if object == "Models":
             template = "source_model_props.yml"
-            yml_cfg_destination = self.get_config_value("models_props_destination")
+            yml_cfg_destination = self.get_config_value("model_props_destination")
             if not re.search(
                 r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
             ):
@@ -484,8 +484,20 @@ class GenerateSourcesTask(BaseGenerateTask):
                         self.update_property_file(
                             template, context, yml_path, templates_folder
                         )
+                    if overwrite == "Skip":
+                        pass
                     if overwrite == "Cancel":
                         exit
+                elif update_strategy == "update":
+                    self.update_property_file(
+                        template, context, yml_path, templates_folder
+                    )
+                elif update_strategy == "recreate":
+                    self.render_property_file(
+                        template, context, yml_path, templates_folder
+                    )
+                else:
+                    exit
             else:
                 self.render_property_file(template, context, yml_path, templates_folder)
         if options[strategy_key_recreate_all]:
@@ -494,7 +506,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             self.update_property_file(template, context, yml_path, templates_folder)
 
     def render_properties(self, context, options, templates_folder):
-        update_strategy = self.get_config_value("update_strategy")
+        update_strategy = self.get_config_value("update_strategy").lower()
 
         self.render_property_files(
             context, options, templates_folder, update_strategy, "Models"
