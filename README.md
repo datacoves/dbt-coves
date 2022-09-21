@@ -100,7 +100,7 @@ how the resources are generated.
 
 ```console
 --sources-destination
-# Where sources yml files will be generated, i.e. 'models/sources/{{schema}}/{{relation}}.yml'
+# Where sources yml files will be generated, i.e. 'models/staging/{{schema}}/sources.yml'
 ```
 
 ```console
