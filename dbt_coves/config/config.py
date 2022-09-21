@@ -63,16 +63,7 @@ class LoadModel(BaseModel):
 
 
 class SetupAllModel(BaseModel):
-    templates: Optional[str] = ""
     open_ssl_public_key: Optional[bool] = False
-
-
-class SetupSqlfluffModel(BaseModel):
-    templates: Optional[str] = ""
-
-
-class SetupPrecommitModel(BaseModel):
-    templates: Optional[str] = ""
 
 
 class SetupSshModel(BaseModel):
@@ -85,8 +76,6 @@ class SetupGitModel(BaseModel):
 
 class SetupModel(BaseModel):
     all: Optional[SetupAllModel] = SetupAllModel()
-    sqlfluff: Optional[SetupSqlfluffModel] = SetupSqlfluffModel()
-    precommit: Optional[SetupPrecommitModel] = SetupPrecommitModel()
     ssh: Optional[SetupSshModel] = SetupSshModel()
     git: Optional[SetupGitModel] = SetupGitModel()
 
@@ -128,10 +117,7 @@ class DbtCovesConfig:
         "load.airbyte.secrets_token",
         "load.airbyte.secrets_path",
         "load.airbyte.dbt_list_args",
-        "setup.all.templates",
         "setup.all.open_ssl_public_key",
-        "setup.sqlfluff.templates",
-        "setup.precommit.templates",
         "setup.ssh.open_ssl_public_key",
         "setup.git.no_prompt",
     ]

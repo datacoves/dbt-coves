@@ -3,11 +3,8 @@ from rich.console import Console
 from dbt_coves.tasks.setup.git import SetupGitTask
 
 from .all import SetupAllTask
-from .sqlfluff import SetupSqlfluffTask
-from .pre_commit import SetupPrecommitTask
 from .dbt import SetupDbtTask
 from .ssh import SetupSSHTask
-from .vs_code import SetupVscodeTask
 
 from dbt_coves.tasks.base import NonDbtBaseTask
 
@@ -38,8 +35,5 @@ class SetupTask(NonDbtBaseTask):
         SetupGitTask.register_parser(sub_parsers, base_subparser)
         SetupDbtTask.register_parser(sub_parsers, base_subparser)
         SetupSSHTask.register_parser(sub_parsers, base_subparser)
-        SetupVscodeTask.register_parser(sub_parsers, base_subparser)
-        SetupSqlfluffTask.register_parser(sub_parsers, base_subparser)
-        SetupPrecommitTask.register_parser(sub_parsers, base_subparser)
         cls.arg_parser = ext_subparser
         return ext_subparser

@@ -7,9 +7,6 @@ from dbt_coves.tasks.base import NonDbtBaseTask
 from .ssh import SetupSSHTask
 from .git import SetupGitTask
 from .dbt import SetupDbtTask
-from .vs_code import SetupVscodeTask
-from .sqlfluff import SetupSqlfluffTask
-from .pre_commit import SetupPrecommitTask
 
 console = Console()
 
@@ -58,12 +55,6 @@ class SetupAllTask(NonDbtBaseTask):
         SetupDbtTask.dbt_debug()
 
         SetupDbtTask.dbt_deps()
-
-        SetupVscodeTask.run()
-
-        SetupSqlfluffTask(self.args, self.coves_config).run()
-
-        SetupPrecommitTask(self.args, self.coves_config).run()
 
         return 0
 

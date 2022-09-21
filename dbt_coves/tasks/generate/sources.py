@@ -58,25 +58,25 @@ class GenerateSourcesTask(BaseGenerateTask):
         subparser.add_argument(
             "--sources-destination",
             type=str,
-            help="Where sources yml files will be generated, i.e. "
+            help="Where sources yml files will be generated, default: "
             "'models/staging/{{schema}}/sources.yml'",
         )
         subparser.add_argument(
             "--models-destination",
             type=str,
-            help="Where models sql files will be generated, i.e. "
+            help="Where models sql files will be generated, default: "
             "'models/staging/{{schema}}/{{relation}}.sql'",
         )
         subparser.add_argument(
             "--model-props-destination",
             type=str,
-            help="Where models yml files will be generated, i.e. "
+            help="Where models yml files will be generated, default: "
             "'models/staging/{{schema}}/{{relation}}.yml'",
         )
         subparser.add_argument(
             "--update-strategy",
             type=str,
-            help="Action to perform when a property file already exists"
+            help="Action to perform when a property file already exists: "
             "'update', 'recreate', 'fail', 'ask' (per file)",
         )
         subparser.add_argument(
@@ -351,7 +351,8 @@ class GenerateSourcesTask(BaseGenerateTask):
 
     def update_sources_properties(self, source_a: dict, source_b: dict):
         source_a["database"] = source_b.get("database")
-        source_a["schema"] = source_b.get("schema")
+        if source_b.get("schema"):
+            source_a["schema"] = source_b.get("schema")
         self.update_source_tables(source_a.get("tables"), source_b.get("tables"))
 
     def merge_sources(self, sources_a, sources_b):

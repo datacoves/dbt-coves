@@ -66,9 +66,7 @@ class DbtCovesFlags:
             "current-dir": False,
         }
         self.setup = {
-            "all": {"templates": None, "open_ssl_public_key": False},
-            "sqlfluff": {"templates": None},
-            "precommit": {"templates": None},
+            "all": {"open_ssl_public_key": False},
             "ssh": {"open_ssl_public_key": False},
             "git": {"no_prompt": False},
         }
@@ -185,20 +183,10 @@ class DbtCovesFlags:
                     self.extract["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
 
             if self.args.cls.__name__ == "SetupAllTask":
-                if self.args.templates:
-                    self.setup["all"]["templates"] = self.args.templates
                 if self.args.open_ssl_public_key:
                     self.setup["all"][
                         "open_ssl_public_key"
                     ] = self.args.open_ssl_public_key
-
-            if self.args.cls.__name__ == "SetupSqlfluffTask":
-                if self.args.templates:
-                    self.setup["sqlfluff"]["templates"] = self.args.templates
-
-            if self.args.cls.__name__ == "SetupPrecommitTask":
-                if self.args.templates:
-                    self.setup["precommit"]["templates"] = self.args.templates
 
             if self.args.cls.__name__ == "SetupSSHTask":
                 if self.args.open_ssl_public_key:

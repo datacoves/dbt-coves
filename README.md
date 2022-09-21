@@ -69,18 +69,34 @@ dbt-coves -h
 dbt-coves <command> -h
 ```
 
-## Project initialization
+## Environment setup
+
+Setting up your environment can be done in two different ways:
 
 ``` console
-dbt-coves init
+dbt-coves setup all
 ```
 
-Initializes a new ready-to-use dbt project that includes recommended
-integrations such as [sqlfluff](https://github.com/sqlfluff/sqlfluff),
-[pre-commit](https://pre-commit.com/), dbt packages, among others.
+Runs a set of checks in your local environment and helps you configure every project component properly: `ssh keys`, `git` and `dbt` 
 
-Uses a [cookiecutter](https://github.com/datacoves/cookiecutter-dbt)
-template to make it easier to maintain.
+You can also configure individual components:
+
+``` console
+dbt-coves setup git
+```
+Set up `git` repository of dbt-coves project
+
+
+``` console
+dbt-coves setup dbt
+```
+Setup `dbt` within the project (delegates to dbt init)
+
+
+``` console
+dbt-coves setup ssh
+```
+Set up SSH Keys for dbt-coves project. Supports the argument `--open_ssl_public_key` which generates an extra Public Key in Open SSL format, useful for configuring certain providers (i.e. Snowflake authentication)
 
 ## Models generation
 
@@ -98,26 +114,27 @@ how the resources are generated.
 
 ### Arguments
 
+`dbt-coves generate sources` supports the following args:
+
 ```console
 --sources-destination
-# Where sources yml files will be generated, i.e. 'models/staging/{{schema}}/sources.yml'
+# Where sources yml files will be generated, default: 'models/staging/{{schema}}/sources.yml'
 ```
 
 ```console
 --models-destination
-# Where models sql files will be generated, i.e 'models/staging/{{schema}}/{{relation}}.sql'
+# Where models sql files will be generated, default: 'models/staging/{{schema}}/{{relation}}.sql'
 ```
 
 ```console
 --model-props-destination
-# Where models yml files will be generated, i.e. 'models/staging/{{schema}}/{{relation}}.yml'
+# Where models yml files will be generated, default: 'models/staging/{{schema}}/{{relation}}.yml'
 ```
 
 ```console
 --update-strategy
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
-
 ### Metadata
 
 Supports the argument *--metadata* which allows to specify a csv file
@@ -136,49 +153,7 @@ Metadata format:
   |raw|        master|     person|     name|       (empty)|     varchar|    The full name|
   |raw|        master|     person|     name|       groupName|   varchar|    The group name|
   
-## Environment setup
 
-Setting up your environment can be done in two different ways:
-
-``` console
-dbt-coves setup all
-```
-
-Runs a set of checks in your local environment and helps you configure every project component properly: ssh key, git, dbt profiles.yml, vscode extensions, sqlfluff and precommit.
-
-You can also configure individual components:
-
-``` console
-dbt-coves setup git
-```
-Set up Git repository of dbt-coves project
-
-
-``` console
-dbt-coves setup dbt
-```
-Setup `dbt` within the project (delegates to dbt init)
-
-
-``` console
-dbt-coves setup ssh
-```
-Set up SSH Keys for dbt-coves project. Supports the argument `--open_ssl_public_key` which generates an extra Public Key in Open SSL format, useful for configuring certain providers (i.e. Snowflake authentication)
-
-``` console
-dbt-coves setup vscode
-```
-Setup of predefined `settings.json` for `vscode`, `settings.json` may be added to .dbt_coves/templates/ folder
-
-``` console
-dbt-coves setup sqlfluff
-```
-Set up `sqlfluff` of dbt-coves project. Supports `--templates` argument for using your custom `.sqlfluff` configuration file
-
-``` console
-dbt-coves setup precommit
-```
-Setup of default `pre-commit` template of dbt-coves project. Supports `--templates` argument for using your custom `.pre-commit-config.yaml` configuration file
 
 ## Extract configuration from Airbyte
 
@@ -212,11 +187,22 @@ this:
 ``` yaml
 generate:
   sources:
+    database: RAW
     schemas:
       - RAW
-    destination: "models/sources/{{ schema }}/{{ relation }}.sql"
-    model_props_strategy: one_file_per_model
+    sources_destination: "models/staging/{{schema}}/sources.yml"
+    models_destination: "models/staging/{{schema}}/{{relation}}.sql"
+    model_props_destination: "models/staging/{{schema}}/{{relation}}.yml"
+    update_strategy: ask
+    # override default templates creating source_model_props.yml and source_model.sql under this folder
     templates_folder: ".dbt_coves/templates"
+
+extract:
+  airbyte:
+    path: /config/workspace/load
+    host: http://airbyte-server
+    port: 8001
+    dbt_list_args: --exclude source:dbt_artifacts
 ```
 
 In this example options for the `generate` command are provided:
@@ -226,9 +212,13 @@ In this example options for the `generate` command are provided:
 `destination`: Path to generated model, where `schema` represents the
 lowercased schema and `relation` the lowercased table name.
 
-`model_props_strategy`: Defines how dbt-coves generates model properties
-files, currently just `one_file_per_model` is available, creates one
-yaml file per model.
+`sources_destination`: Where sources yml files will be generated
+
+`models_destination`: Where models sql files will be generated
+
+`model_props_destination`: Where models yml files will be generated
+
+`update_strategy`: Action to perform when a property file already exists
 
 `templates_folder`: Folder where source generation jinja templates are
 located.
@@ -243,8 +233,7 @@ specific files under the `templates_folder` folder like these:
 ``` sql
 with raw_source as (
 
-    select
-        *
+    select *
     from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
 
 ),
@@ -280,11 +269,12 @@ final as (
 )
 
 select * from final
+
 ```
 
-### source_model_props.yml
+### source_props.yml
 
-``` yaml
+```yaml
 version: 2
 
 sources:
@@ -292,10 +282,15 @@ sources:
 {%- if source_database %}
     database: {{ source_database }}
 {%- endif %}
-    schema: {{ relation.schema.lower() }}
     tables:
       - name: {{ relation.name.lower() }}
-        identifier: {{ relation.name }}
+
+```
+
+### source_model_props.yml
+
+``` yaml
+version: 2
 
 models:
   - name: {{ model.lower() }}
@@ -332,27 +327,6 @@ models:
 {%- endfor %}
 
 ```
-
-### model.yml
-```yaml
-version: 2
-
-models:
-  - name: {{ model.lower() }}
-    columns:
-{%- for cols in nested.values() %}
-  {%- for col in cols %}
-      - name: {{ cols[col]["id"] }}
-      {%- if cols[col]["description"] %}
-        description: "{{ cols[col]['description'] }}"
-      {%- endif %}
-  {%- endfor %}
-{%- endfor %}
-{%- for col in columns %}
-      - name: {{ col.name.lower() }}
-{%- endfor %}
-```
-
 # Thanks
 
 The project main structure was inspired by
