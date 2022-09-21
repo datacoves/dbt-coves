@@ -77,7 +77,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 f"An error occurred listing your dbt models: \n {result.stdout or result.stderr}"
             )
 
-        manifest_json_lines = filter(lambda i: len(i) > 0 and i[0] == "{", result.stdout.splitlines())
+        manifest_json_lines = filter(
+            lambda i: len(i) > 0 and i[0] == "{", result.stdout.splitlines()
+        )
 
         manifest_data = [json.loads(model) for model in manifest_json_lines]
         manifest_data = filter(lambda d: d["resource_type"] == "model", manifest_data)
@@ -162,12 +164,14 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 }
                 self.generate_properties(relation, columns, destination)
             else:
-                print(f"No columns found on relation {schema}.{table}. Did you run 'dbt run' recently?")
+                print(
+                    f"No columns found on relation {schema}.{table}. Did you run 'dbt run' recently?"
+                )
 
     def generate_properties(self, relation, columns, destination):
         self.render_templates(relation, columns, destination)
 
-    def render_templates_with_context(self, context, destination):
+    def render_templates_with_context(self, context, destination, options=None):
         context["model"] = destination["name"].lower()
         templates_folder = self.get_config_value("templates_folder")
         render_template_file(
