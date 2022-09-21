@@ -59,7 +59,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             "--sources-destination",
             type=str,
             help="Where sources yml files will be generated, i.e. "
-            "'models/sources/{{schema}}/{{relation}}.yml'",
+            "'models/staging/{{schema}}/sources.yml'",
         )
         subparser.add_argument(
             "--models-destination",
