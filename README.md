@@ -167,6 +167,10 @@ folder. The main goal of this feature is to keep track of the
 configuration changes in your git repo, and rollback to a specific
 version when needed.
 
+Full usage example:
+```console
+dbt-coves extract airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load
+```
 ## Load configuration to Airbyte
 
 ``` console
@@ -178,6 +182,38 @@ airbyte* on an Airbyte server. Secrets folder needs to be specified
 separatedly. You can use [git-secret](https://git-secret.io/) to encrypt
 them and make them part of your git repo.
 
+### Loading secrets
+
+Secret credentials can be approached in two different ways: locally or remotely (through a provider/manager).
+
+In order to load encrypted fields locally:
+
+```console
+dbt-coves load airbyte --secrets-path /path/to/secret/directory
+
+# This directory must have 'sources', 'destinations' and 'connections' folders nested inside, and inside them the respective JSON files with unencrypted fields.
+# Naming convention: JSON unencrypted secret files must be named exactly as the extracted ones.
+```
+
+To load encrypted fields through a manager (in this case we are connecting to Datacoves' Service Credentials):
+
+```console
+--secrets-manager datacoves
+```
+
+```console
+--secrets-url https://api.datacoves.localhost/service-credentials/airbyte
+```
+
+```console
+--secrets-token AbCdEf123456
+```
+
+Full usage example:
+```console
+dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load --secrets-path /config/workspace/secrets
+```
+
 # Settings
 
 Dbt-coves could optionally read settings from `.dbt_coves.yml` or
@@ -187,41 +223,35 @@ this:
 ``` yaml
 generate:
   sources:
-    database: RAW
-    schemas:
+    database: RAW # Database where to look for source tables
+    schemas: # List of schema names where to look for source tables
       - RAW
-    sources_destination: "models/staging/{{schema}}/sources.yml"
-    models_destination: "models/staging/{{schema}}/{{relation}}.sql"
-    model_props_destination: "models/staging/{{schema}}/{{relation}}.yml"
-    update_strategy: ask
-    # override default templates creating source_model_props.yml and source_model.sql under this folder
-    templates_folder: ".dbt_coves/templates"
+    sources_destination: "models/staging/{{schema}}/sources.yml" # Where sources yml files will be generated
+    models_destination: "models/staging/{{schema}}/{{relation}}.sql" # Where models sql files will be generated
+    model_props_destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
+    update_strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
+    templates_folder: ".dbt_coves/templates" # Folder where source generation jinja templates are located. Override default templates creating source_model_props.yml, source_props.yml and source_model.sql under this folder
 
 extract:
+  airbyte:
+    path: /config/workspace/load # Where json files will be generated
+    host: http://airbyte-server # Airbyte's API hostname
+    port: 8001 # Airbyte's API port
+    dbt_list_args: --exclude source:dbt_artifacts # Extra dbt arguments: selectors, modifiers, etc
+
+load:
   airbyte:
     path: /config/workspace/load
     host: http://airbyte-server
     port: 8001
     dbt_list_args: --exclude source:dbt_artifacts
+    secrets_path: /config/workspace/secrets # Secret files location for Airbyte configuration
+    secrets_manager: datacoves # Secret credentials provider (secrets_path OR secrets_manager should be used, can't load secrets locally and remotely at the same time)
+    secrets_url: https://api.datacoves.localhost/service-credentials/airbyte # Secret credentials provider url
+    secrets_token: AbCdEf123456 # Secret credentials provider token
+
 ```
 
-In this example options for the `generate` command are provided:
-
-`schemas`: List of schema names where to look for source tables
-
-`destination`: Path to generated model, where `schema` represents the
-lowercased schema and `relation` the lowercased table name.
-
-`sources_destination`: Where sources yml files will be generated
-
-`models_destination`: Where models sql files will be generated
-
-`model_props_destination`: Where models yml files will be generated
-
-`update_strategy`: Action to perform when a property file already exists
-
-`templates_folder`: Folder where source generation jinja templates are
-located.
 
 ## Override source generation templates
 
