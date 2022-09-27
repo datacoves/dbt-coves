@@ -1,16 +1,14 @@
 from __future__ import nested_scopes
-from collections import OrderedDict
+
 import copy
 import json
 import re
-import yaml
 from pathlib import Path
 
 import questionary
-
+import yaml
 from questionary import Choice
 from rich.console import Console
-
 
 from dbt_coves.utils.jinja import render_template, render_template_file
 
@@ -113,9 +111,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         return selected_schemas
 
     def get_relations(self, filtered_schemas):
-        rel_name_selectors = [
-            relation.upper() for relation in self.get_config_value("relations")
-        ]
+        rel_name_selectors = [relation.upper() for relation in self.get_config_value("relations")]
         rel_wildcard_selectors = []
         for rel_name in rel_name_selectors:
             if "*" in rel_name:
@@ -132,14 +128,10 @@ class GenerateSourcesTask(BaseGenerateTask):
                     break
 
         intersected_rels = [
-            relation
-            for relation in listed_relations
-            if relation.name in rel_name_selectors
+            relation for relation in listed_relations if relation.name in rel_name_selectors
         ]
         rels = (
-            intersected_rels
-            if rel_name_selectors and rel_name_selectors[0]
-            else listed_relations
+            intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
         )
 
         return rels
@@ -148,8 +140,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         selected_rels = questionary.checkbox(
             "Which sources would you like to generate?",
             choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
-                for rel in rels
+                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
             ],
         ).ask()
 
@@ -310,9 +301,9 @@ class GenerateSourcesTask(BaseGenerateTask):
                 # If column exists in A, update it's description
                 # and leave as-is to avoid overriding tests
                 for current_column in columns_a:
-                    if (
-                        current_column.get("name") == new_column.get("name")
-                    ) and new_column.get("description"):
+                    if (current_column.get("name") == new_column.get("name")) and new_column.get(
+                        "description"
+                    ):
                         current_column["description"] = new_column.get("description")
             else:
                 columns_a.append(new_column)
@@ -369,13 +360,9 @@ class GenerateSourcesTask(BaseGenerateTask):
     def merge_property_files(self, dict_a, dict_b):
         result_dict = copy.deepcopy(dict_a)
         if "sources" in result_dict:
-            result_dict["sources"] = self.merge_sources(
-                result_dict["sources"], dict_b["sources"]
-            )
+            result_dict["sources"] = self.merge_sources(result_dict["sources"], dict_b["sources"])
         if "models" in result_dict:
-            result_dict["models"] = self.merge_models(
-                result_dict["models"], dict_b["models"]
-            )
+            result_dict["models"] = self.merge_models(result_dict["models"], dict_b["models"])
 
         return result_dict
 
@@ -413,9 +400,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             templates_folder=templates_folder,
         )
 
-    def render_property_files(
-        self, context, options, templates_folder, update_strategy, object
-    ):
+    def render_property_files(self, context, options, templates_folder, update_strategy, object):
         strategy_key_update_all = ""
         strategy_key_recreate_all = ""
 
@@ -424,9 +409,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             yml_cfg_destination = self.get_config_value("model_props_destination")
             # If destination does not contain Jinja syntax it's a single file,
             # and update/recreate must behave as 'update all' or 'recreate all'
-            if not re.search(
-                r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
-            ):
+            if not re.search(r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")):
                 options["model_prop_is_single_file"] = True
             strategy_key_update_all = "model_prop_update_all"
             strategy_key_recreate_all = "model_prop_recreate_all"
@@ -435,9 +418,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             yml_cfg_destination = self.get_config_value("sources_destination")
             strategy_key_update_all = "source_prop_update_all"
             strategy_key_recreate_all = "source_prop_recreate_all"
-            if not re.search(
-                r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")
-            ):
+            if not re.search(r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.replace(" ", "")):
                 options["source_prop_is_single_file"] = True
 
         rel = context["relation"]
@@ -446,10 +427,7 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         context["model"] = rel.name.lower()
 
-        if (
-            not options[strategy_key_recreate_all]
-            and not options[strategy_key_update_all]
-        ):
+        if not options[strategy_key_recreate_all] and not options[strategy_key_update_all]:
             if yml_path.exists():
                 if update_strategy == "ask":
                     overwrite = questionary.select(
@@ -465,40 +443,28 @@ class GenerateSourcesTask(BaseGenerateTask):
                         default="Update",
                     ).ask()
                     if overwrite == "Recreate":
-                        self.render_property_file(
-                            template, context, yml_path, templates_folder
-                        )
+                        self.render_property_file(template, context, yml_path, templates_folder)
                     if overwrite == "Recreate all":
                         options[strategy_key_recreate_all] = True
-                        self.render_property_file(
-                            template, context, yml_path, templates_folder
-                        )
+                        self.render_property_file(template, context, yml_path, templates_folder)
                     if overwrite == "Update":
                         if options.get("source_prop_is_single_file") or options.get(
                             "model_prop_is_single_file"
                         ):
                             options[strategy_key_update_all] = True
-                        self.update_property_file(
-                            template, context, yml_path, templates_folder
-                        )
+                        self.update_property_file(template, context, yml_path, templates_folder)
 
                     if overwrite == "Update all":
                         options[strategy_key_update_all] = True
-                        self.update_property_file(
-                            template, context, yml_path, templates_folder
-                        )
+                        self.update_property_file(template, context, yml_path, templates_folder)
                     if overwrite == "Skip":
                         pass
                     if overwrite == "Cancel":
                         exit
                 elif update_strategy == "update":
-                    self.update_property_file(
-                        template, context, yml_path, templates_folder
-                    )
+                    self.update_property_file(template, context, yml_path, templates_folder)
                 elif update_strategy == "recreate":
-                    self.render_property_file(
-                        template, context, yml_path, templates_folder
-                    )
+                    self.render_property_file(template, context, yml_path, templates_folder)
                 else:
                     exit
             else:
@@ -511,12 +477,8 @@ class GenerateSourcesTask(BaseGenerateTask):
     def render_properties(self, context, options, templates_folder):
         update_strategy = self.get_config_value("update_strategy").lower()
 
-        self.render_property_files(
-            context, options, templates_folder, update_strategy, "Models"
-        )
-        self.render_property_files(
-            context, options, templates_folder, update_strategy, "Sources"
-        )
+        self.render_property_files(context, options, templates_folder, update_strategy, "Models")
+        self.render_property_files(context, options, templates_folder, update_strategy, "Sources")
 
     def get_nested_keys(self, json_cols, relation):
         config_db = self.get_config_value("database")
@@ -536,9 +498,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(
-                            key_name
-                        )
+                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
                     self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(
@@ -563,10 +523,9 @@ class GenerateSourcesTask(BaseGenerateTask):
                 }
                 metadata_key = self.get_metadata_map_key(metadata_map_key_data)
                 # Get metadata info or default and assign to the field.
-                metadata_info = metadata.get(
-                    metadata_key, self.get_default_metadata_item(item)
-                )
-                data[col][item] = metadata_info
+                metadata_info = metadata.get(metadata_key)
+                if metadata_info:
+                    data[col][item].update(metadata_info)
 
     def run(self):
         config_database = self.get_config_value("database")
