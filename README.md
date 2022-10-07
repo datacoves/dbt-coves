@@ -135,6 +135,24 @@ how the resources are generated.
 --update-strategy
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
+
+`dbt-coves generate sources` supports the following args:
+
+```console
+--destination
+# Where models yml files will be generated, default: 'models/staging/{{schema}}/{{relation}}.yml'
+```
+
+```console
+--update-strategy
+# Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
+```
+
+```console
+--model
+# Model(s) path where 'dbt ls' will look for models for generation, i.e: 'models/staging' or 'models/staging/my_model.sql'
+```
+
 ### Metadata
 
 Supports the argument *--metadata* which allows to specify a csv file
@@ -231,6 +249,11 @@ generate:
     model_props_destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
     update_strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
     templates_folder: ".dbt_coves/templates" # Folder where source generation jinja templates are located. Override default templates creating source_model_props.yml, source_props.yml and source_model.sql under this folder
+
+  properties:
+    destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
+    update-strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
+    model: "models/staging" # Model(s) path where 'dbt ls' will look for models for generation
 
 extract:
   airbyte:
