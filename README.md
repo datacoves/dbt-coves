@@ -136,7 +136,7 @@ how the resources are generated.
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
 
-`dbt-coves generate sources` supports the following args:
+`dbt-coves generate properties` supports the following args:
 
 ```console
 --destination
