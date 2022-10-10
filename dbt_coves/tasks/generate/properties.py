@@ -58,7 +58,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "'update', 'recreate', 'fail', 'ask' (per file)",
         )
         subparser.add_argument(
-            "--model",
+            "--models",
             type=str,
             help="Path to look for SQL files and generate their property files, i.e.: 'models/staging/my_model.sql'",
         )
@@ -76,7 +76,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
         if self.json_from_dbt_ls:
             return self.json_from_dbt_ls
 
-        model_paths = self.get_config_value("model")
+        model_paths = self.get_config_value("models")
         if model_paths:
             dbt_params = ["dbt", "ls", "--output", output, "--model", model_paths]
         else:

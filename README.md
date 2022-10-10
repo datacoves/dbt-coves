@@ -116,39 +116,39 @@ how the resources are generated.
 
 `dbt-coves generate sources` supports the following args:
 
-```console
+```shell
 --sources-destination
 # Where sources yml files will be generated, default: 'models/staging/{{schema}}/sources.yml'
 ```
 
-```console
+```shell
 --models-destination
 # Where models sql files will be generated, default: 'models/staging/{{schema}}/{{relation}}.sql'
 ```
 
-```console
+```shell
 --model-props-destination
 # Where models yml files will be generated, default: 'models/staging/{{schema}}/{{relation}}.yml'
 ```
 
-```console
+```shell
 --update-strategy
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
 
 `dbt-coves generate properties` supports the following args:
 
-```console
+```shell
 --destination
 # Where models yml files will be generated, default: 'models/staging/{{schema}}/{{relation}}.yml'
 ```
 
-```console
+```shell
 --update-strategy
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
 
-```console
+```shell
 --model
 # Model(s) path where 'dbt ls' will look for models for generation, i.e: 'models/staging' or 'models/staging/my_model.sql'
 ```
@@ -159,7 +159,7 @@ Supports the argument *--metadata* which allows to specify a csv file
 containing field types and descriptions to be inserted into the model
 property files.
 
-``` console
+``` shell
 dbt-coves generate sources --metadata metadata.csv
 ```
 
@@ -175,7 +175,7 @@ Metadata format:
 
 ## Extract configuration from Airbyte
 
-``` console
+``` shell
 dbt-coves extract airbyte
 ```
 
@@ -186,12 +186,12 @@ configuration changes in your git repo, and rollback to a specific
 version when needed.
 
 Full usage example:
-```console
+```shell
 dbt-coves extract airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load
 ```
 ## Load configuration to Airbyte
 
-``` console
+``` shell
 dbt-coves load airbyte
 ```
 
@@ -206,7 +206,7 @@ Secret credentials can be approached in two different ways: locally or remotely 
 
 In order to load encrypted fields locally:
 
-```console
+```shell
 dbt-coves load airbyte --secrets-path /path/to/secret/directory
 
 # This directory must have 'sources', 'destinations' and 'connections' folders nested inside, and inside them the respective JSON files with unencrypted fields.
@@ -215,20 +215,20 @@ dbt-coves load airbyte --secrets-path /path/to/secret/directory
 
 To load encrypted fields through a manager (in this case we are connecting to Datacoves' Service Credentials):
 
-```console
+```shell
 --secrets-manager datacoves
 ```
 
-```console
+```shell
 --secrets-url https://api.datacoves.localhost/service-credentials/airbyte
 ```
 
-```console
+```shell
 --secrets-token AbCdEf123456
 ```
 
 Full usage example:
-```console
+```shell
 dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load --secrets-path /config/workspace/secrets
 ```
 
