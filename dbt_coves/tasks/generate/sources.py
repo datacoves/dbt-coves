@@ -1,6 +1,5 @@
 from __future__ import nested_scopes
 
-import copy
 import json
 import re
 from pathlib import Path
