@@ -2,11 +2,11 @@ import glob
 import json
 import os
 import subprocess
+from pathlib import Path
+
 import questionary
 from questionary import Choice
 from rich.console import Console
-
-from dbt_coves.utils.jinja import render_template_file
 
 from .base import BaseGenerateTask
 
@@ -30,11 +30,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
             help="Generate dbt models property files by inspecting the database schemas and relations.",
         )
         subparser.add_argument(
-            "--select",
-            type=str,
-            help="dbt select. Specify the nodes to include.",
-        )
-        subparser.add_argument(
             "--templates-folder",
             type=str,
             help="Folder with jinja templates that override default "
@@ -43,13 +38,29 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser.add_argument(
             "--model-props-strategy",
             type=str,
-            help="Strategy for model properties file generation,"
-            " i.e. 'one_file_per_model'",
+            help="Strategy for model properties file generation," " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
             "--metadata",
             type=str,
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
+        )
+        subparser.add_argument(
+            "--destination",  # TODO: should we copy the naming 'model-props-destination' from generate-sources?
+            type=str,
+            help="Where models yml files will be generated, default: "
+            "'models/staging/{{schema}}/{{relation}}.yml'",
+        )
+        subparser.add_argument(
+            "--update-strategy",
+            type=str,
+            help="Action to perform when a property file already exists: "
+            "'update', 'recreate', 'fail', 'ask' (per file)",
+        )
+        subparser.add_argument(
+            "--models",
+            type=str,
+            help="Path to look for SQL files and generate their property files, i.e.: 'models/staging/my_model.sql'",
         )
         cls.arg_parser = base_subparser
 
@@ -65,10 +76,13 @@ class GeneratePropertiesTask(BaseGenerateTask):
         if self.json_from_dbt_ls:
             return self.json_from_dbt_ls
 
-        dbt_params = ["dbt", "ls", "--output", output, "--resource-type", "model"]
-        select_argument = self.get_config_value("select")
-        if select_argument:
-            dbt_params += select_argument.split()
+        model_paths = self.get_config_value("models")
+        if model_paths:
+            dbt_params = ["dbt", "ls", "--output", output, "--model", model_paths]
+        else:
+            # Runtime Error
+            # "models" and "resource_type" are mutually exclusive arguments
+            dbt_params = ["dbt", "ls", "--output", output, "--resource-type", "model"]
 
         result = subprocess.run(dbt_params, capture_output=True, text=True)
 
@@ -104,16 +118,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["properties"].get(key)
 
-    def get_models_missing_profile(self, models, manifest):
-        return [
-            model
-            for model in models
-            if (
-                model in manifest["nodes"].keys()
-                and not manifest["nodes"][model]["patch_path"]
-            )
-        ]
-
     def select_properties(self, models):
         selected_properties = questionary.checkbox(
             "Which properties would you like to generate?",
@@ -127,27 +131,17 @@ class GeneratePropertiesTask(BaseGenerateTask):
             f"{model['resource_type']}.{model['package_name']}.{model['name']}"
             for model in dbt_models
         ]
-        # Filter those that don't have patch_path
-        dbt_models_missing_profile = self.get_models_missing_profile(
-            dbt_models_manifest_naming, manifest
-        )
-        # Filter user selection
-        if dbt_models_missing_profile:
-            return self.select_properties(dbt_models_missing_profile)
-        else:
-            return list()
 
-    # def get_column_data_for_relation(self, relation):
-    #     columns = self.adapter.get_columns_in_relation(relation)
-    #     column_data = list()
-    #     for col in columns:
-    #         column_dict = dict()
-    #         column_dict["id"] = col.column
-    #         column_dict["description"] = ""
-    #         column_data.append(column_dict)
-    #     return column_data
+        # Filter user selection
+        return self.select_properties(dbt_models_manifest_naming)
 
     def generate(self, models, manifest):
+        prop_destination = self.get_config_value("destination")
+        options = {
+            "model_prop_is_single_file": False,
+            "model_prop_update_all": False,
+            "model_prop_recreate_all": False,
+        }
         for model in models:
             model_data = manifest["nodes"][model]
             database, schema, table = (
@@ -158,27 +152,40 @@ class GeneratePropertiesTask(BaseGenerateTask):
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
                 columns = self.adapter.get_columns_in_relation(relation)
-                destination = {
-                    "name": model_data["name"],
-                    "path": model_data["original_file_path"],
-                }
-                self.generate_properties(relation, columns, destination)
+                model_destination = self.generate_template(prop_destination, relation)
+                model_path = Path().joinpath(model_destination)
+
+                self.render_templates(relation, columns, model_path, options)
+
             else:
-                print(
-                    f"No columns found on relation {schema}.{table}. Did you run 'dbt run' recently?"
-                )
+                print(f"No columns found on relation {schema}.{table}.")
+                continue
 
     def generate_properties(self, relation, columns, destination):
+        destination.parent.mkdir(parents=True, exist_ok=True)
         self.render_templates(relation, columns, destination)
 
-    def render_templates_with_context(self, context, destination, options=None):
-        context["model"] = destination["name"].lower()
+    def get_templates_context(self, relation, columns, json_cols=None):
+        metadata_cols = self.get_metadata_columns(relation, columns)
+        return {
+            "relation": relation,
+            "columns": metadata_cols,
+            "adapter_name": self.adapter.__class__.__name__,
+            "model": relation.name.lower(),
+        }
+
+    def render_templates_with_context(self, context, destination, options):
         templates_folder = self.get_config_value("templates_folder")
-        render_template_file(
-            "model_props.yml",
+        update_strategy = self.get_config_value("update_strategy").lower()
+        path = self.get_config_value("destination")
+        self.render_property_files(
             context,
-            str(destination["path"]).replace(".sql", ".yml"),
-            templates_folder=templates_folder,
+            options,
+            templates_folder,
+            update_strategy,
+            "models",
+            path,
+            "model_props.yml",
         )
 
     def run(self):

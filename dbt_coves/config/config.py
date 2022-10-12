@@ -13,8 +13,10 @@ from dbt_coves.utils.yaml import open_yaml
 
 class GeneratePropertiesModel(BaseModel):
     templates_folder: Optional[str] = ".dbt_coves/templates"
-    select: Optional[str] = ""
     metadata: Optional[str] = ""
+    update_strategy: Optional[str] = "ask"
+    destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
+    models: Optional[str] = ""
 
 
 class GenerateSourcesModel(BaseModel):
@@ -23,9 +25,7 @@ class GenerateSourcesModel(BaseModel):
     schemas: Optional[List[str]] = [""]
     sources_destination: Optional[str] = "models/staging/{{schema}}/sources.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
-    model_props_destination: Optional[
-        str
-    ] = "models/staging/{{schema}}/{{relation}}.yml"
+    model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
     update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
@@ -92,10 +92,12 @@ class DbtCovesConfig:
 
     DBT_COVES_CONFIG_FILENAMES = [".dbt_coves.yml", ".dbt_coves/config.yml"]
     CLI_OVERRIDE_FLAGS = [
-        "generate.properties.select",
         "generate.properties.model_props_strategy",
         "generate.properties.templates_folder",
         "generate.properties.metadata",
+        "generate.properties.destination",
+        "generate.properties.update_strategy",
+        "generate.properties.models",
         "generate.sources.relations",
         "generate.sources.database",
         "generate.sources.schemas",
@@ -146,11 +148,7 @@ class DbtCovesConfig:
             source = self._flags
             for item in path_items[:-1]:
                 target = target[item]
-                source = (
-                    source.get(item, {})
-                    if type(source) == dict
-                    else getattr(source, item)
-                )
+                source = source.get(item, {}) if type(source) == dict else getattr(source, item)
             key = path_items[-1]
             if source.get(key):
                 target[key] = source[key]
