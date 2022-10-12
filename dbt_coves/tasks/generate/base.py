@@ -1,4 +1,3 @@
-import copy
 import csv
 import re
 from pathlib import Path
@@ -9,7 +8,11 @@ from rich.console import Console
 from slugify import slugify
 
 from dbt_coves.tasks.base import BaseConfiguredTask
-from dbt_coves.utils.jinja import render_template, render_template_file
+from dbt_coves.utils.jinja import (
+    get_render_output,
+    render_template,
+    render_template_file,
+)
 
 console = Console()
 
@@ -167,90 +170,220 @@ class BaseGenerateTask(BaseConfiguredTask):
             metadata_cols.append(new_col)
         return metadata_cols
 
+    def new_object_exists_in_current_yml(
+        self,
+        current_yml,
+        template,
+        context,
+        templates_folder,
+        object_type,
+    ):
+        new_yml = yaml.safe_load(
+            get_render_output(
+                template,
+                context,
+                templates_folder=templates_folder,
+            )
+        )
+
+        for new_obj in new_yml.get(object_type):
+            for curr_obj in current_yml.get(object_type):
+                if curr_obj.get("name") == new_obj.get("name"):
+                    return new_obj
+        return False
+
     def render_property_files(
         self,
         context,
         options,
         templates_folder,
         update_strategy,
-        object,
+        object_type,
         destination=None,
         template=None,
     ):
         strategy_key_update_all = ""
         strategy_key_recreate_all = ""
-        if object == "Models":
-            yml_cfg_destination = destination
-            # If destination does not contain Jinja syntax on last component it's a single file,
-            # and update/recreate must behave as 'update all' or 'recreate all'
-            if not re.search(
-                r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.split("/")[-1].replace(" ", "")
-            ):
-                options["model_prop_is_single_file"] = True
-            strategy_key_update_all = "model_prop_update_all"
-            strategy_key_recreate_all = "model_prop_recreate_all"
-        if object == "Sources":
-            template = "source_props.yml"
-            yml_cfg_destination = self.get_config_value("sources_destination")
-            strategy_key_update_all = "source_prop_update_all"
-            strategy_key_recreate_all = "source_prop_recreate_all"
-            if not re.search(
-                r"\{\{[A-Za-z]*\}\}", yml_cfg_destination.split("/")[-1].replace(" ", "")
-            ):
-                options["source_prop_is_single_file"] = True
 
         rel = context["relation"]
-        yml_dest = self.generate_template(yml_cfg_destination, rel)
+        yml_dest = self.generate_template(destination, rel)
         yml_path = Path().joinpath(yml_dest)
 
         context["model"] = rel.name.lower()
-
-        if not options[strategy_key_recreate_all] and not options[strategy_key_update_all]:
-            if yml_path.exists():
-                if update_strategy == "ask":
-                    overwrite = questionary.select(
-                        f"Property file {yml_path} already exists. What would you like to do with it?",
-                        choices=[
-                            "Update",
-                            "Update all",
-                            "Recreate",
-                            "Recreate all",
-                            "Skip",
-                            "Cancel",
-                        ],
-                        default="Update",
-                    ).ask()
-                    if overwrite == "Recreate":
-                        self.render_property_file(template, context, yml_path, templates_folder)
-                    if overwrite == "Recreate all":
-                        options[strategy_key_recreate_all] = True
-                        self.render_property_file(template, context, yml_path, templates_folder)
-                    if overwrite == "Update":
-                        if options.get("source_prop_is_single_file") or options.get(
-                            "model_prop_is_single_file"
-                        ):
+        if object_type == "models":
+            strategy_key_update_all = "model_prop_update_all"
+            strategy_key_recreate_all = "model_prop_recreate_all"
+        if object_type == "sources":
+            strategy_key_update_all = "source_prop_update_all"
+            strategy_key_recreate_all = "source_prop_recreate_all"
+        if yml_path.exists():
+            object_in_yml = False
+            with open(yml_path, "r") as file:
+                current_yml = yaml.safe_load(file)
+                object_in_yml = self.new_object_exists_in_current_yml(
+                    current_yml,
+                    template,
+                    context,
+                    templates_folder,
+                    object_type,
+                )
+            if object_in_yml:
+                new_object_id = object_in_yml.get("name")
+                if not options[strategy_key_recreate_all] and not options[strategy_key_update_all]:
+                    if update_strategy == "ask":
+                        action = questionary.select(
+                            f"{object_type} {new_object_id} already exists in {yml_path}. What would you like to do with it?",
+                            choices=[
+                                "Update",
+                                "Update all",
+                                "Recreate",
+                                "Recreate all",
+                                "Skip",
+                                "Cancel",
+                            ],
+                            default="Update",
+                        ).ask()
+                        if action == "Recreate":
+                            self.modify_property_file(
+                                template,
+                                context,
+                                yml_path,
+                                current_yml,
+                                templates_folder,
+                                object_type,
+                                "recreate",
+                            )
+                        if action == "Recreate all":
+                            options[strategy_key_recreate_all] = True
+                            self.modify_property_file(
+                                template,
+                                context,
+                                yml_path,
+                                current_yml,
+                                templates_folder,
+                                object_type,
+                                "recreate",
+                            )
+                        if action == "Update":
+                            self.modify_property_file(
+                                template,
+                                context,
+                                yml_path,
+                                current_yml,
+                                templates_folder,
+                                object_type,
+                                "update",
+                            )
+                        if action == "Update all":
                             options[strategy_key_update_all] = True
-                        self.update_property_file(template, context, yml_path, templates_folder)
-
-                    if overwrite == "Update all":
-                        options[strategy_key_update_all] = True
-                        self.update_property_file(template, context, yml_path, templates_folder)
-                    if overwrite == "Skip":
-                        pass
-                    if overwrite == "Cancel":
+                            self.modify_property_file(
+                                template,
+                                context,
+                                yml_path,
+                                current_yml,
+                                templates_folder,
+                                object_type,
+                                "update",
+                            )
+                        if action == "Skip":
+                            pass
+                        if action == "Cancel":
+                            exit
+                    elif update_strategy == "update":
+                        self.modify_property_file(
+                            template,
+                            context,
+                            yml_path,
+                            current_yml,
+                            templates_folder,
+                            object_type,
+                            "update",
+                        )
+                    elif update_strategy == "recreate":
+                        self.modify_property_file(
+                            template,
+                            context,
+                            yml_path,
+                            current_yml,
+                            templates_folder,
+                            object_type,
+                            "recreate",
+                        )
+                    else:
                         exit
-                elif update_strategy == "update":
-                    self.update_property_file(template, context, yml_path, templates_folder)
-                elif update_strategy == "recreate":
-                    self.render_property_file(template, context, yml_path, templates_folder)
-                else:
-                    exit
+                if options[strategy_key_recreate_all]:
+                    self.modify_property_file(
+                        template,
+                        context,
+                        yml_path,
+                        current_yml,
+                        templates_folder,
+                        object_type,
+                        "recreate",
+                    )
+                if options[strategy_key_update_all]:
+                    self.modify_property_file(
+                        template,
+                        context,
+                        yml_path,
+                        current_yml,
+                        templates_folder,
+                        object_type,
+                        "update",
+                    )
             else:
-                self.render_property_file(template, context, yml_path, templates_folder)
-        if options[strategy_key_recreate_all]:
+                self.modify_property_file(
+                    template,
+                    context,
+                    yml_path,
+                    current_yml,
+                    templates_folder,
+                    object_type,
+                    "create",
+                )
+        else:
             self.render_property_file(template, context, yml_path, templates_folder)
-        if options[strategy_key_update_all]:
-            self.update_property_file(template, context, yml_path, templates_folder)
+
+    def update_object_properties(self, current_object, new_object, object_type):
+        if object_type == "sources":
+            current_object = self.update_source_properties(current_object, new_object)
+        if object_type == "models":
+            current_object = self.update_model_properties(current_object, new_object)
+        return current_object
+
+    def modify_property_file(
+        self,
+        template,
+        context,
+        yml_path,
+        current_yml,
+        templates_folder,
+        obj_type,
+        action,
+    ):
+        new_yml = yaml.safe_load(
+            get_render_output(
+                template,
+                context,
+                templates_folder=templates_folder,
+            )
+        )
+        new_object = new_yml.get(obj_type)[0]
+
+        if action == "create":
+            current_yml[obj_type].append(new_object)
+        if action == "recreate" or action == "update":
+            for idx, curr_obj in enumerate(current_yml.get(obj_type)):
+                if curr_obj.get("name") == new_object.get("name"):
+                    if action == "recreate":
+                        current_yml[obj_type][idx] = new_object
+                    if action == "update":
+                        current_yml[obj_type][idx] = self.update_object_properties(
+                            curr_obj, new_object, obj_type
+                        )
+
+        with open(yml_path, "w") as file:
+            yaml.safe_dump(current_yml, file, sort_keys=False)
 
     def render_property_file(self, template, context, model_yml, templates_folder):
         model_yml.parent.mkdir(parents=True, exist_ok=True)
@@ -279,18 +412,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         if model_b.get("description"):
             model_a["description"] = model_b.get("description")
         self.update_model_columns(model_a.get("columns"), model_b.get("columns"))
-
-    def merge_models(self, models_a: list, models_b: list):
-        models_a_names = [model.get("name") for model in models_a]
-        for new_model in models_b:
-            if not new_model.get("name") in models_a_names:
-                models_a.append(new_model)
-            else:
-                for current_model in models_a:
-                    if current_model.get("name") == new_model.get("name"):
-                        self.update_model_properties(current_model, new_model)
-
-        return models_a
+        return model_a
 
     def update_source_tables(self, tables_a: list, tables_b: list):
         source_a_table_names = [table.get("name") for table in tables_a]
@@ -307,53 +429,9 @@ class BaseGenerateTask(BaseConfiguredTask):
             else:
                 tables_a.append(new_table)
 
-    def update_sources_properties(self, source_a: dict, source_b: dict):
+    def update_source_properties(self, source_a: dict, source_b: dict):
         source_a["database"] = source_b.get("database")
         if source_b.get("schema"):
             source_a["schema"] = source_b.get("schema")
         self.update_source_tables(source_a.get("tables"), source_b.get("tables"))
-
-    def merge_sources(self, sources_a, sources_b):
-        sources_a_names = [source.get("name") for source in sources_a]
-        for new_source in sources_b:
-            if not new_source.get("name") in sources_a_names:
-                sources_a.append(new_source)
-            else:
-                for current_source in sources_a:
-                    if current_source.get("name") == new_source.get("name"):
-                        self.update_sources_properties(current_source, new_source)
-        return sources_a
-
-    def merge_property_files(self, dict_a, dict_b):
-        result_dict = copy.deepcopy(dict_a)
-        if "sources" in result_dict:
-            result_dict["sources"] = self.merge_sources(result_dict["sources"], dict_b["sources"])
-        if "models" in result_dict:
-            result_dict["models"] = self.merge_models(result_dict["models"], dict_b["models"])
-
-        return result_dict
-
-    def update_property_file(self, template, context, yml_path, templates_folder):
-        # Grab and open current yml dict
-        current_yml = dict()
-        new_yml = dict()
-        with open(yml_path, "r") as file:
-            current_yml = yaml.safe_load(file)
-
-        # Render new one
-        render_template_file(
-            template,
-            context,
-            yml_path,
-            templates_folder=templates_folder,
-        )
-
-        # Open it
-        with open(yml_path, "r") as file:
-            new_yml = yaml.safe_load(file)
-
-        # Deep merge with old content
-        merged_ymls = self.merge_property_files(current_yml, new_yml)
-
-        with open(yml_path, "w") as file:
-            yaml.safe_dump(merged_ymls, file, sort_keys=False)
+        return source_a

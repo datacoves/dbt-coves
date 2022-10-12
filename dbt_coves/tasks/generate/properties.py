@@ -118,13 +118,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["properties"].get(key)
 
-    def get_models_missing_profile(self, models, manifest):
-        return [
-            model
-            for model in models
-            if (model in manifest["nodes"].keys() and not manifest["nodes"][model]["patch_path"])
-        ]
-
     def select_properties(self, models):
         selected_properties = questionary.checkbox(
             "Which properties would you like to generate?",
@@ -138,15 +131,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
             f"{model['resource_type']}.{model['package_name']}.{model['name']}"
             for model in dbt_models
         ]
-        # Filter those that don't have patch_path
-        dbt_models_missing_profile = self.get_models_missing_profile(
-            dbt_models_manifest_naming, manifest
-        )
+
         # Filter user selection
-        if dbt_models_missing_profile:
-            return self.select_properties(dbt_models_missing_profile)
-        else:
-            return list()
+        return self.select_properties(dbt_models_manifest_naming)
 
     def generate(self, models, manifest):
         prop_destination = self.get_config_value("destination")
@@ -171,9 +158,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 self.render_templates(relation, columns, model_path, options)
 
             else:
-                print(
-                    f"No columns found on relation {schema}.{table}. Did you run 'dbt run' recently?"
-                )
+                print(f"No columns found on relation {schema}.{table}.")
                 continue
 
     def generate_properties(self, relation, columns, destination):
@@ -198,7 +183,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             options,
             templates_folder,
             update_strategy,
-            "Models",
+            "models",
             path,
             "model_props.yml",
         )

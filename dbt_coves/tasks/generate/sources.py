@@ -149,10 +149,8 @@ class GenerateSourcesTask(BaseGenerateTask):
         options = {
             "override_all": None,
             "flatten_all": None,
-            "model_prop_is_single_file": False,
             "model_prop_update_all": False,
             "model_prop_recreate_all": False,
-            "source_prop_is_single_file": False,
             "source_prop_update_all": False,
             "source_prop_recreate_all": False,
         }
@@ -283,17 +281,27 @@ class GenerateSourcesTask(BaseGenerateTask):
         )
 
         # Render model and source YMLs
-        destination = self.get_config_value("model_props_destination")
+        model_property_destination = self.get_config_value("model_props_destination")
         self.render_property_files(
             context,
             options,
             templates_folder,
             update_strategy,
-            "Models",
-            destination,
+            "models",
+            model_property_destination,
             "source_model_props.yml",
         )
-        self.render_property_files(context, options, templates_folder, update_strategy, "Sources")
+
+        source_property_destination = self.get_config_value("sources_destination")
+        self.render_property_files(
+            context,
+            options,
+            templates_folder,
+            update_strategy,
+            "sources",
+            source_property_destination,
+            "source_props.yml",
+        )
 
     def get_nested_keys(self, json_cols, relation):
         config_db = self.get_config_value("database")
