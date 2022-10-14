@@ -253,7 +253,7 @@ generate:
   properties:
     destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
     update-strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
-    model: "models/staging" # Model(s) path where 'dbt ls' will look for models for generation
+    models: "models/staging" # Model(s) path where 'generate properties' will look for models for generation
 
 extract:
   airbyte:
