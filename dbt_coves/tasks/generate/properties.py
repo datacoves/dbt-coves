@@ -133,7 +133,10 @@ class GeneratePropertiesTask(BaseGenerateTask):
         ]
 
         # Filter user selection
-        return self.select_properties(dbt_models_manifest_naming)
+        if len(dbt_models_manifest_naming) == 1:
+            return dbt_models_manifest_naming
+        else:
+            return self.select_properties(dbt_models_manifest_naming)
 
     def generate(self, models, manifest):
         prop_destination = self.get_config_value("destination")
@@ -158,7 +161,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 self.render_templates(relation, columns, model_path, options)
 
             else:
-                print(f"No columns found on relation {schema}.{table}.")
+                console.print(
+                    f"Model [red]{schema}.{table}[/red] not materialized, did you execute [u][i]dbt run[/i][/u]?. "
+                )
                 continue
 
     def generate_properties(self, relation, columns, destination):
