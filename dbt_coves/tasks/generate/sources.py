@@ -8,7 +8,7 @@ import questionary
 from questionary import Choice
 from rich.console import Console
 
-from dbt_coves.utils.jinja import render_template_file
+from dbt_coves.utils.jinja import render_template, render_template_file
 
 from .base import BaseGenerateTask
 
@@ -249,6 +249,14 @@ class GenerateSourcesTask(BaseGenerateTask):
         else:
             self.render_templates(relation, columns, destination, options)
 
+    def generate_template(self, destination_path, relation):
+        template_context = dict()
+        if "{{schema}}" in destination_path.replace(" ", ""):
+            template_context["schema"] = relation.schema.lower()
+        if "{{relation}}" in destination_path.replace(" ", ""):
+            template_context["relation"] = relation.name.lower()
+        return render_template(destination_path, template_context)
+
     def get_templates_context(self, relation, columns, json_cols=None):
         metadata_cols = self.get_metadata_columns(relation, columns)
         context = {
@@ -271,35 +279,40 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         return context
 
-    def render_templates_with_context(self, context, destination, options):
+    def render_templates_with_context(self, context, sql_destination, options):
         templates_folder = self.get_config_value("templates_folder")
         update_strategy = self.get_config_value("update_strategy").lower()
+        model_property_destination = self.get_config_value("model_props_destination")
+        source_property_destination = self.get_config_value("sources_destination")
+        rel = context["relation"]
 
         # Render model SQL
         render_template_file(
-            "source_model.sql", context, destination, templates_folder=templates_folder
+            "source_model.sql", context, sql_destination, templates_folder=templates_folder
         )
 
         # Render model and source YMLs
-        model_property_destination = self.get_config_value("model_props_destination")
+        model_yml_dest = self.generate_template(model_property_destination, rel)
+        model_yml_path = Path().joinpath(model_yml_dest)
         self.render_property_files(
             context,
             options,
             templates_folder,
             update_strategy,
             "models",
-            model_property_destination,
+            model_yml_path,
             "source_model_props.yml",
         )
 
-        source_property_destination = self.get_config_value("sources_destination")
+        source_yml_dest = self.generate_template(source_property_destination, rel)
+        source_yml_path = Path().joinpath(source_yml_dest)
         self.render_property_files(
             context,
             options,
             templates_folder,
             update_strategy,
             "sources",
-            source_property_destination,
+            source_yml_path,
             "source_props.yml",
         )
 

@@ -8,6 +8,8 @@ import questionary
 from questionary import Choice
 from rich.console import Console
 
+from dbt_coves.utils.jinja import render_template
+
 from .base import BaseGenerateTask
 
 console = Console()
@@ -78,7 +80,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
         model_paths = self.get_config_value("models")
         if model_paths:
-            dbt_params = ["dbt", "ls", "--output", output, "--model", model_paths]
+            dbt_params = ["dbt", "ls", "--output", output, "-s", model_paths]
         else:
             # Runtime Error
             # "models" and "resource_type" are mutually exclusive arguments
@@ -155,7 +157,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
                 columns = self.adapter.get_columns_in_relation(relation)
-                model_destination = self.generate_template(prop_destination, relation)
+                model_destination = self.generate_template(prop_destination, model, manifest)
                 model_path = Path().joinpath(model_destination)
 
                 self.render_templates(relation, columns, model_path, options)
@@ -179,17 +181,37 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "model": relation.name.lower(),
         }
 
+    def get_model_folder(self, model, manifest):
+        sql_path = manifest.get("nodes").get(model).get("original_file_path")
+        path_to_folder = Path(sql_path).parent
+
+        return path_to_folder
+
+    def get_model_filename(self, model, manifest):
+        sql_path = manifest.get("nodes").get(model).get("original_file_path")
+        filename = Path(sql_path).stem
+
+        return filename
+
+    def generate_template(self, destination_path, model, manifest):
+        template_context = dict()
+        if "{{model_folder_path}}" in destination_path.replace(" ", ""):
+            template_context["model_folder_path"] = self.get_model_folder(model, manifest)
+        if "{{model_file_name}}" in destination_path.replace(" ", ""):
+            template_context["model_file_name"] = self.get_model_filename(model, manifest)
+        return render_template(destination_path, template_context)
+
     def render_templates_with_context(self, context, destination, options):
         templates_folder = self.get_config_value("templates_folder")
         update_strategy = self.get_config_value("update_strategy").lower()
-        path = self.get_config_value("destination")
+
         self.render_property_files(
             context,
             options,
             templates_folder,
             update_strategy,
             "models",
-            path,
+            destination,
             "model_props.yml",
         )
 
@@ -200,7 +222,5 @@ class GeneratePropertiesTask(BaseGenerateTask):
             models = self.select_models(manifest, dbt_models)
             if models:
                 self.generate(models, manifest)
-            else:
-                console.print(f"No models found with missing properties file.")
 
             return 0

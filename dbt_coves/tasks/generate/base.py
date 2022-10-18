@@ -123,14 +123,6 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"][self.args.task][key]
 
-    def generate_template(self, destination_path, relation):
-        template_context = dict()
-        if "{{schema}}" in destination_path.replace(" ", ""):
-            template_context["schema"] = relation.schema.lower()
-        if "{{relation}}" in destination_path.replace(" ", ""):
-            template_context["relation"] = relation.name.lower()
-        return render_template(destination_path, template_context)
-
     def render_templates(self, relation, columns, destination, options=None, json_cols=None):
         destination.parent.mkdir(parents=True, exist_ok=True)
         context = self.get_templates_context(relation, columns, json_cols)
@@ -199,15 +191,12 @@ class BaseGenerateTask(BaseConfiguredTask):
         templates_folder,
         update_strategy,
         object_type,
-        destination=None,
-        template=None,
+        yml_path,
+        template,
     ):
         strategy_key_update_all = ""
         strategy_key_recreate_all = ""
-
         rel = context["relation"]
-        yml_dest = self.generate_template(destination, rel)
-        yml_path = Path().joinpath(yml_dest)
 
         context["model"] = rel.name.lower()
         if object_type == "models":
