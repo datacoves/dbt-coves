@@ -140,7 +140,7 @@ how the resources are generated.
 
 ```shell
 --destination
-# Where models yml files will be generated, default: 'models/staging/{{schema}}/{{relation}}.yml'
+# Where models yml files will be generated, default: '{{model_folder_path}}/{{model_file_name}}.yml'
 ```
 
 ```shell
@@ -251,7 +251,8 @@ generate:
     templates_folder: ".dbt_coves/templates" # Folder where source generation jinja templates are located. Override default templates creating source_model_props.yml, source_props.yml and source_model.sql under this folder
 
   properties:
-    destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
+    destination: "{{model_folder_path}}/{{model_file_name}}.yml" # Where models yml files will be generated
+    # You can specify a different path by declaring it explicitly, i.e.: "models/staging/{{model_file_name}}.yml"
     update-strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
     models: "models/staging" # Model(s) path where 'generate properties' will look for models for generation
 
