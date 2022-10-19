@@ -80,11 +80,18 @@ class SetupModel(BaseModel):
     git: Optional[SetupGitModel] = SetupGitModel()
 
 
+class RunDbtModel(BaseModel):
+    command: Optional[str] = ""
+    project_dir: Optional[str] = ""
+    environment: Optional[str] = ""
+
+
 class ConfigModel(BaseModel):
     generate: Optional[GenerateModel] = GenerateModel()
     extract: Optional[ExtractModel] = ExtractModel()
     load: Optional[LoadModel] = LoadModel()
     setup: Optional[SetupModel] = SetupModel()
+    dbt: Optional[RunDbtModel] = RunDbtModel()
 
 
 class DbtCovesConfig:
@@ -122,6 +129,9 @@ class DbtCovesConfig:
         "setup.all.open_ssl_public_key",
         "setup.ssh.open_ssl_public_key",
         "setup.git.no_prompt",
+        "dbt.command",
+        "dbt.project_dir",
+        "dbt.environment",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

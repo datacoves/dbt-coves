@@ -232,6 +232,28 @@ Full usage example:
 dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load --secrets-path /config/workspace/secrets
 ```
 
+## Run dbt commands
+
+``` shell
+dbt-coves dbt <arguments> "<command>"
+```
+
+Run dbt commands on an isolated/prepared environment, with the possibility of changing dbt project location and activating a specific virtual environment in which running commands.
+
+### Arguments
+
+`dbt-coves dbt` supports the following arguments
+
+```shell
+--project-dir
+# Path were to look for the dbt project subject of given commands, defaults to 'DBT_PROJECT_DIR' or 'DBT_HOME' environment variables
+```
+
+```shell
+--environment
+# Virtual environment variable or path. i.e.: AIRFLOW__VIRTUALENV_PATH or /opt/user/virtualenvs/airflow
+```
+
 # Settings
 
 Dbt-coves could optionally read settings from `.dbt_coves.yml` or
