@@ -238,7 +238,7 @@ dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/w
 dbt-coves dbt <arguments> -- <command>
 ```
 
-Run dbt commands on an special environments such as Airflow, or CI workers, with the possibility of changing dbt project location and activating a specific virtual environment in which running commands.
+Run dbt commands on special environments such as Airflow, or CI workers, with the possibility of changing dbt project location and activating a specific virtual environment in which running commands.
 
 ### Arguments
 
