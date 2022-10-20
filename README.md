@@ -235,10 +235,10 @@ dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/w
 ## Run dbt commands
 
 ``` shell
-dbt-coves dbt <arguments> "<command>"
+dbt-coves dbt <arguments> -- <command>
 ```
 
-Run dbt commands on an isolated/prepared environment, with the possibility of changing dbt project location and activating a specific virtual environment in which running commands.
+Run dbt commands on an special environments such as Airflow, or CI workers, with the possibility of changing dbt project location and activating a specific virtual environment in which running commands.
 
 ### Arguments
 
@@ -246,13 +246,22 @@ Run dbt commands on an isolated/prepared environment, with the possibility of ch
 
 ```shell
 --project-dir
-# Path were to look for the dbt project subject of given commands, defaults to 'DBT_PROJECT_DIR' or 'DBT_HOME' environment variables
+# Path of the dbt project where command will be executed, i.e.: /opt/user/dbt_project
 ```
 
 ```shell
---environment
-# Virtual environment variable or path. i.e.: AIRFLOW__VIRTUALENV_PATH or /opt/user/virtualenvs/airflow
+--virtualenv
+# Virtual environment path. i.e.: /opt/user/virtualenvs/airflow
 ```
+
+### Sample usage
+
+```shell
+dbt-coves dbt --project-dir /opt/user/dbt_project --virtualenv /opt/user/virtualenvs/airflow -- run -s model --vars \"{key: value}\"
+# Make sure to escape special characters such as quotation marks
+# Double dash (--) between <arguments> and <command> are mandatory
+```
+
 
 # Settings
 

@@ -83,7 +83,7 @@ class SetupModel(BaseModel):
 class RunDbtModel(BaseModel):
     command: Optional[str] = ""
     project_dir: Optional[str] = ""
-    environment: Optional[str] = ""
+    virtualenv: Optional[str] = ""
 
 
 class ConfigModel(BaseModel):
@@ -131,7 +131,7 @@ class DbtCovesConfig:
         "setup.git.no_prompt",
         "dbt.command",
         "dbt.project_dir",
-        "dbt.environment",
+        "dbt.virtualenv",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

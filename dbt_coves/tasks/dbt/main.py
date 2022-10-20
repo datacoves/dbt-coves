@@ -1,10 +1,9 @@
-import logging
 import os
 import shlex
 import subprocess
 import sys
 import tempfile
-from shutil import copytree
+from pathlib import Path
 
 from rich.console import Console
 
@@ -31,13 +30,14 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         ext_subparser.set_defaults(cls=cls, which="dbt")
         cls.arg_parser = ext_subparser
         ext_subparser.add_argument(
-            "--environment",
+            "--virtualenv",
             type=str,
             help="Virtual environment variable or path. i.e.: AIRFLOW__VIRTUALENV_PATH or /opt/user/virtualenvs/airflow",
         )
         ext_subparser.add_argument(
             "command",
             type=str,
+            nargs="+",
             help='dbt command to run, i.e. "run -s model_name"',
         )
 
@@ -48,12 +48,10 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         if not project_dir:
             project_dir = os.environ.get("DBT_PROJECT_DIR", os.environ.get("DBT_HOME"))
         if not project_dir:
-            console.print(
-                "[red]No dbt project specified[/red], [b]DBT_PROJECT_DIR[/b], [b]DBT_HOME[/b] vars or [b]--project-dir[/b] argument should be set."
-            )
+            console.print("[red]No dbt project specified[/red].")
             return -1
 
-        command = self.get_config_value("command").split(" ")
+        command = self.get_config_value("command")
         if self.is_readonly(project_dir):
             with tempfile.TemporaryDirectory() as tmp_dir:
                 console.print(
@@ -88,12 +86,13 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
     ):
         """Activates a python environment if found and runs a command using it"""
         env_path = None
-        environment = self.get_config_value("environment")
+        virtualenv = self.get_config_value("virtualenv")
         env = os.environ.copy()
-        if environment:
-            env_path = os.environ.get(environment, environment)
-
-        if env_path and os.path.exists(env_path):
+        if virtualenv:
+            # Ensure it's a Path to avoid
+            # conflicts with trailing / at later concatenation
+            env_path = Path(os.environ.get(virtualenv, virtualenv))
+        if env_path and env_path.exists():
             cmd_list = shlex.split(f"/bin/bash -c 'source {env_path}/bin/activate && {command}'")
         else:
             cmd_list = shlex.split(command)
