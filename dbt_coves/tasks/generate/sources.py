@@ -290,6 +290,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         render_template_file(
             "source_model.sql", context, sql_destination, templates_folder=templates_folder
         )
+        console.print(f"Model [green][b]{sql_destination}[/green][/b] created")
 
         # Render model and source YMLs
         model_yml_dest = self.generate_template(model_property_destination, rel)

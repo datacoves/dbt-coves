@@ -13,8 +13,14 @@ from dbt_coves.utils.jinja import (
     render_template,
     render_template_file,
 )
+from dbt_coves.utils.yaml import open_yaml
 
 console = Console()
+
+
+class DbtCovesDumper(yaml.Dumper):
+    def increase_indent(self, flow=False, *args, **kwargs):
+        return super().increase_indent(flow=flow, indentless=False)
 
 
 class BaseGenerateTask(BaseConfiguredTask):
@@ -207,21 +213,23 @@ class BaseGenerateTask(BaseConfiguredTask):
             strategy_key_recreate_all = "source_prop_recreate_all"
         if yml_path.exists():
             object_in_yml = False
-            with open(yml_path, "r") as file:
-                current_yml = yaml.safe_load(file)
-                object_in_yml = self.new_object_exists_in_current_yml(
-                    current_yml,
-                    template,
-                    context,
-                    templates_folder,
-                    object_type,
-                )
+            current_yml = open_yaml(yml_path)
+            object_in_yml = self.new_object_exists_in_current_yml(
+                current_yml,
+                template,
+                context,
+                templates_folder,
+                object_type,
+            )
             if object_in_yml:
                 new_object_id = object_in_yml.get("name")
                 if not options[strategy_key_recreate_all] and not options[strategy_key_update_all]:
                     if update_strategy == "ask":
+                        console.print(
+                            f"{object_type[:-1]} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
+                        )
                         action = questionary.select(
-                            f"{object_type} {new_object_id} already exists in {yml_path}. What would you like to do with it?",
+                            "What would you like to do with it?",
                             choices=[
                                 "Update",
                                 "Update all",
@@ -332,6 +340,8 @@ class BaseGenerateTask(BaseConfiguredTask):
                 )
         else:
             self.render_property_file(template, context, yml_path, templates_folder)
+            # Property file {filepath} created
+            console.print(f"Property file [green][b]{yml_path}[/b][/green] created")
 
     def update_object_properties(self, current_object, new_object, object_type):
         if object_type == "sources":
@@ -371,8 +381,13 @@ class BaseGenerateTask(BaseConfiguredTask):
                             curr_obj, new_object, obj_type
                         )
 
+        # "{Model/Source} {name} created/recreated/updated on file {filepath}"
+        console.print(
+            f"{obj_type[:-1].capitalize()} [green][b]{new_object.get('name')}[/b][/green] {action}d on file [green][b]{yml_path}[/b][/green]"
+        )
+
         with open(yml_path, "w") as file:
-            yaml.safe_dump(current_yml, file, sort_keys=False)
+            yaml.dump(current_yml, file, sort_keys=False, Dumper=DbtCovesDumper)
 
     def render_property_file(self, template, context, model_yml, templates_folder):
         model_yml.parent.mkdir(parents=True, exist_ok=True)

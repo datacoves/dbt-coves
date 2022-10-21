@@ -149,9 +149,20 @@ how the resources are generated.
 ```
 
 ```shell
---model
-# Model(s) path where 'dbt ls' will look for models for generation, i.e: 'models/staging' or 'models/staging/my_model.sql'
+-s --select
+# Filter model(s) to generate property file(s)
 ```
+
+```shell
+--exclude
+# Filter model(s) to exclude from property file(s) generation
+```
+
+```shell
+--selector
+# Specify dbt selector for more complex model filtering
+```
+Note: `--select (or -s)`, `--exclude` and `--selector` work exactly as `dbt ls` selectors do. For usage details, visit [dbt list docs](https://docs.getdbt.com/reference/commands/list)
 
 ### Metadata
 
@@ -254,7 +265,9 @@ generate:
     destination: "{{model_folder_path}}/{{model_file_name}}.yml" # Where models yml files will be generated
     # You can specify a different path by declaring it explicitly, i.e.: "models/staging/{{model_file_name}}.yml"
     update-strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
-    models: "models/staging" # Model(s) path where 'generate properties' will look for models for generation
+    select: "models/staging/bays" # Filter model(s) to generate property file(s)
+    exclude: "models/staging/bays/test_bay" # Filter model(s) to generate property file(s)
+    selector: "selectors/bay_selector.yml" # Specify dbt selector for more complex model filtering
 
 extract:
   airbyte:
