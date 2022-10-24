@@ -190,8 +190,9 @@ You can download a [sample csv file](sample_metadata.csv) as reference
 
   |database|   schema|     relation|   column|     key|         type|       description|
   |----------| ----------| ----------| ----------| -----------| ----------| -------------|
-  |raw|        master|     person|     name|       (empty)|     varchar|    The full name|
-  |raw|        master|     person|     name|       groupName|   varchar|    The group name|
+  |raw|        raw|     _airbyte_raw_country_populations |     _airbyte_data|       Year|     integer|    Year of country population measurement|
+  |raw|        raw|     _airbyte_raw_country_populations |     _airbyte_data|       |   variant|    Airbyte data columns (VARIANT) in Snowflake|
+  |raw|        raw|     _airbyte_raw_country_populations |     _airbyte_ab_id|      |   varchar|    Airbyte unique identifier used during data load|
 
 
 ## Extract configuration from Airbyte
