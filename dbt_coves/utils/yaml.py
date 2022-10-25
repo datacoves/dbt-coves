@@ -21,11 +21,13 @@ def open_yaml(path: Path) -> Dict[str, Any]:
     """
     if path.is_file():
         with open(path, "r") as stream:
-            yaml_dict = yaml.load(stream, Loader=yamlloader.ordereddict.CSafeLoader)
-            if yaml_dict:
-                return yaml_dict
-            raise YAMLFileEmptyError(f"The following file {path.resolve()} appears to be empty.")
+            return yaml.load(stream, Loader=yaml.Loader)
     raise FileNotFoundError(f"File {path.resolve()} was not found.")
+
+
+class DbtCovesDumper(yaml.Dumper):
+    def increase_indent(self, flow=False, *args, **kwargs):
+        return super().increase_indent(flow=flow, indentless=False)
 
 
 def save_yaml(path: Path, data: Dict[str, Any]) -> None:
@@ -36,5 +38,4 @@ def save_yaml(path: Path, data: Dict[str, Any]) -> None:
         data (dict[str, Any]): Data to save in the file.
     """
     with open(path, "w") as outfile:
-        data_order_dict = collections.OrderedDict(data)
-        yaml.dump(data_order_dict, outfile, width=100, Dumper=yamlloader.ordereddict.CDumper)
+        yaml.dump(data, outfile, sort_keys=False, Dumper=DbtCovesDumper)

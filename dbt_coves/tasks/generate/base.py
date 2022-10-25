@@ -8,19 +8,10 @@ from rich.console import Console
 from slugify import slugify
 
 from dbt_coves.tasks.base import BaseConfiguredTask
-from dbt_coves.utils.jinja import (
-    get_render_output,
-    render_template,
-    render_template_file,
-)
-from dbt_coves.utils.yaml import open_yaml
+from dbt_coves.utils.jinja import get_render_output, render_template_file
+from dbt_coves.utils.yaml import open_yaml, save_yaml
 
 console = Console()
-
-
-class DbtCovesDumper(yaml.Dumper):
-    def increase_indent(self, flow=False, *args, **kwargs):
-        return super().increase_indent(flow=flow, indentless=False)
 
 
 class BaseGenerateTask(BaseConfiguredTask):
@@ -37,7 +28,9 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_schemas(self):
 
         # get schema names selectors
-        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
+        schema_name_selectors = [
+            schema.upper() for schema in self.get_config_value("schemas")
+        ]
 
         schema_wildcard_selectors = []
         for schema_name in schema_name_selectors:
@@ -118,7 +111,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                                 self.get_metadata_map_key(row)
                             ] = self.get_metadata_map_item(row)
                         except KeyError as e:
-                            raise Exception(f"Key {e} not found in metadata file {path}")
+                            raise Exception(
+                                f"Key {e} not found in metadata file {path}"
+                            )
             except FileNotFoundError as e:
                 raise Exception(f"Metadata file not found: {e}")
 
@@ -129,7 +124,9 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"][self.args.task][key]
 
-    def render_templates(self, relation, columns, destination, options=None, json_cols=None):
+    def render_templates(
+        self, relation, columns, destination, options=None, json_cols=None
+    ):
         destination.parent.mkdir(parents=True, exist_ok=True)
         context = self.get_templates_context(relation, columns, json_cols)
         self.render_templates_with_context(context, destination, options)
@@ -223,7 +220,10 @@ class BaseGenerateTask(BaseConfiguredTask):
             )
             if object_in_yml:
                 new_object_id = object_in_yml.get("name")
-                if not options[strategy_key_recreate_all] and not options[strategy_key_update_all]:
+                if (
+                    not options[strategy_key_recreate_all]
+                    and not options[strategy_key_update_all]
+                ):
                     if update_strategy == "ask":
                         console.print(
                             f"{object_type[:-1]} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
@@ -386,8 +386,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             f"{obj_type[:-1].capitalize()} [green][b]{new_object.get('name')}[/b][/green] {action}d on file [green][b]{yml_path}[/b][/green]"
         )
 
-        with open(yml_path, "w") as file:
-            yaml.dump(current_yml, file, sort_keys=False, Dumper=DbtCovesDumper)
+        save_yaml(yml_path, current_yml)
 
     def render_property_file(self, template, context, model_yml, templates_folder):
         model_yml.parent.mkdir(parents=True, exist_ok=True)
@@ -405,9 +404,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                 # If column exists in A, update it's description
                 # and leave as-is to avoid overriding tests
                 for current_column in columns_a:
-                    if (current_column.get("name") == new_column.get("name")) and new_column.get(
-                        "description"
-                    ):
+                    if (
+                        current_column.get("name") == new_column.get("name")
+                    ) and new_column.get("description"):
                         current_column["description"] = new_column.get("description")
             else:
                 columns_a.append(new_column)

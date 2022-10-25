@@ -94,3 +94,6 @@ title_format = "## dbt-coves [{version}] - {project_date}"
 
 [tool.pytest.ini_options]
 markers = ["datafiles"]
+
+[tool.black]
+line-length = 88

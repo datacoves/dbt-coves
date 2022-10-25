@@ -15,7 +15,7 @@ class GeneratePropertiesModel(BaseModel):
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
     update_strategy: Optional[str] = "ask"
-    destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
+    destination: Optional[str] = "{{model_folder_path}}/{{model_file_name}}.yml"
     models: Optional[str] = ""
     select: Optional[str] = ""
     exclude: Optional[str] = ""
@@ -28,7 +28,9 @@ class GenerateSourcesModel(BaseModel):
     schemas: Optional[List[str]] = [""]
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
-    model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
+    model_props_destination: Optional[
+        str
+    ] = "models/staging/{{schema}}/{{relation}}.yml"
     update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
@@ -163,7 +165,11 @@ class DbtCovesConfig:
             source = self._flags
             for item in path_items[:-1]:
                 target = target[item]
-                source = source.get(item, {}) if type(source) == dict else getattr(source, item)
+                source = (
+                    source.get(item, {})
+                    if type(source) == dict
+                    else getattr(source, item)
+                )
             key = path_items[-1]
             if source.get(key):
                 target[key] = source[key]
@@ -171,7 +177,7 @@ class DbtCovesConfig:
 
     def load_and_validate_config_yaml(self) -> None:
         if self._config_path:
-            yaml_dict = open_yaml(self._config_path)
+            yaml_dict = open_yaml(self._config_path) or {}
 
             # use pydantic to shape and validate
             self._config = ConfigModel(**yaml_dict)
