@@ -74,6 +74,7 @@ class DbtCovesFlags:
             "ssh": {"open_ssl_public_key": False},
             "git": {"no_prompt": False},
         }
+        self.dbt = {"command": None, "project_dir": None, "virtualenv": None}
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
@@ -194,3 +195,11 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "SetupGitTask":
                 if self.args.no_prompt:
                     self.setup["git"]["no_prompt"] = self.args.no_prompt
+
+            if self.args.cls.__name__ == "RunDbtTask":
+                if self.args.command:
+                    self.dbt["command"] = self.args.command
+                if self.args.project_dir:
+                    self.dbt["project_dir"] = self.args.project_dir
+                if self.args.virtualenv:
+                    self.dbt["virtualenv"] = self.args.virtualenv

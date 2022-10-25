@@ -11,6 +11,7 @@ from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
 from dbt_coves.tasks.base import BaseTask
+from dbt_coves.tasks.dbt.main import RunDbtTask
 from dbt_coves.tasks.extract.main import ExtractTask
 from dbt_coves.tasks.generate.main import GenerateTask
 from dbt_coves.tasks.load.main import LoadTask
@@ -99,12 +100,7 @@ sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 # Register subcommands
 [
     task.register_parser(sub_parsers, base_subparser)
-    for task in [
-        GenerateTask,
-        SetupTask,
-        ExtractTask,
-        LoadTask,
-    ]
+    for task in [GenerateTask, SetupTask, ExtractTask, LoadTask, RunDbtTask]
 ]
 
 
@@ -131,9 +127,7 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
-def main(
-    parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()
-) -> int:
+def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
     tracking.do_not_track()
 
     exit_code = 0
@@ -144,12 +138,8 @@ def main(
         # app logo
         logo_str = str(pyfiglet.figlet_format("dbt-coves", font="standard"))
         console.print(logo_str, style="cyan")
-        dbt_version = version.get_installed_version().to_version_string(
-            skip_matcher=True
-        )
-        console.print(
-            f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23)
-        )
+        dbt_version = version.get_installed_version().to_version_string(skip_matcher=True)
+        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23))
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore
