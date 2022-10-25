@@ -17,6 +17,9 @@ class GeneratePropertiesModel(BaseModel):
     update_strategy: Optional[str] = "ask"
     destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
     models: Optional[str] = ""
+    select: Optional[str] = ""
+    exclude: Optional[str] = ""
+    selector: Optional[str] = ""
 
 
 class GenerateSourcesModel(BaseModel):
@@ -97,7 +100,9 @@ class DbtCovesConfig:
         "generate.properties.metadata",
         "generate.properties.destination",
         "generate.properties.update_strategy",
-        "generate.properties.models",
+        "generate.properties.select",
+        "generate.properties.exclude",
+        "generate.properties.selector",
         "generate.sources.relations",
         "generate.sources.database",
         "generate.sources.schemas",
