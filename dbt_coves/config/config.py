@@ -26,7 +26,7 @@ class GenerateSourcesModel(BaseModel):
     database: Optional[str] = ""
     relations: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = [""]
-    sources_destination: Optional[str] = "models/staging/{{schema}}/sources.yml"
+    sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
     model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
     update_strategy: Optional[str] = "ask"

@@ -27,7 +27,7 @@ docs/<issue_number_if_applicable>/what_is_changing_what_you_are_explaining
 
 #### Pull Requests
 
-We follow [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/) to standardise commits, and help with CHANGELOG.md generation.
+We follow [conventional-commits](https://www.conventionalcommits.org/en/v1.0.0/) to standardize commits, and help with CHANGELOG.md generation.
 If you feel like you don't want to bother with it it's ok, we squash all commits and we ensure the PR is named with a [conventional commit](https://www.conventionalcommits.org/en/v1.0.0/) pattern when we merge your branch.
 
 **PR linting will fail if the PR isn't name with one of prefixes below**. Don't worry though, we'll get that sorted before merging 🎉
@@ -36,7 +36,7 @@ Here is what your PR names should ideally look like:
 
 ```txt
 feat: my awesome feature
-fix: relax version requiremtents on pandas
+fix: relax version requirements on pandas
 docs: document new feature
 refactor: move cleanups into its own class
 ```
@@ -56,7 +56,7 @@ This leads to you writing commit messages such as `implement my awesome feature`
 
 We'll squash your PR at merge time.
 
-#### Shout out your hardwork in the changelog!
+#### Shout out your hard work in the changelog!
 
 In this project we use `towncrier` to generate our changelog. When you make a PR, no-one better than you should be able to describe your code change! Towncrier works with news fragments. For each PR that proposes changes that need to be talked about in the changelog you should create a news fragment file in the following way:
 
