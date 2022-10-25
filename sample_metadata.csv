@@ -1,0 +1,8 @@
+"database","schema","relation","column","key","type","description"
+"raw","raw","_airbyte_raw_country_populations","_airbyte_data","Country Code","varchar","2-character country code"
+"raw","raw","_airbyte_raw_country_populations","_airbyte_data","Country Name","varchar","Full name of the country"
+"raw","raw","_airbyte_raw_country_populations","_airbyte_data","Value","integer","Country Population"
+"raw","raw","_airbyte_raw_country_populations","_airbyte_data","Year","integer","Year of Country Population"
+"raw","raw","_airbyte_raw_country_populations","_airbyte_ab_id","","varchar","Airbyte Unique ID used during data load"
+"raw","raw","_airbyte_raw_country_populations","_airbyte_data","","variant","Airbyte data columns (VARIANT) in Snowflake"
+"raw","raw","_airbyte_raw_country_populations","_airbyte_emitted_at","","timestamp_tz","Airbyte timestamp when the record for loaded"

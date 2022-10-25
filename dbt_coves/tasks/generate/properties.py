@@ -48,7 +48,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
         )
         subparser.add_argument(
-            "--destination",  # TODO: should we copy the naming 'model-props-destination' from generate-sources?
+            "--destination",
             type=str,
             help="Where models yml files will be generated, default: "
             "'models/staging/{{schema}}/{{relation}}.yml'",
@@ -60,9 +60,20 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "'update', 'recreate', 'fail', 'ask' (per file)",
         )
         subparser.add_argument(
-            "--models",
+            "-s",
+            "--select",
             type=str,
-            help="Path to look for SQL files and generate their property files, i.e.: 'models/staging/my_model.sql'",
+            help="Filter model(s) to generate property file(s)",
+        )
+        subparser.add_argument(
+            "--exclude",
+            type=str,
+            help="Filter model(s) to exclude from property file(s) generation",
+        )
+        subparser.add_argument(
+            "--selector",
+            type=str,
+            help="Specify dbt selector for more complex model filtering",
         )
         cls.arg_parser = base_subparser
 
@@ -74,17 +85,24 @@ class GeneratePropertiesTask(BaseGenerateTask):
         self.json_from_dbt_ls = None
 
     def list_from_dbt_ls(self, output):
+        user_selectors = list()
+        if self.get_config_value("select"):
+            user_selectors.append("--select")
+            user_selectors.append(self.get_config_value("select"))
+        if self.get_config_value("exclude"):
+            user_selectors.append("--exclude")
+            user_selectors.append(self.get_config_value("exclude"))
+        if self.get_config_value("selector"):
+            user_selectors.append("--selector")
+            user_selectors.append(self.get_config_value("selector"))
 
         if self.json_from_dbt_ls:
             return self.json_from_dbt_ls
 
-        model_paths = self.get_config_value("models")
-        if model_paths:
-            dbt_params = ["dbt", "ls", "--output", output, "-s", model_paths]
-        else:
-            # Runtime Error
-            # "models" and "resource_type" are mutually exclusive arguments
-            dbt_params = ["dbt", "ls", "--output", output, "--resource-type", "model"]
+        dbt_params = ["dbt", "ls", "--output", output, "--resource-type", "model"]
+
+        if user_selectors:
+            dbt_params += user_selectors
 
         result = subprocess.run(dbt_params, capture_output=True, text=True)
 
@@ -92,6 +110,8 @@ class GeneratePropertiesTask(BaseGenerateTask):
             raise GeneratePropertiesException(
                 f"An error occurred listing your dbt models: \n {result.stdout or result.stderr}"
             )
+        if "no nodes selected" in result.stdout.lower():
+            raise GeneratePropertiesException(f"{result.stdout}\nSelectors used: {user_selectors}")
 
         manifest_json_lines = filter(
             lambda i: len(i) > 0 and i[0] == "{", result.stdout.splitlines()
@@ -204,7 +224,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
     def render_templates_with_context(self, context, destination, options):
         templates_folder = self.get_config_value("templates_folder")
         update_strategy = self.get_config_value("update_strategy").lower()
-
         self.render_property_files(
             context,
             options,

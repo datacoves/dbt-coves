@@ -24,7 +24,7 @@ def open_yaml(path: Path) -> Dict[str, Any]:
             yaml_dict = yaml.load(stream, Loader=yamlloader.ordereddict.CSafeLoader)
             if yaml_dict:
                 return yaml_dict
-            raise YAMLFileEmptyError(f"The following file {path.resolve()} seems empty.")
+            raise YAMLFileEmptyError(f"The following file {path.resolve()} appears to be empty.")
     raise FileNotFoundError(f"File {path.resolve()} was not found.")
 
 

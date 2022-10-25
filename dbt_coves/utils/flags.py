@@ -45,7 +45,9 @@ class DbtCovesFlags:
                 "metadata": None,
                 "destination": None,
                 "update_strategy": None,
-                "models": None,
+                "select": None,
+                "exclude": None,
+                "selector": None,
             },
         }
         self.extract = {
@@ -143,8 +145,12 @@ class DbtCovesFlags:
                     self.generate["properties"]["destination"] = self.args.destination
                 if self.args.update_strategy:
                     self.generate["sources"]["update_strategy"] = self.args.update_strategy
-                if self.args.models:
-                    self.generate["properties"]["models"] = self.args.models
+                if self.args.select:
+                    self.generate["properties"]["select"] = self.args.select
+                if self.args.exclude:
+                    self.generate["properties"]["exclude"] = self.args.exclude
+                if self.args.selector:
+                    self.generate["properties"]["selector"] = self.args.selector
             if self.args.cls.__name__ == "InitTask":
                 if self.args.template:
                     self.init["template"] = self.args.template
