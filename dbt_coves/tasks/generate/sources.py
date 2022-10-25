@@ -109,7 +109,9 @@ class GenerateSourcesTask(BaseGenerateTask):
         return selected_schemas
 
     def get_relations(self, filtered_schemas):
-        rel_name_selectors = [relation.upper() for relation in self.get_config_value("relations")]
+        rel_name_selectors = [
+            relation.upper() for relation in self.get_config_value("relations")
+        ]
         rel_wildcard_selectors = []
         for rel_name in rel_name_selectors:
             if "*" in rel_name:
@@ -126,10 +128,14 @@ class GenerateSourcesTask(BaseGenerateTask):
                     break
 
         intersected_rels = [
-            relation for relation in listed_relations if relation.name in rel_name_selectors
+            relation
+            for relation in listed_relations
+            if relation.name in rel_name_selectors
         ]
         rels = (
-            intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
+            intersected_rels
+            if rel_name_selectors and rel_name_selectors[0]
+            else listed_relations
         )
 
         return rels
@@ -138,7 +144,8 @@ class GenerateSourcesTask(BaseGenerateTask):
         selected_rels = questionary.checkbox(
             "Which sources would you like to generate?",
             choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
+                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
+                for rel in rels
             ],
         ).ask()
 
@@ -288,7 +295,10 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         # Render model SQL
         render_template_file(
-            "source_model.sql", context, sql_destination, templates_folder=templates_folder
+            "source_model.sql",
+            context,
+            sql_destination,
+            templates_folder=templates_folder,
         )
         console.print(f"Model [green][b]{sql_destination}[/green][/b] created")
 
@@ -300,7 +310,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             options,
             templates_folder,
             update_strategy,
-            "models",
+            "model",
             model_yml_path,
             "source_model_props.yml",
         )
@@ -312,7 +322,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             options,
             templates_folder,
             update_strategy,
-            "sources",
+            "source",
             source_yml_path,
             "source_props.yml",
         )
@@ -335,7 +345,9 @@ class GenerateSourcesTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                        result[json_col][key_name] = self.get_default_metadata_item(
+                            key_name
+                        )
                     self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(

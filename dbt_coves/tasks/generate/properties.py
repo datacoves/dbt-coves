@@ -40,7 +40,8 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser.add_argument(
             "--model-props-strategy",
             type=str,
-            help="Strategy for model properties file generation," " i.e. 'one_file_per_model'",
+            help="Strategy for model properties file generation,"
+            " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
             "--metadata",
@@ -111,7 +112,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 f"An error occurred listing your dbt models: \n {result.stdout or result.stderr}"
             )
         if "no nodes selected" in result.stdout.lower():
-            raise GeneratePropertiesException(f"{result.stdout}\nSelectors used: {user_selectors}")
+            raise GeneratePropertiesException(
+                f"{result.stdout}\nSelectors used: {user_selectors}"
+            )
 
         manifest_json_lines = filter(
             lambda i: len(i) > 0 and i[0] == "{", result.stdout.splitlines()
@@ -163,7 +166,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
     def generate(self, models, manifest):
         prop_destination = self.get_config_value("destination")
         options = {
-            "model_prop_is_single_file": False,
             "model_prop_update_all": False,
             "model_prop_recreate_all": False,
         }
@@ -177,7 +179,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
                 columns = self.adapter.get_columns_in_relation(relation)
-                model_destination = self.generate_template(prop_destination, model, manifest)
+                model_destination = self.generate_template(
+                    prop_destination, model, manifest
+                )
                 model_path = Path().joinpath(model_destination)
 
                 self.render_templates(relation, columns, model_path, options)
@@ -216,9 +220,13 @@ class GeneratePropertiesTask(BaseGenerateTask):
     def generate_template(self, destination_path, model, manifest):
         template_context = dict()
         if "{{model_folder_path}}" in destination_path.replace(" ", ""):
-            template_context["model_folder_path"] = self.get_model_folder(model, manifest)
+            template_context["model_folder_path"] = self.get_model_folder(
+                model, manifest
+            )
         if "{{model_file_name}}" in destination_path.replace(" ", ""):
-            template_context["model_file_name"] = self.get_model_filename(model, manifest)
+            template_context["model_file_name"] = self.get_model_filename(
+                model, manifest
+            )
         return render_template(destination_path, template_context)
 
     def render_templates_with_context(self, context, destination, options):
@@ -229,7 +237,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             options,
             templates_folder,
             update_strategy,
-            "models",
+            "model",
             destination,
             "model_props.yml",
         )

@@ -171,7 +171,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         template,
         context,
         templates_folder,
-        object_type,
+        resource_type,
     ):
         new_yml = yaml.safe_load(
             get_render_output(
@@ -180,9 +180,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                 templates_folder=templates_folder,
             )
         )
-
-        for new_obj in new_yml.get(object_type):
-            for curr_obj in current_yml.get(object_type):
+        resource_type_key = f"{resource_type}s"
+        for new_obj in new_yml.get(resource_type_key):
+            for curr_obj in current_yml.get(resource_type_key):
                 if curr_obj.get("name") == new_obj.get("name"):
                     return new_obj
         return False
@@ -193,7 +193,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         options,
         templates_folder,
         update_strategy,
-        object_type,
+        resource_type,
         yml_path,
         template,
     ):
@@ -202,12 +202,8 @@ class BaseGenerateTask(BaseConfiguredTask):
         rel = context["relation"]
 
         context["model"] = rel.name.lower()
-        if object_type == "models":
-            strategy_key_update_all = "model_prop_update_all"
-            strategy_key_recreate_all = "model_prop_recreate_all"
-        if object_type == "sources":
-            strategy_key_update_all = "source_prop_update_all"
-            strategy_key_recreate_all = "source_prop_recreate_all"
+        strategy_key_update_all = f"{resource_type}_prop_update_all"
+        strategy_key_recreate_all = f"{resource_type}_prop_recreate_all"
         if yml_path.exists():
             object_in_yml = False
             current_yml = open_yaml(yml_path)
@@ -216,8 +212,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                 template,
                 context,
                 templates_folder,
-                object_type,
+                resource_type,
             )
+            sel_action = None
             if object_in_yml:
                 new_object_id = object_in_yml.get("name")
                 if (
@@ -226,7 +223,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 ):
                     if update_strategy == "ask":
                         console.print(
-                            f"{object_type[:-1]} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
+                            f"{resource_type} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
                         )
                         action = questionary.select(
                             "What would you like to do with it?",
@@ -241,112 +238,52 @@ class BaseGenerateTask(BaseConfiguredTask):
                             default="Update",
                         ).ask()
                         if action == "Recreate":
-                            self.modify_property_file(
-                                template,
-                                context,
-                                yml_path,
-                                current_yml,
-                                templates_folder,
-                                object_type,
-                                "recreate",
-                            )
-                        if action == "Recreate all":
+                            sel_action = "recreate"
+                        elif action == "Recreate all":
                             options[strategy_key_recreate_all] = True
-                            self.modify_property_file(
-                                template,
-                                context,
-                                yml_path,
-                                current_yml,
-                                templates_folder,
-                                object_type,
-                                "recreate",
-                            )
-                        if action == "Update":
-                            self.modify_property_file(
-                                template,
-                                context,
-                                yml_path,
-                                current_yml,
-                                templates_folder,
-                                object_type,
-                                "update",
-                            )
-                        if action == "Update all":
+                            sel_action = "recreate"
+                        elif action == "Update":
+                            sel_action = "update"
+                        elif action == "Update all":
                             options[strategy_key_update_all] = True
-                            self.modify_property_file(
-                                template,
-                                context,
-                                yml_path,
-                                current_yml,
-                                templates_folder,
-                                object_type,
-                                "update",
-                            )
-                        if action == "Skip":
-                            pass
-                        if action == "Cancel":
-                            exit
+                            sel_action = "update"
+                        elif action == "Skip":
+                            return
+                        elif action == "Cancel":
+                            exit()
                     elif update_strategy == "update":
-                        self.modify_property_file(
-                            template,
-                            context,
-                            yml_path,
-                            current_yml,
-                            templates_folder,
-                            object_type,
-                            "update",
-                        )
+                        sel_action = "update"
                     elif update_strategy == "recreate":
-                        self.modify_property_file(
-                            template,
-                            context,
-                            yml_path,
-                            current_yml,
-                            templates_folder,
-                            object_type,
-                            "recreate",
-                        )
+                        sel_action = "recreate"
                     else:
-                        exit
-                if options[strategy_key_recreate_all]:
-                    self.modify_property_file(
-                        template,
-                        context,
-                        yml_path,
-                        current_yml,
-                        templates_folder,
-                        object_type,
-                        "recreate",
-                    )
-                if options[strategy_key_update_all]:
-                    self.modify_property_file(
-                        template,
-                        context,
-                        yml_path,
-                        current_yml,
-                        templates_folder,
-                        object_type,
-                        "update",
-                    )
+                        console.print(
+                            f"Update strategy {update_strategy} not a valid option."
+                        )
+                        exit()
+                elif options[strategy_key_recreate_all]:
+                    sel_action = "recreate"
+                elif options[strategy_key_update_all]:
+                    sel_action = "update"
             else:
-                self.modify_property_file(
-                    template,
-                    context,
-                    yml_path,
-                    current_yml,
-                    templates_folder,
-                    object_type,
-                    "create",
-                )
+                sel_action = "create"
+            self.modify_property_file(
+                template,
+                context,
+                yml_path,
+                current_yml,
+                templates_folder,
+                resource_type,
+                sel_action,
+            )
         else:
             self.render_property_file(template, context, yml_path, templates_folder)
             # Property file {filepath} created
             console.print(f"Property file [green][b]{yml_path}[/b][/green] created")
 
-    def update_object_properties(self, current_object, new_object, object_type):
-        if object_type == "sources":
+    def update_object_properties(self, current_object, new_object, resource_type):
+        if resource_type == "source":
             current_object = self.update_source_properties(current_object, new_object)
-        if object_type == "models":
+        if resource_type == "model":
             current_object = self.update_model_properties(current_object, new_object)
         return current_object
 
@@ -357,7 +294,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         yml_path,
         current_yml,
         templates_folder,
-        obj_type,
+        resource_type,
         action,
     ):
         new_yml = yaml.safe_load(
@@ -367,23 +304,26 @@ class BaseGenerateTask(BaseConfiguredTask):
                 templates_folder=templates_folder,
             )
         )
-        new_object = new_yml.get(obj_type)[0]
+        resource_type_key = resource_type + "s"
+        new_object = new_yml.get(resource_type_key)[0]
 
         if action == "create":
-            current_yml[obj_type].append(new_object)
-        if action == "recreate" or action == "update":
-            for idx, curr_obj in enumerate(current_yml.get(obj_type)):
+            current_yml[resource_type_key].append(new_object)
+        elif action == "recreate" or action == "update":
+            for idx, curr_obj in enumerate(current_yml.get(resource_type_key)):
                 if curr_obj.get("name") == new_object.get("name"):
                     if action == "recreate":
-                        current_yml[obj_type][idx] = new_object
+                        current_yml[resource_type_key][idx] = new_object
                     if action == "update":
-                        current_yml[obj_type][idx] = self.update_object_properties(
-                            curr_obj, new_object, obj_type
+                        current_yml[resource_type_key][
+                            idx
+                        ] = self.update_object_properties(
+                            curr_obj, new_object, resource_type
                         )
 
         # "{Model/Source} {name} created/recreated/updated on file {filepath}"
         console.print(
-            f"{obj_type[:-1].capitalize()} [green][b]{new_object.get('name')}[/b][/green] {action}d on file [green][b]{yml_path}[/b][/green]"
+            f"{resource_type.capitalize()} [green][b]{new_object.get('name')}[/b][/green] {action}d on file [green][b]{yml_path}[/b][/green]"
         )
 
         save_yaml(yml_path, current_yml)
