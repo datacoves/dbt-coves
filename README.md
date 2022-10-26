@@ -10,7 +10,9 @@ isort](https://img.shields.io/badge/%20imports-isort-%231674b1?style=flat&labelC
 [![Imports:
 python](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)
 [![Build](https://github.com/datacoves/dbt-coves/actions/workflows/main_ci.yml/badge.svg)](https://github.com/datacoves/dbt-coves/actions/workflows/main_ci.yml/badge.svg)
+
 <!-- [![codecov](https://codecov.io/gh/datacoves/dbt-coves/branch/main/graph/badge.svg?token=JB0E0LZDW1)](https://codecov.io/gh/datacoves/dbt-coves) -->
+
 [![Maintainability](https://api.codeclimate.com/v1/badges/1e6a887de605ef8e0eca/maintainability)](https://codeclimate.com/github/datacoves/dbt-coves/maintainability)
 [![Downloads](https://pepy.tech/badge/dbt-coves)](https://pepy.tech/project/dbt-coves)
 
@@ -24,18 +26,18 @@ Finally, dbt-coves includes functionality to bootstrap a dbt project and to extr
 
 ## Supported dbt versions
 
-  |Version          |Status|
-  |---------------- |------------------|
-  |\< 1.0       |❌ Not supported|
-  |>= 1.0            |✅ Tested|
+| Version | Status           |
+| ------- | ---------------- |
+| \< 1.0  | ❌ Not supported |
+| >= 1.0  | ✅ Tested        |
 
 ## Supported adapters
 
-  |Feature|                  Snowflake|   Redshift|
-  |------------------------| -----------| ----------------|
-  |dbt project setup|   ✅ Tested|   🕥 In progress|
-  |source model (sql) generation|       ✅ Tested|   🕥 In progress|
-  |model properties (yml) generation|       ✅ Tested|   🕥 In progress|
+| Feature                           | Snowflake | Redshift       |
+| --------------------------------- | --------- | -------------- |
+| dbt project setup                 | ✅ Tested | 🕥 In progress |
+| source model (sql) generation     | ✅ Tested | 🕥 In progress |
+| model properties (yml) generation | ✅ Tested | 🕥 In progress |
 
 NOTE: Other database adapters may work, we have just not tested them. Feed free to try them and let us know if you test them we can update the table above.
 
@@ -45,7 +47,7 @@ NOTE: Other database adapters may work, we have just not tested them. Feed free 
 
 # Installation
 
-``` console
+```console
 pip install dbt-coves
 ```
 
@@ -57,7 +59,7 @@ one separate environment per project.
 
 For a complete list of options, please run:
 
-``` console
+```console
 dbt-coves -h
 dbt-coves <command> -h
 ```
@@ -67,41 +69,46 @@ dbt-coves <command> -h
 Setting up your environment can be done in two different ways:
 
 Runs a set of scripts in your local environment to configure your project components: `ssh keys`, `git` and `dbt`
-``` console
+
+```console
 dbt-coves setup all
 ```
 
 You can configure individual components:
 
 Set up `git` repository of dbt-coves project
-``` console
+
+```console
 dbt-coves setup git
 ```
 
 Setup `dbt` within the project (delegates to dbt init)
-``` console
+
+```console
 dbt-coves setup dbt
 ```
 
 Set up SSH Keys for dbt project. Supports the argument `--open_ssl_public_key` which generates an extra Public Key in Open SSL format, useful for configuring certain providers (i.e. Snowflake authentication)
-``` console
+
+```console
 dbt-coves setup ssh
 ```
 
 ## Models generation
 
-``` console
+```console
 dbt-coves generate <resource>
 ```
 
-Where *\<resource\>* could be *sources* or *properties*.
+Where _\<resource\>_ could be _sources_ or _properties_.
 
-``` console
+```console
 dbt-coves generate sources
 ```
+
 This command will generate the dbt source configuration as well as the initial dbt staging model(s). It will look in the database defined in your `profiles.yml` file or you can pass the `--database` argument or set up default configuration options (see below)
 
-``` console
+```console
 dbt-coves generate sources --database raw
 ```
 
@@ -110,6 +117,7 @@ Supports Jinja templates to adjust how the resources are generated. See below fo
 ### Source Generation Arguments
 
 dbt-coves can be used to create the initial staging models. It will do the following:
+
 1. Create / Update the source yml file
 2. Create the initial staging model(sql) file and offer to flatten VARIANT(JSON) fields
 3. Create the staging model's property(yml) file.
@@ -117,6 +125,7 @@ dbt-coves can be used to create the initial staging models. It will do the follo
 `dbt-coves generate sources` supports the following args:
 
 See full list in help
+
 ```console
 dbt-coves generate sources -h
 ```
@@ -186,41 +195,43 @@ You can use dbt-coves to generate and update the properties(yml) file for a give
 --selector
 # Specify dbt selector for more complex model filtering
 ```
+
 Note: `--select (or -s)`, `--exclude` and `--selector` work exactly as `dbt ls` selectors do. For usage details, visit [dbt list docs](https://docs.getdbt.com/reference/commands/list)
 
 ### Metadata
 
 dbt-coves supports the argument `--metadata` which allows users to specify a csv file containing field types and descriptions to be used when creating the staging models and property files.
 
-``` console
+```console
 dbt-coves generate sources --metadata metadata.csv
 ```
 
 Metadata format:
 You can download a [sample csv file](sample_metadata.csv) as reference
 
-  |database|   schema|     relation|   column|     key|         type|       description|
-  |----------| ----------| ----------| ----------| -----------| ----------| -------------|
-  |raw|        raw|     _airbyte_raw_country_populations |     _airbyte_data|       Year|     integer|    Year of country population measurement|
-  |raw|        raw|     _airbyte_raw_country_populations |     _airbyte_data|       |   variant|    Airbyte data columns (VARIANT) in Snowflake|
-  |raw|        raw|     _airbyte_raw_country_populations |     _airbyte_ab_id|      |   varchar|    Airbyte unique identifier used during data load|
-
+| database | schema | relation                          | column          | key  | type    | description                                     |
+| -------- | ------ | --------------------------------- | --------------- | ---- | ------- | ----------------------------------------------- |
+| raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  | Year | integer | Year of country population measurement          |
+| raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  |      | variant | Airbyte data columns (VARIANT) in Snowflake     |
+| raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_ab_id |      | varchar | Airbyte unique identifier used during data load |
 
 ## Extract configuration from Airbyte
 
-``` console
+```console
 dbt-coves extract airbyte
 ```
 
 Extracts the configuration from your Airbyte sources, connections and destinations (excluding credentials) and stores it in the specified folder. The main goal of this feature is to keep track of the configuration changes in your git repo, and rollback to a specific version when needed.
 
 Full usage example:
+
 ```console
 dbt-coves extract airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load
 ```
+
 ## Load configuration to Airbyte
 
-``` console
+```console
 dbt-coves load airbyte
 ```
 
@@ -254,13 +265,14 @@ To load encrypted fields through a manager (in this case we are connecting to Da
 ```
 
 Full usage example:
+
 ```console
 dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load --secrets-path /config/workspace/secrets
 ```
 
 ## Run dbt commands
 
-``` shell
+```shell
 dbt-coves dbt <arguments> -- <command>
 ```
 
@@ -288,14 +300,12 @@ dbt-coves dbt --project-dir /opt/user/dbt_project --virtualenv /opt/user/virtual
 # Double dash (--) between <arguments> and <command> are mandatory
 ```
 
-
 # Settings
 
-dbt-coves could optionally read settings from `.dbt_coves.yml` or
-`.dbt_coves/config.yml`. A standard settings files could look like
+dbt-coves will read settings from `.dbt_coves/config.yml`. A standard settings files could look like
 this:
 
-``` yaml
+```yaml
 generate:
   sources:
     database: RAW # Database where to look for source tables
@@ -334,14 +344,13 @@ load:
     secrets_token: AbCdEf123456 # Secret credentials provider token
 ```
 
-
 ## Override source generation templates
 
 Customizing generated models and model properties requires placing
 template files under the `.dbt-coves/templates` folder as follows:
 
-
 ### source_props.yml
+
 This file is used to create the sources yml file
 
 ```yaml
@@ -356,11 +365,11 @@ sources:
       - name: {{ relation.name.lower() }}
 ```
 
-
 ### source_model.sql
+
 This file is used to create the staging model(sql) file
 
-``` sql
+```sql
 with raw_source as (
 
     select
@@ -404,9 +413,10 @@ select * from final
 ```
 
 ### source_model_props.yml
+
 This file is used to create the staging properties(yml) file
 
-``` yaml
+```yaml
 version: 2
 
 models:
@@ -423,6 +433,7 @@ models:
 ```
 
 ### model_props.yml
+
 This file is used to create the properties(yml) files for non-staging models
 
 ```yaml
@@ -438,19 +449,19 @@ models:
       {%- endif %}
 {%- endfor %}
 ```
+
 # Thanks
 
 The project main structure was inspired by [dbt-sugar](https://github.com/bitpicky/dbt-sugar). Special thanks to [Bastien Boutonnet](https://github.com/bastienboutonnet) for the great work done.
 
 # Authors
 
--   Sebastian Sassi [\@sebasuy](https://twitter.com/sebasuy) -- [Datacoves](https://datacoves.com/)
--   Noel Gomez [\@noel_g](https://twitter.com/noel_g) -- [Datacoves](https://datacoves.com/)
--   Bruno Antonellini -- [Datacoves](https://datacoves.com/)
+- Sebastian Sassi [\@sebasuy](https://twitter.com/sebasuy) -- [Datacoves](https://datacoves.com/)
+- Noel Gomez [\@noel_g](https://twitter.com/noel_g) -- [Datacoves](https://datacoves.com/)
+- Bruno Antonellini -- [Datacoves](https://datacoves.com/)
 
 # About
 
 Learn more about [Datacoves](https://datacoves.com).
-
 
 ⚠️ **dbt-coves is still in development, make sure to test it for your dbt project version and DW before using in production and please submit any issues you find. We also welcome any contributions from the community**

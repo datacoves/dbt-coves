@@ -102,7 +102,7 @@ class ConfigModel(BaseModel):
 class DbtCovesConfig:
     """dbt-coves configuration class."""
 
-    DBT_COVES_CONFIG_FILENAMES = [".dbt_coves.yml", ".dbt_coves/config.yml"]
+    DBT_COVES_CONFIG_FILEPATH = ".dbt_coves/config.yml"
     CLI_OVERRIDE_FLAGS = [
         "generate.properties.model_props_strategy",
         "generate.properties.templates_folder",
@@ -189,16 +189,15 @@ class DbtCovesConfig:
         return dbt_project.exists()
 
     def locate_config(self) -> None:
+        # If path is relative to cwd
         if self._config_path == Path(str()):
             logger.debug("Trying to find .dbt_coves in current folder")
 
-            for tentative_path in self.DBT_COVES_CONFIG_FILENAMES:
-                config_path = Path().joinpath(tentative_path)
-                if config_path.exists():
-                    coves_config_dir = config_path
-                    logger.debug(f"{coves_config_dir} exists and was retreived.")
-                    self._config_path = coves_config_dir
-                    break
+            config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
+            if config_path.exists():
+                coves_config_dir = config_path
+                logger.debug(f"{coves_config_dir} exists and was retreived.")
+                self._config_path = coves_config_dir
 
     def load_config(self) -> None:
         is_project_valid = self.validate_dbt_project()
