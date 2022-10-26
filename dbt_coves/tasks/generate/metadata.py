@@ -226,8 +226,7 @@ class GenerateMetadataTask(BaseGenerateTask):
             existing_rows = self.get_existing_csv_rows(csv_path)
             if not options["append_all"]:
                 if csv_path.exists() and existing_rows:
-                    if not options.get("created_file"):
-                        console.print(f"[yellow]{csv_path.absolute()}[/yellow] exists.")
+                    console.print(f"[yellow]{csv_path.absolute()}[/yellow] exists.")
                     append = questionary.select(
                         f"Would you like to add {rel.name.lower()} metadata?",
                         choices=[
