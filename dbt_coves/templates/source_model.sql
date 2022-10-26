@@ -8,11 +8,14 @@ with raw_source as (
 final as (
 
     select
-{%- if adapter_name == 'SnowflakeAdapter' %}
+{%- if adapter_name == 'SnowflakeAdapter' or adapter_name == 'RedshiftAdapter' %}
 {%- for key, cols in nested.items() %}
   {%- for col in cols %}
         {{ key }}:{{ '"' + col + '"' }}::{{ cols[col]["type"] }} as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
   {%- endfor %}
+{%- endfor %}
+{%- for col in columns %}
+        {{ '"' + col['name'] + '"' }}::{{ col["type"] }} as {{ col['id'] }}{% if not loop.last %},{% endif %}
 {%- endfor %}
 {%- elif adapter_name == 'BigQueryAdapter' %}
 {%- for key, cols in nested.items() %}
@@ -20,16 +23,10 @@ final as (
         cast({{ key }}.{{ col }} as {{ cols[col]["type"].replace("varchar", "string") }}) as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
   {%- endfor %}
 {%- endfor %}
-{%- elif adapter_name == 'RedshiftAdapter' %}
-{%- for key, cols in nested.items() %}
-  {%- for col in cols %}
-        {{ key }}.{{ col }}::{{ cols[col]["type"] }} as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
-  {%- endfor %}
+{%- for col in columns %}
+        cast({{ col['name'] }} as {{ col["type"].replace("varchar", "string") }}) as {{ col['id'] }}
 {%- endfor %}
 {%- endif %}
-{%- for col in columns %}
-        {{ '"' + col['name'] + '"' }} as {{ col['id'] }}{% if not loop.last %},{% endif %}
-{%- endfor %}
 
     from raw_source
 

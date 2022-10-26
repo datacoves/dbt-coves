@@ -243,6 +243,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
         )
 
     def run(self):
+        self.get_metadata()
         with self.adapter.connection_named("master"):
             dbt_models = self.list_from_dbt_ls("json")
             manifest = self.load_manifest_nodes()

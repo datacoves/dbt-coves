@@ -338,6 +338,8 @@ class GenerateSourcesTask(BaseGenerateTask):
         config_database = self.get_config_value("database")
         self.db = config_database or self.config.credentials.database
 
+        self.get_metadata()
+
         # initiate connection
         with self.adapter.connection_named("master"):
 

@@ -118,6 +118,8 @@ class BaseGenerateTask(BaseConfiguredTask):
         return map_key
 
     def get_metadata_map_item(self, row):
+        if row["description"] is None:
+            row["description"] = ""
         data = {
             "type": row["type"],
             "description": row["description"].strip(),
@@ -155,7 +157,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                             ] = self.get_metadata_map_item(row)
                         except KeyError as e:
                             raise Exception(
-                                f"Key {e} not found in metadata file {path}"
+                                f"Key {e} not found in {path}. Please check this sample metadata file: https://raw.githubusercontent.com/datacoves/dbt-coves/main/sample_metadata.csv."
                             )
             except FileNotFoundError as e:
                 raise Exception(f"Metadata file not found: {e}")
