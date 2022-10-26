@@ -338,117 +338,50 @@ load:
     host: http://airbyte-server
     port: 8001
     dbt_list_args: --exclude source:dbt_artifacts
-    secrets_path: /config/workspace/secrets # Secret files location for Airbyte configuration
-    secrets_manager: datacoves # Secret credentials provider (secrets_path OR secrets_manager should be used, can't load secrets locally and remotely at the same time)
-    secrets_url: https://api.datacoves.localhost/service-credentials/airbyte # Secret credentials provider url
-    secrets_token: AbCdEf123456 # Secret credentials provider token
+    secrets_manager: datacoves # (optional) Secret credentials provider (secrets_path OR secrets_manager should be used, can't load secrets locally and remotely at the same time)
+    secrets_path: /config/workspace/secrets # (optional) Secret files location if secrets_manager was not specified
+    secrets_url: https://api.datacoves.localhost/service-credentials/airbyte # Secrets url if secrets_manager is datacoves
+    secrets_token: <TOKEN> # Secrets auth token if secrets_manager is datacoves
 ```
 
-## Override source generation templates
+## Override generation templates
 
 Customizing generated models and model properties requires placing
-template files under the `.dbt-coves/templates` folder as follows:
+template files under the `.dbt-coves/templates` folder.
 
-### source_props.yml
+There are different variables available in the templates:
+
+- `adapter_name` refers to the Adapter's class name being used by the target, e.g. `SnowflakeAdapter` when using [Snowflake](https://github.com/dbt-labs/dbt-snowflake/blob/21b52127e7d221db8b92114aae066fb8a7151bba/dbt/adapters/snowflake/impl.py#L33).
+- `columns` contains the list of relation columns that don't contain nested (JSON) data, it's type is `List[Item]`.
+- `nested` contains a dict of nested columns, grouped by column name, it's type is `Dict[column_name, Dict[nested_key, Item]]`.
+
+`Item` is a `dict` with the keys `id`, `name`, `type`, and `description`, where `id` contains an slugified id generated from `name`.
+
+### dbt-coves generate sources
+
+#### Staging model file (.sql) template
+
+This file is used to create the staging model (sql) files.
+
+[source_model.sql](dbt_coves/templates/source_model.sql)
+
+#### Source property file (.yml) template
 
 This file is used to create the sources yml file
 
-```yaml
-version: 2
+[source_model.sql](dbt_coves/templates/source_props.yml)
 
-sources:
-  - name: {{ relation.schema.lower() }}
-{%- if source_database %}
-    database: {{ source_database }}
-{%- endif %}
-    tables:
-      - name: {{ relation.name.lower() }}
-```
+#### Model property file (.yml) template
 
-### source_model.sql
+This file is used to create the model properties (yml) file
 
-This file is used to create the staging model(sql) file
+[source_model_props.yml](dbt_coves/templates/source_model_props.yml)
 
-```sql
-with raw_source as (
+### dbt-coves generate properties
 
-    select
-        parse_json(replace(_airbyte_data::string,'"NaN"', 'null')) as airbyte_data_clean,
-        *
-    from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
+This file is used to create the properties (yml) files for models
 
-),
-
-final as (
-
-    select
-{%- if adapter_name == 'SnowflakeAdapter' %}
-{%- for key, cols in nested.items() %}
-  {%- for col in cols %}
-        {{ key if key != '_airbyte_data' else 'airbyte_data_clean' }}:{{ '"' + col + '"' }}::varchar as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_").replace("-","_").replace("/","_") }}{% if not loop.last or columns %},{% endif %}
-  {%- endfor %}
-{%- endfor %}
-{%- elif adapter_name == 'BigQueryAdapter' %}
-{%- for key, cols in nested.items() %}
-  {%- for col in cols %}
-        cast({{ key }}.{{ col }} as string) as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
-  {%- endfor %}
-{%- endfor %}
-{%- elif adapter_name == 'RedshiftAdapter' %}
-{%- for key, cols in nested.items() %}
-  {%- for col in cols %}
-        {{ key }}.{{ col }}::varchar as {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_") }}{% if not loop.last or columns %},{% endif %}
-  {%- endfor %}
-{%- endfor %}
-{%- endif %}
-{%- for col in columns %}
-        {{ '"' + col.name + '"' }} as {{ col.name.lower() }}{% if not loop.last %},{% endif %}
-{%- endfor %}
-
-    from raw_source
-
-)
-
-select * from final
-```
-
-### source_model_props.yml
-
-This file is used to create the staging properties(yml) file
-
-```yaml
-version: 2
-
-models:
-  - name: {{ model.lower() }}
-    columns:
-{%- for cols in nested.values() %}
-  {%- for col in cols %}
-      - name: {{ col.lower().replace(" ","_").replace(":","_").replace("(","_").replace(")","_").replace("-","_").replace("/","_") }}
-  {%- endfor %}
-{%- endfor %}
-{%- for col in columns %}
-      - name: {{ col.name.lower() }}
-{%- endfor %}
-```
-
-### model_props.yml
-
-This file is used to create the properties(yml) files for non-staging models
-
-```yaml
-version: 2
-
-models:
-  - name: {{ model.lower() }}
-    columns:
-{%- for col in columns %}
-      - name: {{ col['id'] }}
-      {%- if col['description'] %}
-        description: "{{ col['description'] }}"
-      {%- endif %}
-{%- endfor %}
-```
+[model_props.yml](dbt_coves/templates/model_props.yml)
 
 # Thanks
 
