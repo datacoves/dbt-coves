@@ -28,17 +28,23 @@ class GenerateSourcesModel(BaseModel):
     schemas: Optional[List[str]] = [""]
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
-    model_props_destination: Optional[
-        str
-    ] = "models/staging/{{schema}}/{{relation}}.yml"
+    model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
     update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
 
 
+class GenerateMetadataModel(BaseModel):
+    database: Optional[str] = ""
+    schemas: Optional[List[str]] = [""]
+    relations: Optional[List[str]] = [""]
+    destination: Optional[str] = "metadata.csv"
+
+
 class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
     properties: Optional[GeneratePropertiesModel] = GeneratePropertiesModel()
+    metadata: Optional[GenerateMetadataModel] = GenerateMetadataModel()
 
 
 class ExtractAirbyteModel(BaseModel):
@@ -121,6 +127,10 @@ class DbtCovesConfig:
         "generate.sources.update_strategy",
         "generate.sources.templates_folder",
         "generate.sources.metadata",
+        "generate.metadata.database",
+        "generate.metadata.schemas",
+        "generate.metadata.relations",
+        "generate.metadata.destination",
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",
@@ -165,11 +175,7 @@ class DbtCovesConfig:
             source = self._flags
             for item in path_items[:-1]:
                 target = target[item]
-                source = (
-                    source.get(item, {})
-                    if type(source) == dict
-                    else getattr(source, item)
-                )
+                source = source.get(item, {}) if type(source) == dict else getattr(source, item)
             key = path_items[-1]
             if source.get(key):
                 target[key] = source[key]

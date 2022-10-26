@@ -15,13 +15,6 @@ from .base import BaseGenerateTask
 console = Console()
 
 
-NESTED_FIELD_TYPES = {
-    "SnowflakeAdapter": "VARIANT",
-    "BigQueryAdapter": "STRUCT",
-    "RedshiftAdapter": "SUPER",
-}
-
-
 class GenerateSourcesTask(BaseGenerateTask):
     """
     Task that generate sources, models and model properties automatically
@@ -108,44 +101,11 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         return selected_schemas
 
-    def get_relations(self, filtered_schemas):
-        rel_name_selectors = [
-            relation.upper() for relation in self.get_config_value("relations")
-        ]
-        rel_wildcard_selectors = []
-        for rel_name in rel_name_selectors:
-            if "*" in rel_name:
-                rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
-
-        listed_relations = []
-        for schema in filtered_schemas:
-            listed_relations += self.adapter.list_relations(self.db, schema)
-
-        for rel in listed_relations:
-            for selector in rel_wildcard_selectors:
-                if re.search(selector, rel.name):
-                    rel_name_selectors.append(rel.name)
-                    break
-
-        intersected_rels = [
-            relation
-            for relation in listed_relations
-            if relation.name in rel_name_selectors
-        ]
-        rels = (
-            intersected_rels
-            if rel_name_selectors and rel_name_selectors[0]
-            else listed_relations
-        )
-
-        return rels
-
     def select_relations(self, rels):
         selected_rels = questionary.checkbox(
             "Which sources would you like to generate?",
             choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
-                for rel in rels
+                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
             ],
         ).ask()
 
@@ -205,7 +165,7 @@ class GenerateSourcesTask(BaseGenerateTask):
     def generate_model(self, relation, destination, options):
         destination.parent.mkdir(parents=True, exist_ok=True)
         columns = self.adapter.get_columns_in_relation(relation)
-        nested_field_type = NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
+        nested_field_type = self.NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
         nested = [col.name.lower() for col in columns if col.dtype == nested_field_type]
         if not options["flatten_all"]:
             if nested:
@@ -345,9 +305,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(
-                            key_name
-                        )
+                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
                     self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(

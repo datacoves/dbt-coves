@@ -4,6 +4,7 @@ from pathlib import Path
 
 import questionary
 import yaml
+from questionary import Choice
 from rich.console import Console
 from slugify import slugify
 
@@ -24,6 +25,11 @@ class BaseGenerateTask(BaseConfiguredTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.metadata = None
+        self.NESTED_FIELD_TYPES = {
+            "SnowflakeAdapter": "VARIANT",
+            "BigQueryAdapter": "STRUCT",
+            "RedshiftAdapter": "SUPER",
+        }
 
     def get_schemas(self):
 
@@ -62,9 +68,46 @@ class BaseGenerateTask(BaseConfiguredTask):
         return filtered_schemas
 
     def select_schemas(self, schemas):
-        return schemas
+        selected_schemas = questionary.checkbox(
+            "Which schemas would you like to inspect?",
+            choices=[
+                Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
+                for schema in schemas
+            ],
+        ).ask()
 
-    def select_relations(self, rels):
+        return selected_schemas
+
+    def get_relations(self, filtered_schemas):
+        rel_name_selectors = [
+            relation.upper() for relation in self.get_config_value("relations")
+        ]
+        rel_wildcard_selectors = []
+        for rel_name in rel_name_selectors:
+            if "*" in rel_name:
+                rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
+
+        listed_relations = []
+        for schema in filtered_schemas:
+            listed_relations += self.adapter.list_relations(self.db, schema)
+
+        for rel in listed_relations:
+            for selector in rel_wildcard_selectors:
+                if re.search(selector, rel.name):
+                    rel_name_selectors.append(rel.name)
+                    break
+
+        intersected_rels = [
+            relation
+            for relation in listed_relations
+            if relation.name in rel_name_selectors
+        ]
+        rels = (
+            intersected_rels
+            if rel_name_selectors and rel_name_selectors[0]
+            else listed_relations
+        )
+
         return rels
 
     def run(self) -> int:

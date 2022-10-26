@@ -49,6 +49,12 @@ class DbtCovesFlags:
                 "exclude": None,
                 "selector": None,
             },
+            "metadata": {
+                "database": None,
+                "schemas": [],
+                "relations": [],
+                "destination": None,
+            },
         }
         self.extract = {
             "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
@@ -127,7 +133,6 @@ class DbtCovesFlags:
                     self.generate["sources"]["templates_folder"] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
-
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
                     self.generate["properties"]["templates_folder"] = self.args.templates_folder
@@ -151,6 +156,16 @@ class DbtCovesFlags:
                     self.generate["properties"]["exclude"] = self.args.exclude
                 if self.args.selector:
                     self.generate["properties"]["selector"] = self.args.selector
+            if self.args.cls.__name__ == "GenerateMetadataTask":
+                if self.args.database:
+                    self.generate["metadata"]["database"] = self.args.database
+                if self.args.schemas:
+                    self.generate["metadata"]["schemas"] = self.args.schemas
+                if self.args.relations:
+                    self.generate["metadata"]["relations"] = self.args.relations
+                if self.args.destination:
+                    self.generate["metadata"]["destination"] = self.args.destination
+
             if self.args.cls.__name__ == "InitTask":
                 if self.args.template:
                     self.init["template"] = self.args.template

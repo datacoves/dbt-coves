@@ -4,6 +4,7 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import BaseConfiguredTask
 
+from .metadata import GenerateMetadataTask
 from .properties import GeneratePropertiesTask
 from .sources import GenerateSourcesTask
 
@@ -18,7 +19,7 @@ class GenerateTask(BaseConfiguredTask):
     arg_parser = None
 
     # "Generate" has now multiple sub tasks.
-    tasks = [GeneratePropertiesTask, GenerateSourcesTask]
+    tasks = [GeneratePropertiesTask, GenerateSourcesTask, GenerateMetadataTask]
 
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
