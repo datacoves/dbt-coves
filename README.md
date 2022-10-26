@@ -205,17 +205,17 @@ Usage of these metadata files can be found in [metadata](https://github.com/data
 
 `dbt-coves generate metadata` supports the following args:
 
-```console
+```shell
 --database
 # Database to inspect
 ```
 
-```console
+```shell
 --schema
 # Schema to inspect
 ```
 
-```console
+```shell
 --destination
 # Where csv file(s) will be generated, default: 'metadata.csv'
 # Supports using the Jinja tag `{{relation_name}}` 
