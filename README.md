@@ -100,7 +100,7 @@ dbt-coves setup ssh
 dbt-coves generate <resource>
 ```
 
-Where _\<resource\>_ could be _sources_ or _properties_.
+Where _\<resource\>_ could be _sources_, _properties_ or _metadata_.
 
 ```console
 dbt-coves generate sources
@@ -197,6 +197,30 @@ You can use dbt-coves to generate and update the properties(yml) file for a give
 ```
 
 Note: `--select (or -s)`, `--exclude` and `--selector` work exactly as `dbt ls` selectors do. For usage details, visit [dbt list docs](https://docs.getdbt.com/reference/commands/list)
+
+### Metadata Generation Arguments
+
+You can use dbt-coves to generate the metadata file(s) containing the basic structure of the csv that can be used in the above `dbt-coves generate sources/properties` commands. 
+Usage of these metadata files can be found in [metadata](https://github.com/datacoves/dbt-coves#metadata) below.
+
+`dbt-coves generate metadata` supports the following args:
+
+```console
+--database
+# Database to inspect
+```
+
+```console
+--schema
+# Schema to inspect
+```
+
+```console
+--destination
+# Where csv file(s) will be generated, default: 'metadata.csv'
+# Supports using the Jinja tag `{{relation_name}}` 
+# if creating one csv per relation/table in schema, i.e: "metadata/{{relation_name}}.csv"
+```
 
 ### Metadata
 
