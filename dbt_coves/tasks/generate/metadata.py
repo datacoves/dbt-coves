@@ -63,6 +63,7 @@ class GenerateMetadataTask(BaseGenerateTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db = None
+        self.metadata_files_processed = set()
 
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["metadata"][key]
@@ -143,6 +144,7 @@ class GenerateMetadataTask(BaseGenerateTask):
         return results
 
     def generate_or_append_metadata(self, relation, destination, options, action, existing_rows):
+        destination.parent.mkdir(parents=True, exist_ok=True)
         if action == "append":
             python_fs_action = "a"
         if action == "create":
@@ -162,7 +164,7 @@ class GenerateMetadataTask(BaseGenerateTask):
             if python_fs_action == "w":
                 writer.writeheader()
             for csvdict in dicts_to_write:
-                if existing_rows:
+                if existing_rows and python_fs_action == "a":
                     if csvdict not in existing_rows:
                         writer.writerow(csvdict)
                 else:
@@ -208,54 +210,56 @@ class GenerateMetadataTask(BaseGenerateTask):
     def get_existing_csv_rows(self, destination):
         try:
             with open(destination, newline="") as csvfile:
-                reader = csv.DictReader(csvfile, fieldnames=self.METADATA_HEADERS)
-                return [row for row in reader]
+                reader = csv.DictReader(csvfile)
+                headers = reader.fieldnames
+                if set(headers) == set(self.METADATA_HEADERS):
+                    return [row for row in reader]
+                else:
+                    return []
         except FileNotFoundError:
             return []
 
     def generate(self, rels):
         destination = self.get_config_value("destination")
-        options = {
-            "append_all": None,
-            "flatten_all": None,
-            "created_file": False,
-        }
+        options = {"flatten_all": None, "append_all": False, "recreate_files": False}
 
         for rel in rels:
             csv_dest = self.generate_template(destination, rel)
             csv_path = Path().joinpath(csv_dest)
             existing_rows = self.get_existing_csv_rows(csv_path)
-            if not options["append_all"]:
-                if csv_path.exists() and existing_rows:
+            if csv_path.exists() and existing_rows:
+                if (
+                    csv_path not in self.metadata_files_processed
+                    and not options["append_all"]
+                    and not options["recreate_files"]
+                ):
                     console.print(f"[yellow]{csv_path.absolute()}[/yellow] exists.")
                     append = questionary.select(
                         f"How would you like to append {rel.name.lower()} columns' metadata?",
                         choices=[
                             "Recreate file",
                             "Add missing columns",
-                            "Add for all relations",
                             "Cancel",
                         ],
                         default="Add missing columns",
                     ).ask()
                     if append == "Add missing columns":
                         action = "append"
-                    elif append == "Add for all relations":
-                        options["append_all"] = "Yes"
-                        action = "append"
+                        options["append_all"] = True
                     elif append == "Recreate file":
-                        options["created_file"] = True
                         action = "create"
+                        options["recreate_files"] = True
                     elif action == "Cancel":
                         exit()
-                else:
-                    options["created_file"] = True
-                    options["append_all"] = "Yes"
+                elif csv_path in self.metadata_files_processed or options["append_all"]:
+                    action = "append"
+                elif options["recreate_files"]:
                     action = "create"
-            elif options["append_all"] == "Yes":
-                action = "append"
+            else:
+                action = "create"
 
             self.generate_or_append_metadata(rel, csv_path, options, action, existing_rows)
+            self.metadata_files_processed.add(csv_path)
 
     def run(self):
         config_database = self.get_config_value("database")
