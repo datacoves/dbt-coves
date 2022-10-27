@@ -30,6 +30,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.metadata = None
+        self.prop_files_created_by_dbtcoves = set()
 
     def get_schemas(self):
 
@@ -252,7 +253,11 @@ class BaseGenerateTask(BaseConfiguredTask):
             sel_action = None
             if object_in_yml:
                 new_object_id = object_in_yml.get("name")
-                if not options[strategy_key_recreate_all] and not options[strategy_key_update_all]:
+                if (
+                    not options[strategy_key_recreate_all]
+                    and not options[strategy_key_update_all]
+                    and yml_path not in self.prop_files_created_by_dbtcoves
+                ):
                     if update_strategy == "ask":
                         console.print(
                             f"{resource_type} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
@@ -292,7 +297,10 @@ class BaseGenerateTask(BaseConfiguredTask):
                         exit()
                 elif options[strategy_key_recreate_all]:
                     sel_action = "recreate"
-                elif options[strategy_key_update_all]:
+                elif (
+                    options[strategy_key_update_all]
+                    or yml_path in self.prop_files_created_by_dbtcoves
+                ):
                     sel_action = "update"
             else:
                 sel_action = "create"
@@ -307,6 +315,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             )
         else:
             self.render_property_file(template, context, yml_path, templates_folder)
+            self.prop_files_created_by_dbtcoves.add(yml_path)
             # Property file {filepath} created
             console.print(f"Property file [green][b]{yml_path}[/b][/green] created")
 
