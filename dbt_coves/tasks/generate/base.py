@@ -24,13 +24,12 @@ class BaseGenerateTask(BaseConfiguredTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.metadata = None
+        self.prop_files_created_by_dbtcoves = list()
 
     def get_schemas(self):
 
         # get schema names selectors
-        schema_name_selectors = [
-            schema.upper() for schema in self.get_config_value("schemas")
-        ]
+        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
 
         schema_wildcard_selectors = []
         for schema_name in schema_name_selectors:
@@ -126,9 +125,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"][self.args.task][key]
 
-    def render_templates(
-        self, relation, columns, destination, options=None, json_cols=None
-    ):
+    def render_templates(self, relation, columns, destination, options=None, json_cols=None):
         destination.parent.mkdir(parents=True, exist_ok=True)
         context = self.get_templates_context(relation, columns, json_cols)
         self.render_templates_with_context(context, destination, options)
@@ -222,6 +219,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if (
                     not options[strategy_key_recreate_all]
                     and not options[strategy_key_update_all]
+                    and yml_path not in self.prop_files_created_by_dbtcoves
                 ):
                     if update_strategy == "ask":
                         console.print(
@@ -258,13 +256,14 @@ class BaseGenerateTask(BaseConfiguredTask):
                     elif update_strategy == "recreate":
                         sel_action = "recreate"
                     else:
-                        console.print(
-                            f"Update strategy {update_strategy} not a valid option."
-                        )
+                        console.print(f"Update strategy {update_strategy} not a valid option.")
                         exit()
                 elif options[strategy_key_recreate_all]:
                     sel_action = "recreate"
-                elif options[strategy_key_update_all]:
+                elif (
+                    options[strategy_key_update_all]
+                    or yml_path in self.prop_files_created_by_dbtcoves
+                ):
                     sel_action = "update"
             else:
                 sel_action = "create"
@@ -279,6 +278,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             )
         else:
             self.render_property_file(template, context, yml_path, templates_folder)
+            self.prop_files_created_by_dbtcoves.append(yml_path)
             # Property file {filepath} created
             console.print(f"Property file [green][b]{yml_path}[/b][/green] created")
 
@@ -317,9 +317,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                     if action == "recreate":
                         current_yml[resource_type_key][idx] = new_object
                     if action == "update":
-                        current_yml[resource_type_key][
-                            idx
-                        ] = self.update_object_properties(
+                        current_yml[resource_type_key][idx] = self.update_object_properties(
                             curr_obj, new_object, resource_type
                         )
 
@@ -346,9 +344,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                 # If column exists in A, update it's description
                 # and leave as-is to avoid overriding tests
                 for current_column in columns_a:
-                    if (
-                        current_column.get("name") == new_column.get("name")
-                    ) and new_column.get("description"):
+                    if (current_column.get("name") == new_column.get("name")) and new_column.get(
+                        "description"
+                    ):
                         current_column["description"] = new_column.get("description")
             else:
                 columns_a.append(new_column)
