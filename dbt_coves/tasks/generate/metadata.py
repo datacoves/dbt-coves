@@ -18,6 +18,16 @@ class GenerateMetadataTask(BaseGenerateTask):
     Task that generates a metadata file based on a relation
     """
 
+    METADATA_HEADERS = [
+        "database",
+        "schema",
+        "relation",
+        "column",
+        "key",
+        "type",
+        "description",
+    ]
+
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
         subparser = sub_parsers.add_parser(
@@ -53,15 +63,6 @@ class GenerateMetadataTask(BaseGenerateTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.db = None
-        self.METADATA_HEADERS = [
-            "database",
-            "schema",
-            "relation",
-            "column",
-            "key",
-            "type",
-            "description",
-        ]
 
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["metadata"][key]
