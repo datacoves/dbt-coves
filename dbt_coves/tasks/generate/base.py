@@ -4,6 +4,7 @@ from pathlib import Path
 
 import questionary
 import yaml
+from questionary import Choice
 from rich.console import Console
 from slugify import slugify
 
@@ -20,6 +21,11 @@ class BaseGenerateTask(BaseConfiguredTask):
     """
 
     arg_parser = None
+    NESTED_FIELD_TYPES = {
+        "SnowflakeAdapter": "VARIANT",
+        "BigQueryAdapter": "STRUCT",
+        "RedshiftAdapter": "SUPER",
+    }
 
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
@@ -28,9 +34,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_schemas(self):
 
         # get schema names selectors
-        schema_name_selectors = [
-            schema.upper() for schema in self.get_config_value("schemas")
-        ]
+        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
 
         schema_wildcard_selectors = []
         for schema_name in schema_name_selectors:
@@ -62,9 +66,40 @@ class BaseGenerateTask(BaseConfiguredTask):
         return filtered_schemas
 
     def select_schemas(self, schemas):
-        return schemas
+        selected_schemas = questionary.checkbox(
+            "Which schemas would you like to inspect?",
+            choices=[
+                Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
+                for schema in schemas
+            ],
+        ).ask()
 
-    def select_relations(self, rels):
+        return selected_schemas
+
+    def get_relations(self, filtered_schemas):
+        rel_name_selectors = [relation.upper() for relation in self.get_config_value("relations")]
+        rel_wildcard_selectors = []
+        for rel_name in rel_name_selectors:
+            if "*" in rel_name:
+                rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
+
+        listed_relations = []
+        for schema in filtered_schemas:
+            listed_relations += self.adapter.list_relations(self.db, schema)
+
+        for rel in listed_relations:
+            for selector in rel_wildcard_selectors:
+                if re.search(selector, rel.name):
+                    rel_name_selectors.append(rel.name)
+                    break
+
+        intersected_rels = [
+            relation for relation in listed_relations if relation.name in rel_name_selectors
+        ]
+        rels = (
+            intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
+        )
+
         return rels
 
     def run(self) -> int:
@@ -126,9 +161,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"][self.args.task][key]
 
-    def render_templates(
-        self, relation, columns, destination, options=None, json_cols=None
-    ):
+    def render_templates(self, relation, columns, destination, options=None, json_cols=None):
         destination.parent.mkdir(parents=True, exist_ok=True)
         context = self.get_templates_context(relation, columns, json_cols)
         self.render_templates_with_context(context, destination, options)
@@ -219,10 +252,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             sel_action = None
             if object_in_yml:
                 new_object_id = object_in_yml.get("name")
-                if (
-                    not options[strategy_key_recreate_all]
-                    and not options[strategy_key_update_all]
-                ):
+                if not options[strategy_key_recreate_all] and not options[strategy_key_update_all]:
                     if update_strategy == "ask":
                         console.print(
                             f"{resource_type} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
@@ -258,9 +288,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                     elif update_strategy == "recreate":
                         sel_action = "recreate"
                     else:
-                        console.print(
-                            f"Update strategy {update_strategy} not a valid option."
-                        )
+                        console.print(f"Update strategy {update_strategy} not a valid option.")
                         exit()
                 elif options[strategy_key_recreate_all]:
                     sel_action = "recreate"
@@ -317,9 +345,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                     if action == "recreate":
                         current_yml[resource_type_key][idx] = new_object
                     if action == "update":
-                        current_yml[resource_type_key][
-                            idx
-                        ] = self.update_object_properties(
+                        current_yml[resource_type_key][idx] = self.update_object_properties(
                             curr_obj, new_object, resource_type
                         )
 
@@ -346,9 +372,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                 # If column exists in A, update it's description
                 # and leave as-is to avoid overriding tests
                 for current_column in columns_a:
-                    if (
-                        current_column.get("name") == new_column.get("name")
-                    ) and new_column.get("description"):
+                    if (current_column.get("name") == new_column.get("name")) and new_column.get(
+                        "description"
+                    ):
                         current_column["description"] = new_column.get("description")
             else:
                 columns_a.append(new_column)
