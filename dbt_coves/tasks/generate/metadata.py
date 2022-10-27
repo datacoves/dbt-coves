@@ -229,7 +229,7 @@ class GenerateMetadataTask(BaseGenerateTask):
                 if csv_path.exists() and existing_rows:
                     console.print(f"[yellow]{csv_path.absolute()}[/yellow] exists.")
                     append = questionary.select(
-                        f"Would you like to add {rel.name.lower()} metadata?",
+                        f"How would you like to append {rel.name.lower()} columns' metadata?",
                         choices=[
                             "Recreate file",
                             "Add missing columns",
