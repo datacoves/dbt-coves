@@ -160,9 +160,13 @@ class DbtCovesFlags:
                 if self.args.database:
                     self.generate["metadata"]["database"] = self.args.database
                 if self.args.schemas:
-                    self.generate["metadata"]["schemas"] = self.args.schemas
+                    self.generate["metadata"]["schemas"] = [
+                        schema.strip() for schema in self.args.schemas.split(",")
+                    ]
                 if self.args.relations:
-                    self.generate["metadata"]["relations"] = self.args.relations
+                    self.generate["metadata"]["relations"] = [
+                        relation.strip() for relation in self.args.relations.split(",")
+                    ]
                 if self.args.destination:
                     self.generate["metadata"]["destination"] = self.args.destination
 
