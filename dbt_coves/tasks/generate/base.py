@@ -24,7 +24,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
         self.metadata = None
-        self.prop_files_created_by_dbtcoves = list()
+        self.prop_files_created_by_dbtcoves = set()
 
     def get_schemas(self):
 
@@ -278,7 +278,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             )
         else:
             self.render_property_file(template, context, yml_path, templates_folder)
-            self.prop_files_created_by_dbtcoves.append(yml_path)
+            self.prop_files_created_by_dbtcoves.add(yml_path)
             # Property file {filepath} created
             console.print(f"Property file [green][b]{yml_path}[/b][/green] created")
 
