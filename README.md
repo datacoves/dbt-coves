@@ -349,6 +349,12 @@ generate:
     exclude: "models/staging/bays/test_bay" # Filter model(s) to generate property file(s)
     selector: "selectors/bay_selector.yml" # Specify dbt selector for more complex model filtering
 
+  metadata:
+    database: RAW # Database where to look for source tables
+    schemas: # List of schema names where to look for source tables
+      - RAW
+    destination: # Where metadata file will be generated, default: 'metadata.csv'
+
 extract:
   airbyte:
     path: /config/workspace/load # Where json files will be generated

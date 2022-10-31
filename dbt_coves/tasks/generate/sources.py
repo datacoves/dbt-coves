@@ -90,17 +90,6 @@ class GenerateSourcesTask(BaseGenerateTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["sources"][key]
 
-    def select_schemas(self, schemas):
-        selected_schemas = questionary.checkbox(
-            "Which schemas would you like to inspect?",
-            choices=[
-                Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
-                for schema in schemas
-            ],
-        ).ask()
-
-        return selected_schemas
-
     def select_relations(self, rels):
         selected_rels = questionary.checkbox(
             "Which sources would you like to generate?",
