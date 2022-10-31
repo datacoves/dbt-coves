@@ -33,7 +33,6 @@ class BaseGenerateTask(BaseConfiguredTask):
         self.prop_files_created_by_dbtcoves = set()
 
     def get_schemas(self):
-
         # get schema names selectors
         schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
 
@@ -69,10 +68,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def select_schemas(self, schemas):
         selected_schemas = questionary.checkbox(
             "Which schemas would you like to inspect?",
-            choices=[
-                Choice(schema, checked=True) if "RAW" in schema else Choice(schema)
-                for schema in schemas
-            ],
+            choices=schemas,
         ).ask()
 
         return selected_schemas

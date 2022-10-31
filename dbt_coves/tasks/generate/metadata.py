@@ -88,32 +88,6 @@ class GenerateMetadataTask(BaseGenerateTask):
         nested_field_type = self.NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
         return [col.name.lower() for col in columns if col.dtype == nested_field_type]
 
-    def get_nested_json_cols(self, options, nested_columns, relation):
-        json_cols = None
-        if not options["flatten_all"]:
-            if nested_columns:
-                field_nlg = "field"
-                flatten_nlg = "flatten it"
-                if len(nested_columns) > 1:
-                    field_nlg = "fields"
-                    flatten_nlg = "flatten them"
-                flatten = questionary.select(
-                    f"{relation.name.lower()} contains the JSON {field_nlg} {', '.join(nested_columns)}."
-                    f" Would you like to {flatten_nlg}?",
-                    choices=["No", "Yes", "No for all", "Yes for all"],
-                    default="Yes",
-                ).ask()
-                if flatten == "Yes":
-                    json_cols = nested_columns
-                elif flatten == "No for all":
-                    options["flatten_all"] = "No"
-                elif flatten == "Yes for all":
-                    options["flatten_all"] = "Yes"
-                    json_cols = nested_columns
-        elif options["flatten_all"] == "Yes":
-            json_cols = nested_columns
-        return json_cols
-
     def get_shared_column_fields(self, relation):
         return {
             "database": relation.database.lower(),
@@ -152,9 +126,8 @@ class GenerateMetadataTask(BaseGenerateTask):
 
         columns = self.adapter.get_columns_in_relation(relation)
         nested = self.get_nested_columns(columns)
-        json_cols = self.get_nested_json_cols(options, nested, relation)
 
-        context = self.get_templates_context(relation, columns, json_cols)
+        context = self.get_templates_context(relation, columns, nested)
         dicts_to_write = self.get_csv_dicts(context)
 
         with open(destination, python_fs_action, newline="") as csvfile:
@@ -198,13 +171,13 @@ class GenerateMetadataTask(BaseGenerateTask):
                     )
         return result
 
-    def get_templates_context(self, relation, columns, json_cols=None):
+    def get_templates_context(self, relation, columns, nested):
         context = {
             "relation": relation,
             "columns": columns,
         }
-        if json_cols:
-            context["nested"] = self.get_nested_keys(json_cols, relation)
+        if nested:
+            context["nested"] = self.get_nested_keys(nested, relation)
         return context
 
     def get_existing_csv_rows(self, destination):
@@ -221,7 +194,7 @@ class GenerateMetadataTask(BaseGenerateTask):
 
     def generate(self, rels):
         destination = self.get_config_value("destination")
-        options = {"flatten_all": None, "append_all": False, "recreate_files": False}
+        options = {"append_all": False, "recreate_files": False}
 
         for rel in rels:
             csv_dest = self.generate_template(destination, rel)
