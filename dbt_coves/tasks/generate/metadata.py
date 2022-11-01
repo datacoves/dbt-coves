@@ -249,6 +249,7 @@ class GenerateMetadataTask(BaseGenerateTask):
                 if selected_relations:
                     self.generate(selected_relations)
                 else:
+                    console.print("No relations selected for metadata generation")
                     return 0
             else:
                 schema_nlg = f"schema{'s' if len(filtered_schemas) > 1 else ''}"

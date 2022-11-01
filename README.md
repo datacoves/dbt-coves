@@ -389,23 +389,23 @@ There are different variables available in the templates:
 
 ### dbt-coves generate sources
 
-#### Staging model file (.sql) template
-
-This file is used to create the staging model (sql) files.
-
-[source_model.sql](dbt_coves/templates/source_model.sql)
-
 #### Source property file (.yml) template
 
 This file is used to create the sources yml file
 
-[source_model.sql](dbt_coves/templates/source_props.yml)
+[source_props.yml](dbt_coves/templates/source_props.yml)
 
-#### Model property file (.yml) template
+#### Staging model file (.sql) template
+
+This file is used to create the staging model (sql) files.
+
+[staging_model.sql](dbt_coves/templates/staging_model.sql)
+
+#### Staging model property file (.yml) template
 
 This file is used to create the model properties (yml) file
 
-[source_model_props.yml](dbt_coves/templates/source_model_props.yml)
+[staging_model_props.yml](dbt_coves/templates/staging_model_props.yml)
 
 ### dbt-coves generate properties
 

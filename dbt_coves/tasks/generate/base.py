@@ -4,7 +4,6 @@ from pathlib import Path
 
 import questionary
 import yaml
-from questionary import Choice
 from rich.console import Console
 from slugify import slugify
 
@@ -62,7 +61,9 @@ class BaseGenerateTask(BaseConfiguredTask):
             )
 
             filtered_schemas = self.select_schemas(schemas)
-
+            if not filtered_schemas:
+                console.print(f"No schemas selected")
+                exit()
         return filtered_schemas
 
     def select_schemas(self, schemas):

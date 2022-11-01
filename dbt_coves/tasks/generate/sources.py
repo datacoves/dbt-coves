@@ -244,7 +244,7 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         # Render model SQL
         render_template_file(
-            "source_model.sql",
+            "staging_model.sql",
             context,
             sql_destination,
             templates_folder=templates_folder,
@@ -261,7 +261,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             update_strategy,
             "model",
             model_yml_path,
-            "source_model_props.yml",
+            "staging_model_props.yml",
         )
 
         source_yml_dest = self.generate_template(source_property_destination, rel)
@@ -342,6 +342,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                 if selected_relations:
                     self.generate(selected_relations)
                 else:
+                    console.print("No relations selected for sources generation")
                     return 0
             else:
                 schema_nlg = f"schema{'s' if len(filtered_schemas) > 1 else ''}"
