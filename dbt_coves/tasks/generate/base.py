@@ -269,7 +269,6 @@ class BaseGenerateTask(BaseConfiguredTask):
                                 "Skip",
                                 "Cancel",
                             ],
-                            default="Update",
                         ).ask()
                         if action == "Recreate":
                             sel_action = "recreate"

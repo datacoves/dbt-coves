@@ -118,7 +118,6 @@ class GenerateSourcesTask(BaseGenerateTask):
                     overwrite = questionary.select(
                         f"{model_dest} already exists. Would you like to overwrite it?",
                         choices=["No", "Yes", "No for all", "Yes for all"],
-                        default="No",
                     ).ask()
                     if overwrite == "Yes":
                         self.generate_model(
@@ -167,7 +166,6 @@ class GenerateSourcesTask(BaseGenerateTask):
                     f"{relation.name.lower()} contains the JSON {field_nlg} {', '.join(nested)}."
                     f" Would you like to {flatten_nlg}?",
                     choices=["No", "Yes", "No for all", "Yes for all"],
-                    default="Yes",
                 ).ask()
                 if flatten == "Yes":
                     self.render_templates(
