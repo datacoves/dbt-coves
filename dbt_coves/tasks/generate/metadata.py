@@ -214,7 +214,6 @@ class GenerateMetadataTask(BaseGenerateTask):
                             "Add missing columns",
                             "Cancel",
                         ],
-                        default="Add missing columns",
                     ).ask()
                     if append == "Add missing columns":
                         action = "append"
