@@ -219,6 +219,11 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if curr_obj.get("name") == new_obj.get("name"):
                     return new_obj
         return False
+    
+    def create_property_file(self, template, context, yml_path, templates_folder):
+        self.render_property_file(template, context, yml_path, templates_folder)
+        self.prop_files_created_by_dbtcoves.add(yml_path)                
+        console.print(f"Property file [green][b]{yml_path}[/b][/green] created")
 
     def render_property_files(
         self,
@@ -240,6 +245,9 @@ class BaseGenerateTask(BaseConfiguredTask):
         if yml_path.exists():
             object_in_yml = False
             current_yml = open_yaml(yml_path)
+            if not current_yml:
+                # target yml path exists but it's empty -> recreate file
+                return self.create_property_file(template, context, yml_path, templates_folder)
             object_in_yml = self.new_object_exists_in_current_yml(
                 current_yml,
                 template,
@@ -310,10 +318,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 sel_action,
             )
         else:
-            self.render_property_file(template, context, yml_path, templates_folder)
-            self.prop_files_created_by_dbtcoves.add(yml_path)
-            # Property file {filepath} created
-            console.print(f"Property file [green][b]{yml_path}[/b][/green] created")
+            self.create_property_file(template, context, yml_path, templates_folder)
 
     def update_object_properties(self, current_object, new_object, resource_type):
         if resource_type == "source":
