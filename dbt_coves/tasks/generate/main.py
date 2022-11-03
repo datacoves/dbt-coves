@@ -7,6 +7,7 @@ from dbt_coves.tasks.base import BaseConfiguredTask
 from .metadata import GenerateMetadataTask
 from .properties import GeneratePropertiesTask
 from .sources import GenerateSourcesTask
+from .templates import GenerateTemplatesTask
 
 console = Console()
 
@@ -19,7 +20,12 @@ class GenerateTask(BaseConfiguredTask):
     arg_parser = None
 
     # "Generate" has now multiple sub tasks.
-    tasks = [GeneratePropertiesTask, GenerateSourcesTask, GenerateMetadataTask]
+    tasks = [
+        GeneratePropertiesTask,
+        GenerateSourcesTask,
+        GenerateMetadataTask,
+        GenerateTemplatesTask,
+    ]
 
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
