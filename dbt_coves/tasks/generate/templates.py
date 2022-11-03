@@ -2,11 +2,11 @@ import glob
 import shutil
 from pathlib import Path
 
+import questionary
 from rich import console
 
 import dbt_coves
-
-from .base import BaseGenerateTask
+from dbt_coves.tasks.base import BaseConfiguredTask
 
 console = console.Console()
 
@@ -15,7 +15,7 @@ class GenerateTemplatesException(Exception):
     pass
 
 
-class GenerateTemplatesTask(BaseGenerateTask):
+class GenerateTemplatesTask(BaseConfiguredTask):
     """
     Task that generates dbt-coves templates on coves-config folder
     """
@@ -30,24 +30,45 @@ class GenerateTemplatesTask(BaseGenerateTask):
         subparser.set_defaults(cls=cls, which="templates")
         return subparser
 
+    def copy_template_file(self, template_name, dbtcoves_template_path, destination_template_path):
+        try:
+            shutil.copyfile(dbtcoves_template_path, destination_template_path)
+            console.print(f"Generated [green]{destination_template_path}[/green]")
+        except OSError as e:
+            raise GenerateTemplatesException(
+                f"Couldn't generate {template_name} template file: {e}"
+            )
+
     def run(self):
-        dbtcoves_config_folder = self.coves_config.get_config_folder()
+        options = {"overwrite_all": False}
         dbtcoves_templates_path = Path(dbt_coves.__file__).parent / "templates"
 
-        templates_destination_path = Path(dbtcoves_config_folder / "templates")
+        dbt_project_path = self.config.project_root
+        templates_destination_path = (
+            dbt_project_path
+            / Path(self.coves_config.DBT_COVES_CONFIG_FILEPATH).parent
+            / "templates"
+        )
         templates_destination_path.mkdir(parents=True, exist_ok=True)
 
         for dbtcoves_template in glob.glob(f"{dbtcoves_templates_path}/*.*"):
-            template_path = Path(dbtcoves_template)
-            template_name = template_path.name
-            template_destination = templates_destination_path / template_name
-            try:
-                shutil.copyfile(template_path, template_destination)
-                console.print(
-                    f"Generated [green]{template_name}[/green] in {templates_destination_path.relative_to(Path.cwd())}"
-                )
-            except OSError as e:
-                raise GenerateTemplatesException(
-                    f"Couldn't generate {template_name} template file: {e}"
-                )
+            dbtcoves_template_path = Path(dbtcoves_template)
+            template_name = dbtcoves_template_path.name
+            target_destination = templates_destination_path / template_name
+            if target_destination.exists():
+                if not options["overwrite_all"]:
+                    console.print(f"[yellow]{target_destination}[/yellow] already exists.")
+                    overwrite = questionary.select(
+                        f"Would you like to overwrite it?",
+                        choices=["No", "Yes", "Overwrite all", "Cancel"],
+                    ).ask()
+                    if overwrite == "No":
+                        continue
+                    if overwrite == "Overwrite all":
+                        options["overwrite_all"] = True
+                    if overwrite == "Cancel":
+                        exit()
+
+            self.copy_template_file(template_name, dbtcoves_template_path, target_destination)
+
         return 0
