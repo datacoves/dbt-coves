@@ -52,7 +52,7 @@ asciinema = "^2.0.2"
 pytest-dictsdiff = "^0.5.8"
 black = "^21.11b1"
 ipdb = "^0.13.9"
-sphinx-argparse = "^0.2.5"
+sphinx-argparse = "^0.3.2"
 sphinxcontrib-restbuilder = "^0.3"
 
 [build-system]
