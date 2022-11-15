@@ -6,8 +6,9 @@ from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 
 def add_env_vars(context):
     context_with_env_vars = copy.deepcopy(context)
+    context_with_env_vars['env_vars'] = {}
     for env_var_key in os.environ.keys():
-        context_with_env_vars['env_var'][env_var_key] = os.environ[env_var_key]
+        context_with_env_vars['env_vars'][env_var_key] = os.environ[env_var_key]
     return context_with_env_vars
 
 
