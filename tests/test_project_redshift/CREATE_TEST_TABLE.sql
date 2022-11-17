@@ -8,5 +8,6 @@ CREATE TABLE datacoves.test_datacoves (
     test_varchar VARCHAR,
     test_date DATE,
     test_timestamp TIMESTAMP,
-    test_boolean BOOLEAN
+    test_boolean BOOLEAN,
+    test_json SUPER
 );

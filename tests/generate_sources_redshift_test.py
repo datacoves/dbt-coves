@@ -10,6 +10,7 @@ import yaml
 import redshift_connector
 from jinja2 import Template
 from dotenv import load_dotenv
+import pandas as pd 
 
 # Load env vars for test only
 load_dotenv()
@@ -33,33 +34,8 @@ conn = redshift_connector.connect(
 
 # Start tests
 
-
-# @pytest.mark.dependency(name="setup")
-# def test_create_project():
-#    # dbt-coves setup
-#
-#    # Set env vars
-#    os.environ["USER_FULLNAME"] = "TEST USER"
-#    os.environ["USER_EMAIL"] = "test@test.com"
-#    os.environ["WORKSPACE_PATH"] = ""
-#    os.environ["GIT_REPO_URL"] = ""
-#    os.environ["DBT_PROFILES_DIR"] = "test_project"
-#
-#    command = [
-#        "dbt-coves",
-#        "setup",
-#        "dbt",
-#        # "--project-dir",
-#        # project_dir,
-#    ]
-#Datacoves standup
-#    inputs = ""
-#
-#    process = subprocess.run(args=command, input=inputs, encoding="utf-8")
-#    assert process.returncode == 0
-
-@pytest.mark.dependency(name="generate_test_table")
-def test_generate_test_table():
+@pytest.mark.dependency(name="generate_test_model")
+def test_generate_test_model():
     # Generate test table
     with conn.cursor() as cursor:
         with open("CREATE_TEST_TABLE.sql", "r") as sql_file:
@@ -74,7 +50,7 @@ def test_generate_test_table():
     assert len(result) == 1
 
 
-@pytest.mark.dependency(name="generate_sources", depends=["generate_test_table"])
+@pytest.mark.dependency(name="generate_sources", depends=["generate_test_model"])
 def test_generate_sources_redshift():
     # Generate sources command
     command = [
@@ -107,8 +83,8 @@ def test_generate_sources_redshift():
         next(metadata_csv)
 
         schema_yml = None
-        test_table_yml = None
-        test_table_sql = None
+        test_model_props = None
+        test_model_sql = None
 
         # Check if schema.yml and test_table.yml exists
         for file in os.listdir(f"models/staging/{schema}"):
@@ -124,7 +100,7 @@ def test_generate_sources_redshift():
             if file == f"{test_table}.yml":
                 with open(f"models/staging/{schema}/{file}", "r") as file:
                     try:
-                        test_table_yml = yaml.safe_load(file)
+                        test_model_props = yaml.safe_load(file)
                     except yaml.YAMLError as err:
                         print(err)
                         assert False
@@ -133,11 +109,11 @@ def test_generate_sources_redshift():
             if file == f"{test_table}.sql":
                 # TODO: Read SQL File
                 with open(f"models/staging/{schema}/{file}", "r") as file:
-                    test_table_sql = file.read()
+                    test_model_sql = file.read()
                 continue
 
         # Validate test_table.sql
-        assert test_table_sql != None
+        assert test_model_sql != None
 
         # Validate schema.yml
         assert schema_yml != None
@@ -151,8 +127,8 @@ def test_generate_sources_redshift():
         assert found_table
 
         # Validate test_table.yml with metadata.csv
-        assert test_table_yml != None
-        assert test_table_yml["models"][0]["name"] == test_table
+        assert test_model_props != None
+        assert test_model_props["models"][0]["name"] == test_table
         for row in metadata_csv:
             # "database","schema","relation","column","key","type","description"
             assert row[0] == database
@@ -164,7 +140,7 @@ def test_generate_sources_redshift():
             else:
                 row_name = row[3]
             found_col = False
-            for col in test_table_yml["models"][0]["columns"]:
+            for col in test_model_props["models"][0]["columns"]:
                 if col["name"] == row_name:
                     found_col = True
                     assert col["description"] == row[6]
@@ -175,7 +151,7 @@ def test_generate_sources_redshift():
     def source(schema, table):
         return f"{schema}.{table}"
 
-    template_sql = Template(test_table_sql)
+    template_sql = Template(test_model_sql)
     fields = {"source": source}
     query = template_sql.render(**fields)
     query = query + " LIMIT 1;"
@@ -183,7 +159,16 @@ def test_generate_sources_redshift():
     # Execute and validate query
     with conn.cursor() as cursor:
         cursor.execute(query)
-        result = cursor.fetchall()
+        result: pd.DataFrame = cursor.fetch_dataframe()
+    
+    # Validate columns
+    with open(metadata_file, "r") as file:
+        metadata_csv = csv.reader(file, delimiter=",")
+        next(metadata_csv)
+        for row in metadata_csv:
+            assert row[3] in list(result.columns)
+
+    # Validate quantity
     assert len(result) == 1
 
 

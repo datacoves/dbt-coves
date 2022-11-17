@@ -9,5 +9,6 @@ INSERT INTO datacoves.test_datacoves VALUES (
     'a',
     '2020-01-01',
     '2020-01-01 00:00:00',
-    TRUE
+    TRUE,
+    JSON_PARSE('{"name":"abc","value": 2}')
 );

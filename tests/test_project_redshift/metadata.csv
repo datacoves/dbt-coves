@@ -9,3 +9,4 @@
 "dev","datacoves","test_datacoves","test_date","","date","TEST OF DATE COLUMN TYPE"
 "dev","datacoves","test_datacoves","test_timestamp","","timestamp","TEST OF TIMESTAMP COLUMN TYPE"
 "dev","datacoves","test_datacoves","test_boolean","","boolean","TEST OF BOOLEAN COLUMN TYPE"
+"dev","datacoves","test_datacoves","test_json","","super","TEST OF JSON COLUMN TYPE"
