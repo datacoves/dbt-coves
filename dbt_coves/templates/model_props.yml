@@ -2,6 +2,7 @@ version: 2
 
 models:
   - name: {{ model.lower() }}
+    description: ''
     columns:
 {%- for col in columns %}
       - name: {{ col['id'] }}
