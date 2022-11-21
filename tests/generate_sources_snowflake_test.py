@@ -1,4 +1,4 @@
-# Integration tests of dbt-coves generate sources with Redshift adapter
+# Integration tests of dbt-coves generate sources with Snowflake adapter
 
 # Imports
 import pytest
@@ -7,30 +7,32 @@ import subprocess
 import shutil
 import csv
 import yaml
-import redshift_connector
 from jinja2 import Template
 from dotenv import load_dotenv
-import pandas as pd 
+import snowflake.connector
 
 # Load env vars for test only
 load_dotenv()
 
 # Env Vars
 metadata_file = os.environ["METADATA_FILE"]
-database = os.environ["DATABASE_REDSHIFT"]
-schema = os.environ["SCHEMA_REDSHIFT"]
-test_table = os.environ["TABLE_REDSHIFT"]
-project_dir = os.environ["PROJECT_DIR"]
+database = os.environ["DATABASE_SNOWFLAKE"]
+schema = os.environ["SCHEMA_SNOWFLAKE"]
+warehouse = os.environ["WAREHOUSE_SNOWFLAKE"]
+role = os.environ["ROLE_SNOWFLAKE"]
+test_table = os.environ["TABLE_SNOWFLAKE"]
+project_dir = os.environ["PROJECT_DIR_SNOWFLAKE"]
 
 os.chdir(project_dir)
 
-# Get Redshift connection
-conn = redshift_connector.connect(
-    host=os.environ["HOST_REDSHIFT"],
-    database=os.environ["DATABASE_REDSHIFT"],
-    user=os.environ["USER_REDSHIFT"],
-    password=os.environ["PASSWORD_REDSHIFT"],
-)
+# Get Snowflake connection
+conn = snowflake.connector.connect(
+    user=os.environ["USER_SNOWFLAKE"],
+    password=os.environ["PASSWORD_SNOWFLAKE"],
+    account=os.environ["ACCOUNT_SNOWFLAKE"],
+    warehouse=os.environ["WAREHOUSE_SNOWFLAKE"],
+    role=os.environ["ROLE_SNOWFLAKE"],
+    )
 
 # Start tests
 
@@ -38,6 +40,12 @@ conn = redshift_connector.connect(
 def test_generate_test_model():
     # Generate test table
     with conn.cursor() as cursor:
+        cursor.execute(f"USE WAREHOUSE {warehouse}")
+        cursor.execute(f"USE ROLE {role}")
+        cursor.execute(f"CREATE DATABASE {database}")
+        cursor.execute(f"USE DATABASE {database}")
+        cursor.execute(f"CREATE SCHEMA {schema}")
+        cursor.execute(f"USE SCHEMA {schema}")
         with open("CREATE_TEST_MODEL.sql", "r") as sql_file:
             query = sql_file.read()
         cursor.execute(query)
@@ -51,7 +59,7 @@ def test_generate_test_model():
 
 
 @pytest.mark.dependency(name="generate_sources", depends=["generate_test_model"])
-def test_generate_sources_redshift():
+def test_generate_sources_snowflake():
     # Generate sources command
     command = [
         "dbt-coves",
@@ -71,9 +79,8 @@ def test_generate_sources_redshift():
         "update",
         "--verbose",
     ]
-
     # Execute CLI command and interact with it
-    process = subprocess.run(args=command, input="\n", encoding="utf-8")
+    process = subprocess.run(args=command, input="\n\x1B[B\x1B[B\x1B[B\n", encoding="utf-8")
 
     assert process.returncode == 0
     assert os.path.isdir("models") == True
@@ -134,8 +141,11 @@ def test_generate_sources_redshift():
             assert row[0] == database
             assert row[1] == schema
             assert row[2] == test_table
-            # Delete underscore from row name
-            if row[3][0] == "_":
+            # Delete underscore and get row name
+            # Validate if is a key (JSON Flatten)
+            if row[4] != "":
+                row_name = row[4]
+            elif row[3][0] == "_":
                 row_name = row[3][1:]
             else:
                 row_name = row[3]
@@ -159,14 +169,18 @@ def test_generate_sources_redshift():
     # Execute and validate query
     with conn.cursor() as cursor:
         cursor.execute(query)
-        result: pd.DataFrame = cursor.fetch_dataframe()
+        result = cursor.fetch_pandas_all()
     
     # Validate columns
     with open(metadata_file, "r") as file:
         metadata_csv = csv.reader(file, delimiter=",")
         next(metadata_csv)
         for row in metadata_csv:
-            assert row[3] in list(result.columns)
+            if row[4] != "":
+                row_name = row[4]
+            else: 
+                row_name = row[3]
+            assert row_name.upper() in list(result.columns)
 
     # Validate quantity
     assert len(result) == 1
@@ -178,12 +192,12 @@ def cleanup(request):
     def delete_folders():
         # Delete models folder if exists
         shutil.rmtree("models", ignore_errors=True)
-    def delete_test_table():
+    def delete_test_model():
         # Delete test table
         with conn.cursor() as cursor:
-            cursor.execute(f"DROP TABLE {schema}.{test_table};")
+            cursor.execute(f"DROP DATABASE {database};")
         conn.commit()
         conn.close()
 
     request.addfinalizer(delete_folders)
-    request.addfinalizer(delete_test_table)
+    request.addfinalizer(delete_test_model)

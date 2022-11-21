@@ -61,6 +61,7 @@ redshift-connector = "2.0.909"
 pytest-dependency = "0.5.1"
 python-dotenv = "0.21.0"
 pandas = "1.3.0"
+snowflake-connector-python = {extras = ["pandas"], version = "2.8.1"}
 
 [build-system]
 requires = ["setuptools", "poetry_core>=1.0"]

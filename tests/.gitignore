@@ -1,2 +1,3 @@
 test_project_redshift/dbt_project.yml
+test_project_snowflake/dbt_project.yml
 .env
