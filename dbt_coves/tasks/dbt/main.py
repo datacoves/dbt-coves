@@ -1,7 +1,7 @@
 import os
 import shlex
+import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
@@ -53,12 +53,15 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         command = self.get_config_value("command")
         if self.is_readonly(project_dir):
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                console.print(
-                    f"Readonly project detected. Copying it to temp directory [b]{tmp_dir}[/b]"
-                )
-                subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=True)
+            tmp_dir = tempfile.NamedTemporaryFile().name
+            console.print(
+                f"Readonly project detected. Copying it to temp directory [b]{tmp_dir}[/b]"
+            )
+            subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=False)
+            try:
                 self.run_dbt(command, cwd=tmp_dir)
+            finally:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
         else:
             self.run_dbt(command, cwd=project_dir)
 
@@ -93,7 +96,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             # conflicts with trailing / at later concatenation
             env_path = Path(os.environ.get(virtualenv, virtualenv))
         if env_path and env_path.exists():
-            cmd_list = shlex.split(f"/bin/bash -c 'source {env_path}/bin/activate && {command}'")
+            cmd_list = shlex.split(
+                f"/bin/bash -c 'source {env_path}/bin/activate && {command}'"
+            )
         else:
             cmd_list = shlex.split(command)
 
