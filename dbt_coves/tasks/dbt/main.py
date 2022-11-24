@@ -6,11 +6,14 @@ import tempfile
 from pathlib import Path
 
 from rich.console import Console
+from rich.text import Text
 
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
 
 console = Console()
 
+class RunDbtException(Exception):
+    pass
 
 class RunDbtTask(NonDbtBaseConfiguredTask):
     """
@@ -101,9 +104,14 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             )
         else:
             cmd_list = shlex.split(command)
-
-        console.print(f"Running: [green]{' '.join(cmd_list)}[/green]")
-        return subprocess.run(cmd_list, env=env, cwd=cwd)
+            
+        try:
+            output = subprocess.check_output(cmd_list, env=env, cwd=cwd)
+            console.print(f"{Text.from_ansi(output.decode())}\n"\
+                f"[green]{command} :heavy_check_mark:[/green]")
+        except subprocess.CalledProcessError as e:
+            raise RunDbtException(f"Exception ocurred running [red]{command}[/red]:\n"\
+                 f"{Text.from_ansi(e.output.decode())}")
 
     def get_config_value(self, key):
         return self.coves_config.integrated["dbt"][key]
