@@ -170,7 +170,10 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "model_prop_recreate_all": False,
         }
         for model in models:
-            model_data = manifest["nodes"][model]
+            model_data = manifest["nodes"].get(model)
+            if not model_data:
+                console.print(f"Model [red]{model}[/red] not found in manifest's nodes")
+                continue
             database, schema, table = (
                 model_data["database"],
                 model_data["schema"],
