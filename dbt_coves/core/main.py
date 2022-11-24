@@ -155,6 +155,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
 
         logger.debug(traceback.format_exc())
         console.print(f"[red]:cross_mark:[/red] {ex}")
+        return 1
 
     if exit_code > 0:
         logger.error("[red]The process did not complete successfully.")
