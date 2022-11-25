@@ -154,7 +154,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         destination.parent.mkdir(parents=True, exist_ok=True)
         columns = self.adapter.get_columns_in_relation(relation)
         nested_field_type = self.NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
-        nested = [col.name.lower() for col in columns if col.dtype == nested_field_type]
+        nested = [col.name for col in columns if col.dtype == nested_field_type]
         if not options["flatten_all"]:
             if nested:
                 field_nlg = "field"
@@ -163,7 +163,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                     field_nlg = "fields"
                     flatten_nlg = "flatten them"
                 flatten = questionary.select(
-                    f"{relation.name.lower()} contains the JSON {field_nlg} {', '.join(nested)}."
+                    f"{relation.name} contains the JSON {field_nlg} {', '.join(nested)}."
                     f" Would you like to {flatten_nlg}?",
                     choices=["No", "Yes", "No for all", "Yes for all"],
                 ).ask()
@@ -224,7 +224,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             # Removing original column with JSON data
             new_cols = []
             for col in metadata_cols:
-                if col["id"].lower() not in context["nested"]:
+                if col["id"] not in context["nested"]:
                     new_cols.append(col)
             context["columns"] = new_cols
         config_db = self.get_config_value("database")
@@ -235,7 +235,7 @@ class GenerateSourcesTask(BaseGenerateTask):
 
     def render_templates_with_context(self, context, sql_destination, options):
         templates_folder = self.get_config_value("templates_folder")
-        update_strategy = self.get_config_value("update_strategy").lower()
+        update_strategy = self.get_config_value("update_strategy")
         model_property_destination = self.get_config_value("model_props_destination")
         source_property_destination = self.get_config_value("sources_destination")
         rel = context["relation"]

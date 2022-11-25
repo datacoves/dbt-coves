@@ -33,7 +33,7 @@ class BaseGenerateTask(BaseConfiguredTask):
 
     def get_schemas(self):
         # get schema names selectors
-        schema_name_selectors = [schema.upper() for schema in self.get_config_value("schemas")]
+        schema_name_selectors = [schema for schema in self.get_config_value("schemas")]
 
         schema_wildcard_selectors = []
         for schema_name in schema_name_selectors:
@@ -41,7 +41,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 schema_wildcard_selectors.append(schema_name.replace("*", ".*"))
 
         schemas = [
-            schema.upper()
+            schema
             for schema in self.adapter.list_schemas(self.db)
             # TODO: fix this for different adapters
             if schema != "INFORMATION_SCHEMA"
@@ -75,7 +75,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         return selected_schemas
 
     def get_relations(self, filtered_schemas):
-        rel_name_selectors = [relation.upper() for relation in self.get_config_value("relations")]
+        rel_name_selectors = [relation for relation in self.get_config_value("relations")]
         rel_wildcard_selectors = []
         for rel_name in rel_name_selectors:
             if "*" in rel_name:
@@ -239,7 +239,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         strategy_key_recreate_all = ""
         rel = context["relation"]
 
-        context["model"] = rel.name.lower()
+        context["model"] = rel.name
         strategy_key_update_all = f"{resource_type}_prop_update_all"
         strategy_key_recreate_all = f"{resource_type}_prop_recreate_all"
         if yml_path.exists():
