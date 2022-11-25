@@ -150,6 +150,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         console.print(
             "No [u]dbt_project.yml[/u] found. Current folder doesn't look like a dbt project."
         )
+        return 1
     except Exception as ex:
         import traceback
 

@@ -1,7 +1,7 @@
 with raw_source as (
 
     select *
-    from {% raw %}{{{% endraw %} source('{{ relation.schema.lower() }}', '{{ relation.name.lower() }}') {% raw %}}}{% endraw %}
+    from {% raw %}{{{% endraw %} source('{{ relation.schema }}', '{{ relation.name }}') {% raw %}}}{% endraw %}
 
 ),
 
@@ -24,7 +24,7 @@ final as (
   {%- endfor %}
 {%- endfor %}
 {%- for col in columns %}
-        cast({{ col['name'] }} as {{ col["type"].lower().replace("varchar", "string") }}) as {{ col['id'] }}
+        cast({{ col['name'] }} as {{ col["type"].lower().replace("varchar", "string") }}) as {{ col['id'] }}{% if not loop.last %},{% endif %}
 {%- endfor %}
 {%- endif %}
 

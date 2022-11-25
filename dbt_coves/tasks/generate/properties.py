@@ -164,7 +164,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             return self.select_properties(dbt_models_manifest_naming)
 
     def generate(self, models, manifest):
-        prop_destination = self.get_config_value("destination")
+        prop_destination = self.get_config_value("destination").lower()
         options = {
             "model_prop_update_all": False,
             "model_prop_recreate_all": False,
@@ -205,7 +205,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "relation": relation,
             "columns": metadata_cols,
             "adapter_name": self.adapter.__class__.__name__,
-            "model": relation.name.lower(),
+            "model": relation.name,
         }
 
     def get_model_folder(self, model, manifest):
