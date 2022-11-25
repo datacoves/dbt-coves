@@ -104,7 +104,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         raise NotImplementedError()
 
     def get_metadata_map_key(self, row):
-        map_key = f"{row['database']}-{row['schema']}-{row['relation']}-{row['column']}-{row.get('key', '')}"
+        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}-{row['column'].lower()}-{row.get('key', '').lower()}"
         return map_key
 
     def get_metadata_map_item(self, row):
