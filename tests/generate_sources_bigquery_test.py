@@ -82,7 +82,7 @@ def test_generate_sources_bigquery():
         "update",
         "--verbose",
     ]
-    
+    print(" ".join(command))
     # Execute CLI command and interact with it
     process = subprocess.run(args=command, input="\n", encoding="utf-8")
 
@@ -198,7 +198,7 @@ def test_generate_sources_bigquery():
                 row_name = row[4]
             else: 
                 row_name = row[3]
-            assert row_name.upper() in list(columns)
+            assert row_name in list(columns)
 
 
 # Finalizers, clean up
