@@ -4,6 +4,10 @@ on:
   push:
     branches:
       - main
+    paths:
+      - dbt_coves/*
+      - dbt_coves/**/*
+
   workflow_dispatch:
     inputs:
       bumpType:
