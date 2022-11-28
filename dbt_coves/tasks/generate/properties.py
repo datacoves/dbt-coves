@@ -164,13 +164,16 @@ class GeneratePropertiesTask(BaseGenerateTask):
             return self.select_properties(dbt_models_manifest_naming)
 
     def generate(self, models, manifest):
-        prop_destination = self.get_config_value("destination")
+        prop_destination = self.get_config_value("destination").lower()
         options = {
             "model_prop_update_all": False,
             "model_prop_recreate_all": False,
         }
         for model in models:
-            model_data = manifest["nodes"][model]
+            model_data = manifest["nodes"].get(model)
+            if not model_data:
+                console.print(f"Model [red]{model}[/red] not found in manifest's nodes")
+                continue
             database, schema, table = (
                 model_data["database"],
                 model_data["schema"],
@@ -202,7 +205,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "relation": relation,
             "columns": metadata_cols,
             "adapter_name": self.adapter.__class__.__name__,
-            "model": relation.name.lower(),
+            "model": relation.name,
         }
 
     def get_model_folder(self, model, manifest):
