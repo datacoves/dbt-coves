@@ -1,4 +1,4 @@
-CREATE TABLE `dbt-coves-test.TESTS.test_model` (
+CREATE TABLE `dbt-coves-test.tests.test_model` (
     test_smallint SMALLINT,
     test_integer INTEGER,
     test_bigint BIGINT,

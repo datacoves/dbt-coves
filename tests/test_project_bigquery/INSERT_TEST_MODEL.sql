@@ -1,5 +1,5 @@
 
-INSERT INTO `dbt-coves-test.TESTS.test_model` VALUES (
+INSERT INTO `dbt-coves-test.tests.test_model` VALUES (
     1,
     1,
     1,

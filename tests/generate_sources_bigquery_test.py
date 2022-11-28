@@ -74,15 +74,13 @@ def test_generate_sources_bigquery():
         metadata_file,
         "--schemas",
         dataset_id,
-        # "--relations",
-        # test_table,
         # "--project-dir",
         # project_dir,
         "--update-strategy",
         "update",
         "--verbose",
     ]
-    print(" ".join(command))
+
     # Execute CLI command and interact with it
     process = subprocess.run(args=command, input="\n", encoding="utf-8")
 
@@ -131,9 +129,7 @@ def test_generate_sources_bigquery():
         # Validate schema.yml
         assert schema_yml != None
         assert schema_yml["sources"][0]["name"] == dataset_id.lower()
-        
-        #assert schema_yml["sources"][0]["database"] == project_id
-        
+                
         found_table = False
         for tables in schema_yml["sources"][0]["tables"]:
             if tables["name"] == test_table:

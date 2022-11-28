@@ -40,12 +40,12 @@ conn = snowflake.connector.connect(
 def test_generate_test_model():
     # Generate test table
     with conn.cursor() as cursor:
-        cursor.execute(f"USE WAREHOUSE {warehouse}")
-        cursor.execute(f"USE ROLE {role}")
-        cursor.execute(f"CREATE DATABASE {database}")
-        cursor.execute(f"USE DATABASE {database}")
-        cursor.execute(f"CREATE SCHEMA {schema}")
-        cursor.execute(f"USE SCHEMA {schema}")
+        cursor.execute(f"USE WAREHOUSE {warehouse};")
+        cursor.execute(f"USE ROLE {role};")
+        cursor.execute(f"CREATE DATABASE {database};")
+        cursor.execute(f"USE DATABASE {database};")
+        cursor.execute(f"CREATE SCHEMA {schema};")
+        cursor.execute(f"USE SCHEMA {schema};")
         with open("CREATE_TEST_MODEL.sql", "r") as sql_file:
             query = sql_file.read()
         cursor.execute(query)
@@ -68,17 +68,16 @@ def test_generate_sources_snowflake():
         "--metadata",
         metadata_file,
         "--database",
-        database,
+        database.upper(),
         "--schemas",
-        schema,
-        # "--relations",
-        # test_table,
+        schema.upper(),
         # "--project-dir",
         # project_dir,
         "--update-strategy",
         "update",
         "--verbose",
     ]
+
     # Execute CLI command and interact with it
     process = subprocess.run(args=command, input="\n\x1B[B\x1B[B\x1B[B\n", encoding="utf-8")
 

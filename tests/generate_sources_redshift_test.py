@@ -38,6 +38,7 @@ conn = redshift_connector.connect(
 def test_generate_test_model():
     # Generate test table
     with conn.cursor() as cursor:
+        cursor.execute(f"CREATE SCHEMA {schema};")
         with open("CREATE_TEST_MODEL.sql", "r") as sql_file:
             query = sql_file.read()
         cursor.execute(query)
@@ -63,14 +64,14 @@ def test_generate_sources_redshift():
         database,
         "--schemas",
         schema,
-        # "--relations",
-        # test_table,
         # "--project-dir",
         # project_dir,
         "--update-strategy",
         "update",
         "--verbose",
     ]
+
+    print(" ".join(command))
 
     # Execute CLI command and interact with it
     process = subprocess.run(args=command, input="\n", encoding="utf-8")
@@ -182,6 +183,7 @@ def cleanup(request):
         # Delete test table
         with conn.cursor() as cursor:
             cursor.execute(f"DROP TABLE {schema}.{test_table};")
+            cursor.execute(f"DROP SCHEMA {schema};")
         conn.commit()
         conn.close()
 

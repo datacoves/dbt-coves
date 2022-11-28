@@ -1,5 +1,5 @@
 
-INSERT INTO datacoves.test_datacoves VALUES (
+INSERT INTO tests.test_model VALUES (
     1,
     1,
     1,

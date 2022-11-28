@@ -1,4 +1,4 @@
-CREATE TABLE datacoves.test_datacoves (
+CREATE TABLE tests.test_model(
     test_smallint SMALLINT,
     test_integer INTEGER,
     test_bigint BIGINT,
