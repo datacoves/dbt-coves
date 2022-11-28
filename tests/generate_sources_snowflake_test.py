@@ -93,6 +93,8 @@ def test_generate_sources_snowflake():
         test_model_props = None
         test_model_sql = None
 
+        schema_folder = schema.lower()
+
         # Check if schema.yml and test_table.yml exists
         for file in os.listdir(f"models/staging/{schema}"):
             if file == f"{schema}.yml":
