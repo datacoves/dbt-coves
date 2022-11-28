@@ -40,7 +40,7 @@ jobs:
           sudo apt install git-secret
           gpg --import <(echo "$GPG_PRIVATE_KEY")
           gpg --list-secret-keys
-          git secret reveal -f
+          git secret reveal -f -d /home/runner/
 
       - name: Run Tests and Coverage Report
         run: |
