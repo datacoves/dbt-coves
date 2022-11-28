@@ -38,6 +38,7 @@ jobs:
       - name: Decrypt secrets
         run: |
           gpg --import <(echo "$GPG_PRIVATE_KEY")
+          sudo apt install git-secret
           git secret reveal -f
 
       - name: Run Tests and Coverage Report
