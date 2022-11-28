@@ -96,9 +96,9 @@ def test_generate_sources_snowflake():
         schema_folder = schema.lower()
 
         # Check if schema.yml and test_table.yml exists
-        for file in os.listdir(f"models/staging/{schema}"):
-            if file == f"{schema}.yml":
-                with open(f"models/staging/{schema}/{file}", "r") as file:
+        for file in os.listdir(f"models/staging/{schema_folder}"):
+            if file == f"{schema_folder}.yml":
+                with open(f"models/staging/{schema_folder}/{file}", "r") as file:
                     try:
                         schema_yml = yaml.safe_load(file)
                     except yaml.YAMLError as err:
@@ -107,7 +107,7 @@ def test_generate_sources_snowflake():
                 continue
 
             if file == f"{test_table}.yml":
-                with open(f"models/staging/{schema}/{file}", "r") as file:
+                with open(f"models/staging/{schema_folder}/{file}", "r") as file:
                     try:
                         test_model_props = yaml.safe_load(file)
                     except yaml.YAMLError as err:
@@ -117,7 +117,7 @@ def test_generate_sources_snowflake():
 
             if file == f"{test_table}.sql":
                 # TODO: Read SQL File
-                with open(f"models/staging/{schema}/{file}", "r") as file:
+                with open(f"models/staging/{schema_folder}/{file}", "r") as file:
                     test_model_sql = file.read()
                 continue
 
@@ -126,7 +126,7 @@ def test_generate_sources_snowflake():
 
         # Validate schema.yml
         assert schema_yml != None
-        assert schema_yml["sources"][0]["name"] == schema
+        assert schema_yml["sources"][0]["name"] == schema_folder
         assert schema_yml["sources"][0]["database"] == database
         found_table = False
         for tables in schema_yml["sources"][0]["tables"]:
@@ -141,7 +141,7 @@ def test_generate_sources_snowflake():
         for row in metadata_csv:
             # "database","schema","relation","column","key","type","description"
             assert row[0] == database
-            assert row[1] == schema
+            assert row[1] == schema_folder
             assert row[2] == test_table
             # Delete underscore and get row name
             # Validate if is a key (JSON Flatten)
