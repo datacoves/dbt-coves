@@ -72,16 +72,18 @@ class GenerateMetadataTask(BaseGenerateTask):
         selected_rels = questionary.checkbox(
             "Which metadata files would you like to generate?",
             choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
+                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
+                for rel in rels
             ],
         ).ask()
 
         return selected_rels
 
-    def generate_template(self, destination_path, relation):
-        template_context = dict()
-        if "{{relation_name}}" in destination_path.replace(" ", ""):
-            template_context["relation_name"] = relation.name.lower()
+    def render_path_template(self, destination_path, relation):
+        template_context = {
+            "schema": relation.schema.lower(),
+            "relation": relation.name.lower(),
+        }
         return render_template(destination_path, template_context)
 
     def get_nested_columns(self, columns):
@@ -117,7 +119,9 @@ class GenerateMetadataTask(BaseGenerateTask):
 
         return results
 
-    def generate_or_append_metadata(self, relation, destination, options, action, existing_rows):
+    def generate_or_append_metadata(
+        self, relation, destination, options, action, existing_rows
+    ):
         destination.parent.mkdir(parents=True, exist_ok=True)
         if action == "append":
             python_fs_action = "a"
@@ -164,7 +168,9 @@ class GenerateMetadataTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                        result[json_col][key_name] = self.get_default_metadata_item(
+                            key_name
+                        )
                 except TypeError:
                     console.print(
                         f"Column {json_col} in relation {relation.name} contains invalid JSON.\n"
@@ -197,7 +203,7 @@ class GenerateMetadataTask(BaseGenerateTask):
         options = {"append_all": False, "recreate_files": False}
 
         for rel in rels:
-            csv_dest = self.generate_template(destination, rel)
+            csv_dest = self.render_path_template(destination, rel)
             csv_path = Path().joinpath(csv_dest)
             existing_rows = self.get_existing_csv_rows(csv_path)
             if csv_path.exists() and existing_rows:
@@ -230,7 +236,9 @@ class GenerateMetadataTask(BaseGenerateTask):
             else:
                 action = "create"
 
-            self.generate_or_append_metadata(rel, csv_path, options, action, existing_rows)
+            self.generate_or_append_metadata(
+                rel, csv_path, options, action, existing_rows
+            )
             self.metadata_files_processed.add(csv_path)
 
     def run(self):

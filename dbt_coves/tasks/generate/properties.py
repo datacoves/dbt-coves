@@ -182,7 +182,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
                 columns = self.adapter.get_columns_in_relation(relation)
-                model_destination = self.generate_template(
+                model_destination = self.render_path_template(
                     prop_destination, model, manifest
                 )
                 model_path = Path().joinpath(model_destination)
@@ -220,16 +220,11 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
         return filename
 
-    def generate_template(self, destination_path, model, manifest):
-        template_context = dict()
-        if "{{model_folder_path}}" in destination_path.replace(" ", ""):
-            template_context["model_folder_path"] = self.get_model_folder(
-                model, manifest
-            )
-        if "{{model_file_name}}" in destination_path.replace(" ", ""):
-            template_context["model_file_name"] = self.get_model_filename(
-                model, manifest
-            )
+    def render_path_template(self, destination_path, model, manifest):
+        template_context = {
+            "model_folder_path": self.get_model_folder(model, manifest),
+            "model_file_name": self.get_model_filename(model, manifest),
+        }
         return render_template(destination_path, template_context)
 
     def render_templates_with_context(self, context, destination, options):
