@@ -7,6 +7,10 @@ jobs:
     name: Main CI
     runs-on: ubuntu-latest
 
+    env:
+      GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}
+      SECRETS_GPG_ARMOR: true
+
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
@@ -31,6 +35,12 @@ jobs:
       - name: Install Dependencies using Poetry
         run: poetry install --with test
         if: steps.cache.outputs.cache-hit != 'true'
+
+      - name: Decrypt secrets
+        run: |
+          sudo apt install git-secret
+          gpg --import <(echo "$GPG_PRIVATE_KEY")
+          git secret reveal -f
 
       - name: Run Tests and Coverage Report
         run: |
