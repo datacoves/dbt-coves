@@ -35,9 +35,6 @@ credentials = service_account.Credentials.from_service_account_file(
     sa_key_path, 
     scopes=["https://www.googleapis.com/auth/cloud-platform"])
 
-# Delete credentials after use
-os.remove(sa_key_path)
-
 client = bigquery.Client(
     credentials=credentials, 
     project=os.environ["PROJECT_BIGQUERY"])
@@ -204,20 +201,18 @@ def test_generate_sources_bigquery():
                 row_name = row[3]
             assert row_name in list(columns)
 
-    # Return to root folder
-    os.chdir("..")
-    os.chdir("..")
-
 # Finalizers, clean up
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def cleanup_bigquery(request):
-    def delete_folders():
-        # Delete models folder if exists
-        os.chdir(os.path.join("tests", project_dir))
-        shutil.rmtree("models", ignore_errors=True)
+    def delete_sa():
         # Return to root folder
         os.chdir("..")
         os.chdir("..")
+        # Delete credentials after use
+        os.remove(sa_key_path)
+    def delete_folders():
+        # Delete models folder if exists
+        shutil.rmtree(os.path.join("tests", project_dir, "models"), ignore_errors=True)
     def delete_test_model():
         # Delete test model
         job_query = client.query(f"DROP TABLE {dataset_id}.{test_table};")
@@ -229,4 +224,5 @@ def cleanup_bigquery(request):
         assert job_query.errors == None
     
     request.addfinalizer(delete_folders)
+    request.addfinalizer(delete_sa)
     request.addfinalizer(delete_test_model)

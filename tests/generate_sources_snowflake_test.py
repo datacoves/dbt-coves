@@ -185,21 +185,17 @@ def test_generate_sources_snowflake():
     # Validate quantity
     assert len(result) == 1
 
-    # Return to root folder
-    os.chdir("..")
-    os.chdir("..")
-
 
 # Finalizers, clean up
-@pytest.fixture(scope="session", autouse=True)
+@pytest.fixture(scope="module", autouse=True)
 def cleanup_snowflake(request):
-    def delete_folders():
-        # Delete models folder if exists
-        os.chdir(os.path.join("tests", project_dir))
-        shutil.rmtree("models", ignore_errors=True)
+    def return_root():
         # Return to root folder
         os.chdir("..")
         os.chdir("..")
+    def delete_folders():
+        # Delete models folder if exists
+        shutil.rmtree(os.path.join("tests", project_dir, "models"), ignore_errors=True)
     def delete_test_model():
         # Delete test table
         with conn.cursor() as cursor:
@@ -208,4 +204,5 @@ def cleanup_snowflake(request):
         conn.close()
 
     request.addfinalizer(delete_folders)
+    request.addfinalizer(return_root)
     request.addfinalizer(delete_test_model)
