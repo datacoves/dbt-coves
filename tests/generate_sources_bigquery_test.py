@@ -33,12 +33,11 @@ client = bigquery.Client(
     credentials=credentials, 
     project=os.environ["PROJECT_BIGQUERY"])
 
-os.chdir(project_dir)
-
 # Start tests
 
 @pytest.mark.dependency(name="generate_test_model")
 def test_generate_test_model():
+    os.chdir(os.path.join("tests", project_dir))
     # Generate dataset
     dataset = bigquery.Dataset(f"{project_id}.{dataset_id}")
     dataset.location = "US"
@@ -196,13 +195,20 @@ def test_generate_sources_bigquery():
                 row_name = row[3]
             assert row_name in list(columns)
 
+    # Return to root folder
+    os.chdir("..")
+    os.chdir("..")
 
 # Finalizers, clean up
 @pytest.fixture(scope="session", autouse=True)
-def cleanup(request):
+def cleanup_bigquery(request):
     def delete_folders():
         # Delete models folder if exists
+        os.chdir(os.path.join("tests", project_dir))
         shutil.rmtree("models", ignore_errors=True)
+        # Return to root folder
+        os.chdir("..")
+        os.chdir("..")
     def delete_test_model():
         # Delete test model
         job_query = client.query(f"DROP TABLE {dataset_id}.{test_table};")

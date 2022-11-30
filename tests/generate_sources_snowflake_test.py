@@ -23,8 +23,6 @@ role = os.environ["ROLE_SNOWFLAKE"]
 test_table = os.environ["TABLE_SNOWFLAKE"]
 project_dir = os.environ["PROJECT_DIR_SNOWFLAKE"]
 
-os.chdir(project_dir)
-
 # Get Snowflake connection
 conn = snowflake.connector.connect(
     user=os.environ["USER_SNOWFLAKE"],
@@ -38,6 +36,7 @@ conn = snowflake.connector.connect(
 
 @pytest.mark.dependency(name="generate_test_model")
 def test_generate_test_model():
+    os.chdir(os.path.join("tests", project_dir))
     # Generate test table
     with conn.cursor() as cursor:
         cursor.execute(f"USE WAREHOUSE {warehouse};")
@@ -186,13 +185,21 @@ def test_generate_sources_snowflake():
     # Validate quantity
     assert len(result) == 1
 
+    # Return to root folder
+    os.chdir("..")
+    os.chdir("..")
+
 
 # Finalizers, clean up
 @pytest.fixture(scope="session", autouse=True)
-def cleanup(request):
+def cleanup_snowflake(request):
     def delete_folders():
         # Delete models folder if exists
+        os.chdir(os.path.join("tests", project_dir))
         shutil.rmtree("models", ignore_errors=True)
+        # Return to root folder
+        os.chdir("..")
+        os.chdir("..")
     def delete_test_model():
         # Delete test table
         with conn.cursor() as cursor:
