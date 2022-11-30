@@ -94,7 +94,8 @@ class GenerateSourcesTask(BaseGenerateTask):
         selected_rels = questionary.checkbox(
             "Which sources would you like to generate?",
             choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
+                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
+                for rel in rels
             ],
         ).ask()
 
@@ -291,7 +292,9 @@ class GenerateSourcesTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                        result[json_col][key_name] = self.get_default_metadata_item(
+                            key_name
+                        )
                     self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(
