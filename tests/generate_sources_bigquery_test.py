@@ -22,12 +22,21 @@ test_table = os.environ["TABLE_BIGQUERY"]
 project_dir = os.environ["PROJECT_DIR_BIGQUERY"]
 project_id = os.environ["PROJECT_BIGQUERY"]
 
-sa_key_path = os.environ["SERVICE_ACCOUNT_GCP"]
+sa_key = os.environ["SERVICE_ACCOUNT_GCP"]
+
+# Generate SA credentials file
+with open("service_account.json", "w") as f:
+    f.write(sa_key)
+
+sa_key_path = "service_account.json"
 
 # Get BigQuery Client
 credentials = service_account.Credentials.from_service_account_file(
     sa_key_path, 
     scopes=["https://www.googleapis.com/auth/cloud-platform"])
+
+# Delete credentials after use
+os.remove(sa_key_path)
 
 client = bigquery.Client(
     credentials=credentials, 
