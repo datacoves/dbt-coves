@@ -1,16 +1,19 @@
 import os
 import shlex
+import shutil
 import subprocess
-import sys
 import tempfile
 from pathlib import Path
 
 from rich.console import Console
+from rich.text import Text
 
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
 
 console = Console()
 
+class RunDbtException(Exception):
+    pass
 
 class RunDbtTask(NonDbtBaseConfiguredTask):
     """
@@ -53,12 +56,15 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         command = self.get_config_value("command")
         if self.is_readonly(project_dir):
-            with tempfile.TemporaryDirectory() as tmp_dir:
-                console.print(
-                    f"Readonly project detected. Copying it to temp directory [b]{tmp_dir}[/b]"
-                )
-                subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=True)
+            tmp_dir = tempfile.NamedTemporaryFile().name
+            console.print(
+                f"Readonly project detected. Copying it to temp directory [b]{tmp_dir}[/b]"
+            )
+            subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=False)
+            try:
                 self.run_dbt(command, cwd=tmp_dir)
+            finally:
+                shutil.rmtree(tmp_dir, ignore_errors=True)
         else:
             self.run_dbt(command, cwd=project_dir)
 
@@ -93,12 +99,19 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             # conflicts with trailing / at later concatenation
             env_path = Path(os.environ.get(virtualenv, virtualenv))
         if env_path and env_path.exists():
-            cmd_list = shlex.split(f"/bin/bash -c 'source {env_path}/bin/activate && {command}'")
+            cmd_list = shlex.split(
+                f"/bin/bash -c 'source {env_path}/bin/activate && {command}'"
+            )
         else:
             cmd_list = shlex.split(command)
-
-        console.print(f"Running: [green]{' '.join(cmd_list)}[/green]")
-        return subprocess.run(cmd_list, env=env, cwd=cwd)
+            
+        try:
+            output = subprocess.check_output(cmd_list, env=env, cwd=cwd)
+            console.print(f"{Text.from_ansi(output.decode())}\n"\
+                f"[green]{command} :heavy_check_mark:[/green]")
+        except subprocess.CalledProcessError as e:
+            raise RunDbtException(f"Exception ocurred running [red]{command}[/red]:\n"\
+                 f"{Text.from_ansi(e.output.decode())}")
 
     def get_config_value(self, key):
         return self.coves_config.integrated["dbt"][key]

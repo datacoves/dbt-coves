@@ -149,3 +149,5 @@ cython_debug/
 **.DS_Store**
 
 **.vim**
+.gitsecret/keys/random_seed
+!*.secret

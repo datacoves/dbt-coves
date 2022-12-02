@@ -94,7 +94,8 @@ class GenerateSourcesTask(BaseGenerateTask):
         selected_rels = questionary.checkbox(
             "Which sources would you like to generate?",
             choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
+                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
+                for rel in rels
             ],
         ).ask()
 
@@ -111,7 +112,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             "source_prop_recreate_all": False,
         }
         for rel in rels:
-            model_dest = self.generate_template(models_destination, rel)
+            model_dest = self.render_path_template(models_destination, rel)
             model_sql = Path().joinpath(model_dest)
             if not options["override_all"]:
                 if model_sql.exists():
@@ -154,7 +155,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         destination.parent.mkdir(parents=True, exist_ok=True)
         columns = self.adapter.get_columns_in_relation(relation)
         nested_field_type = self.NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
-        nested = [col.name.lower() for col in columns if col.dtype == nested_field_type]
+        nested = [col.name for col in columns if col.dtype == nested_field_type]
         if not options["flatten_all"]:
             if nested:
                 field_nlg = "field"
@@ -163,7 +164,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                     field_nlg = "fields"
                     flatten_nlg = "flatten them"
                 flatten = questionary.select(
-                    f"{relation.name.lower()} contains the JSON {field_nlg} {', '.join(nested)}."
+                    f"{relation.name} contains the JSON {field_nlg} {', '.join(nested)}."
                     f" Would you like to {flatten_nlg}?",
                     choices=["No", "Yes", "No for all", "Yes for all"],
                 ).ask()
@@ -203,12 +204,11 @@ class GenerateSourcesTask(BaseGenerateTask):
         else:
             self.render_templates(relation, columns, destination, options)
 
-    def generate_template(self, destination_path, relation):
-        template_context = dict()
-        if "{{schema}}" in destination_path.replace(" ", ""):
-            template_context["schema"] = relation.schema.lower()
-        if "{{relation}}" in destination_path.replace(" ", ""):
-            template_context["relation"] = relation.name.lower()
+    def render_path_template(self, destination_path, relation):
+        template_context = {
+            "schema": relation.schema.lower(),
+            "relation": relation.name.lower(),
+        }
         return render_template(destination_path, template_context)
 
     def get_templates_context(self, relation, columns, json_cols=None):
@@ -224,7 +224,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             # Removing original column with JSON data
             new_cols = []
             for col in metadata_cols:
-                if col["id"].lower() not in context["nested"]:
+                if col["id"] not in context["nested"]:
                     new_cols.append(col)
             context["columns"] = new_cols
         config_db = self.get_config_value("database")
@@ -235,7 +235,7 @@ class GenerateSourcesTask(BaseGenerateTask):
 
     def render_templates_with_context(self, context, sql_destination, options):
         templates_folder = self.get_config_value("templates_folder")
-        update_strategy = self.get_config_value("update_strategy").lower()
+        update_strategy = self.get_config_value("update_strategy")
         model_property_destination = self.get_config_value("model_props_destination")
         source_property_destination = self.get_config_value("sources_destination")
         rel = context["relation"]
@@ -250,7 +250,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         console.print(f"Model [green][b]{sql_destination}[/green][/b] created")
 
         # Render model and source YMLs
-        model_yml_dest = self.generate_template(model_property_destination, rel)
+        model_yml_dest = self.render_path_template(model_property_destination, rel)
         model_yml_path = Path().joinpath(model_yml_dest)
         self.render_property_files(
             context,
@@ -262,7 +262,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             "staging_model_props.yml",
         )
 
-        source_yml_dest = self.generate_template(source_property_destination, rel)
+        source_yml_dest = self.render_path_template(source_property_destination, rel)
         source_yml_path = Path().joinpath(source_yml_dest)
         self.render_property_files(
             context,
@@ -292,7 +292,9 @@ class GenerateSourcesTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                        result[json_col][key_name] = self.get_default_metadata_item(
+                            key_name
+                        )
                     self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(

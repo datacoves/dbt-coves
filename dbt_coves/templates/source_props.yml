@@ -7,3 +7,4 @@ sources:
 {%- endif %}
     tables:
       - name: {{ relation.name.lower() }}
+        description: ''
