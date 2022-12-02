@@ -41,8 +41,13 @@ jobs:
           sudo apt install git-secret
           gpg --import <(echo "$GPG_PRIVATE_KEY")
           git secret reveal -f
+
+      - name: Create profiles
+        run: |
+          pwd
+          poetry run python tests/create_profiles.py
           mkdir $HOME/.dbt
-          mv profiles.yml $HOME/.dbt/profiles.yml
+          mv tests/profiles.yml $HOME/.dbt/profiles.yml
 
       - name: Run Tests and Coverage Report
         run: |

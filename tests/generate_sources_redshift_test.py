@@ -20,7 +20,7 @@ metadata_file = os.environ["METADATA_FILE"]
 database = os.environ["DATABASE_REDSHIFT"]
 schema = os.environ["SCHEMA_REDSHIFT"]
 test_table = os.environ["TABLE_REDSHIFT"]
-project_dir = os.environ["PROJECT_DIR"]
+project_dir = os.environ["PROJECT_DIR_REDSHIFT"]
 
 # Get Redshift connection
 conn = redshift_connector.connect(
