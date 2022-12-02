@@ -44,7 +44,6 @@ jobs:
 
       - name: Create profiles
         run: |
-          pwd
           poetry run python tests/create_profiles.py
           mkdir $HOME/.dbt
           mv tests/profiles.yml $HOME/.dbt/profiles.yml
