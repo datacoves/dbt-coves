@@ -9,7 +9,7 @@ def add_env_vars(context):
 
 
 def render_template_file(
-        name, context, output_path, templates_folder=".dbt_coves/templates"
+    name, context, output_path, templates_folder=".dbt_coves/templates"
 ):
     context_with_env_vars = add_env_vars(context)
     output = get_render_output(name, context_with_env_vars, templates_folder=templates_folder)
