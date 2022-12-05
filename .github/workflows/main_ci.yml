@@ -13,28 +13,32 @@ jobs:
 
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
+          cache: 'poetry'
+      
+      - name : Install Poetry
+        run: pipx install poetry
 
-      - name: Install Poetry
-        uses: Gr1N/setup-poetry@v7
+      #- name: Install Poetry
+      #  uses: Gr1N/setup-poetry@v7
 
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
-        id: cache
-        with:
-          path: ~/.virtualenvs
-          key: poetry-$
-          restore-keys: |
-            poetry-$
+      #- name: Cache Poetry virtualenv
+      #  uses: actions/cache@v1
+      #  id: cache
+      #  with:
+      #    path: ~/.virtualenvs
+      #    key: poetry-$
+      #    restore-keys: |
+      #      poetry-$
 
       - name: Install Dependencies using Poetry
         run: poetry install --with test
-        if: steps.cache.outputs.cache-hit != 'true'
+        #if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Decrypt secrets
         run: |
