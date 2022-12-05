@@ -185,7 +185,7 @@ def cleanup_redshift(request):
     def delete_test_table():
         # Delete test table
         with conn.cursor() as cursor:
-            cursor.execute(f"DROP TABLE {schema}.{test_table};")
+            cursor.execute(f"DROP TABLE IF EXISTS {schema}.{test_table};")
             cursor.execute(f"DROP SCHEMA {schema};")
         conn.commit()
         conn.close()

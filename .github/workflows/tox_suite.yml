@@ -25,6 +25,6 @@ jobs:
           pip install tox tox-gh-actions pytest tox-poetry-installer poetry
 
       - name: Test with tox
-        run: tox --require-poetry -e py
+        run: tox -e py
         env:
           PLATFORM: ${{ matrix.platform }}
