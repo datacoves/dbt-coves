@@ -2,11 +2,12 @@ import os
 from pathlib import Path
 
 from rich.console import Console
+
 from dbt_coves.tasks.base import NonDbtBaseTask
 
-from .ssh import SetupSSHTask
-from .git import SetupGitTask
 from .dbt import SetupDbtTask
+from .git import SetupGitTask
+from .ssh import SetupSSHTask
 
 console = Console()
 

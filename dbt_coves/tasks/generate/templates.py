@@ -59,7 +59,7 @@ class GenerateTemplatesTask(BaseConfiguredTask):
                 if not options["overwrite_all"]:
                     console.print(f"[yellow]{target_destination}[/yellow] already exists.")
                     overwrite = questionary.select(
-                        f"Would you like to overwrite it?",
+                        "Would you like to overwrite it?",
                         choices=["No", "Yes", "Overwrite all", "Cancel"],
                     ).ask()
                     if overwrite == "No":

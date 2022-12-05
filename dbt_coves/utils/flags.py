@@ -3,7 +3,48 @@ import os
 import sys
 from argparse import ArgumentParser
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, List, Optional
+
+if sys.version_info >= (3, 8):
+    from typing import TypedDict
+else:
+    from typing_extensions import TypedDict
+
+
+class GenerateFlagsSources(TypedDict):
+    relations: List[Any]
+    database: Any
+    schemas: Any
+    sources_destination: Any
+    models_destination: Any
+    model_props_destination: Any
+    update_strategy: Any
+    templates_folder: Any
+    metadata: Any
+
+
+class GenerateFlagProperties(TypedDict):
+    templates_folder: Any
+    model_props_strategy: Any
+    metadata: Any
+    destination: Any
+    update_strategy: Any
+    select: Any
+    exclude: Any
+    selector: Any
+
+
+class GenerateFlagMetadata(TypedDict):
+    database: Any
+    schemas: List[Any]
+    relations: List[Any]
+    destination: Any
+
+
+class GenerateFlags(TypedDict):
+    sources: GenerateFlagsSources
+    properties: GenerateFlagProperties
+    metadata: GenerateFlagMetadata
 
 
 class DbtCovesFlags:
@@ -27,7 +68,7 @@ class DbtCovesFlags:
         self.profiles_dir: Optional[Path] = None
         self.project_dir: Optional[Path] = None
         self.verbose: bool = False
-        self.generate = {
+        self.generate: GenerateFlags = {
             "sources": {
                 "relations": [],
                 "database": None,

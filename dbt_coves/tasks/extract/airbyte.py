@@ -5,13 +5,10 @@ import pathlib
 import subprocess
 from copy import copy
 from pathlib import Path
-from typing import Dict
 
-from requests.exceptions import RequestException
 from rich.console import Console
 
 from dbt_coves.tasks.base import BaseConfiguredTask
-from dbt_coves.tasks.generate import sources
 from dbt_coves.utils import shell
 from dbt_coves.utils.airbyte_api import AirbyteApiCaller
 
@@ -73,7 +70,8 @@ class ExtractAirbyteTask(BaseConfiguredTask):
 
         if not extract_destination or not airbyte_host or not airbyte_port:
             raise AirbyteExtractorException(
-                f"Couldn't start extraction: one (or more) of the following arguments is missing either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
+                "Couldn't start extraction: one (or more) of the following arguments"
+                " is missing either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
             )
 
         extract_destination = pathlib.Path(extract_destination)
@@ -89,14 +87,15 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         self.airbyte_api_caller = AirbyteApiCaller(airbyte_host, airbyte_port)
 
         console.print(
-            f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(extract_destination)}\n"
+            f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and "
+            f"[b]Connection[/b] configurations to {os.path.abspath(extract_destination)}\n"
         )
 
         dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
 
         if not self.dbt_packages_exist(os.getcwd()):
             raise AirbyteExtractorException(
-                f"Could not locate dbt_packages folder, make sure 'dbt deps' was ran."
+                "Could not locate dbt_packages folder, make sure 'dbt deps' was ran."
             )
 
         try:
@@ -108,9 +107,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             )
 
         if not dbt_sources_list:
-            raise AirbyteExtractorException(
-                f"No compiled dbt sources found running '{dbt_ls_cmd}'"
-            )
+            raise AirbyteExtractorException(f"No compiled dbt sources found running '{dbt_ls_cmd}'")
 
         manifest_json = json.load(open(Path() / "target" / "manifest.json"))
         dbt_sources_list = self._clean_sources_prefixes(dbt_sources_list)
@@ -149,7 +146,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 f"[u]Connections[/u]: {self.extraction_results['connections']}\n"
             )
         else:
-            console.print(f"No Airbyte Connections were extracted")
+            console.print("No Airbyte Connections were extracted")
         return 0
 
     def dbt_packages_exist(self, dbt_project_path):
@@ -273,7 +270,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                         if bool(definition["airbyte_secret"]) and dict_name not in secret_fields:
                             secret_fields.append(dict_name)
             return secret_fields
-        except KeyError as e:
+        except KeyError:
             raise AirbyteExtractorException(
                 f"There was an error searching secret fields for {definition['connectionSpecification']['title']}"
             )

@@ -1,16 +1,13 @@
 import os
 from pathlib import Path
 
-import questionary
-from jinja2 import Environment, meta
 from rich.console import Console
 
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils.jinja import render_template
 from dbt_coves.utils.shell import run_and_capture_cwd
-from .utils import print_row, file_exists
 
+from .utils import file_exists, print_row
 
 console = Console()
 
@@ -41,9 +38,7 @@ class SetupDbtTask(NonDbtBaseTask):
     @classmethod
     def get_config_folder(cls, mandatory=True):
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
-        return DbtCovesConfig.get_config_folder(
-            workspace_path=workspace_path, mandatory=mandatory
-        )
+        return DbtCovesConfig.get_config_folder(workspace_path=workspace_path, mandatory=mandatory)
 
     @classmethod
     def dbt_debug(cls, config_folder=None):
@@ -60,7 +55,7 @@ class SetupDbtTask(NonDbtBaseTask):
 
         output = run_and_capture_cwd(["dbt", "debug"], dbt_project_yaml_path.parent)
 
-        if output.returncode is 0:
+        if output.returncode == 0:
             debug_status = "[green]SUCCESS :heavy_check_mark:[/green]"
         print_row(
             "dbt debug",
@@ -84,16 +79,14 @@ class SetupDbtTask(NonDbtBaseTask):
             output = run_and_capture_cwd(["dbt", "init"], Path.cwd())
 
         else:
-            init_status = (
-                "[green]FOUND :heavy_check_mark:[/green] project already exists"
-            )
+            init_status = "[green]FOUND :heavy_check_mark:[/green] project already exists"
             print_row(
                 "dbt init",
                 init_status,
                 new_section=True,
             )
             output = run_and_capture_cwd(["dbt", "init"], dbt_project_yaml_path.parent)
-        if output.returncode is 0:
+        if output.returncode == 0:
             init_status = "[green]SUCCESS :heavy_check_mark:[/green]"
             print_row(
                 "dbt init",
@@ -116,7 +109,7 @@ class SetupDbtTask(NonDbtBaseTask):
         if dbt_project_yaml_path.exists():
             output = run_and_capture_cwd(["dbt", "deps"], dbt_project_yaml_path.parent)
 
-            if output.returncode is 0:
+            if output.returncode == 0:
                 deps_status = "[green]SUCCESS :heavy_check_mark:[/green]"
             print_row(
                 "dbt deps",
@@ -126,9 +119,7 @@ class SetupDbtTask(NonDbtBaseTask):
             if output.returncode > 0:
                 raise Exception("dbt deps error. Check logs.")
         else:
-            deps_status = (
-                "[green]FOUND :heavy_check_mark:[/green] dbt project not found"
-            )
+            deps_status = "[green]FOUND :heavy_check_mark:[/green] dbt project not found"
             print_row(
                 "dbt deps",
                 deps_status,

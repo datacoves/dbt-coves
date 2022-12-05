@@ -1,13 +1,9 @@
 """Contains yaml related utils which might get used in places."""
 
-import collections
 from pathlib import Path
 from typing import Any, Dict
 
 import yaml
-import yamlloader
-
-from dbt_coves.core.exceptions import YAMLFileEmptyError
 
 
 def open_yaml(path: Path) -> Dict[str, Any]:

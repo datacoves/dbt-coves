@@ -1,16 +1,17 @@
 # Integration tests of dbt-coves generate sources with Redshift adapter
 
 # Imports
-import pytest
-import os
-import subprocess
-import shutil
 import csv
-import yaml
+import os
+import shutil
+import subprocess
+
+import pandas as pd
+import pytest
 import redshift_connector
-from jinja2 import Template
+import yaml
 from dotenv import load_dotenv
-import pandas as pd 
+from jinja2 import Template
 
 # Load env vars for test only
 load_dotenv()
@@ -31,6 +32,7 @@ conn = redshift_connector.connect(
 )
 
 # Start tests
+
 
 @pytest.mark.dependency(name="generate_test_model")
 def test_generate_test_model():
@@ -160,7 +162,7 @@ def test_generate_sources_redshift():
     with conn.cursor() as cursor:
         cursor.execute(query)
         result: pd.DataFrame = cursor.fetch_dataframe()
-    
+
     # Validate columns
     with open(metadata_file, "r") as file:
         metadata_csv = csv.reader(file, delimiter=",")
@@ -179,9 +181,11 @@ def cleanup_redshift(request):
         # Return to root folder
         os.chdir("..")
         os.chdir("..")
+
     def delete_folders():
         # Delete models folder if exists
         shutil.rmtree(os.path.join("tests", project_dir, "models"), ignore_errors=True)
+
     def delete_test_table():
         # Delete test table
         with conn.cursor() as cursor:

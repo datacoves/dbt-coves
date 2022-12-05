@@ -1,7 +1,6 @@
 from __future__ import nested_scopes
 
 import json
-import re
 from pathlib import Path
 
 import questionary
@@ -93,10 +92,7 @@ class GenerateSourcesTask(BaseGenerateTask):
     def select_relations(self, rels):
         selected_rels = questionary.checkbox(
             "Which sources would you like to generate?",
-            choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
-                for rel in rels
-            ],
+            choices=[Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels],
         ).ask()
 
         return selected_rels
@@ -292,9 +288,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(
-                            key_name
-                        )
+                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
                     self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(

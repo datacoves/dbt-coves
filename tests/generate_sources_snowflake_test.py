@@ -1,15 +1,16 @@
 # Integration tests of dbt-coves generate sources with Snowflake adapter
 
 # Imports
-import pytest
-import os
-import subprocess
-import shutil
 import csv
-import yaml
-from jinja2 import Template
-from dotenv import load_dotenv
+import os
+import shutil
+import subprocess
+
+import pytest
 import snowflake.connector
+import yaml
+from dotenv import load_dotenv
+from jinja2 import Template
 
 # Load env vars for test only
 load_dotenv()
@@ -30,9 +31,10 @@ conn = snowflake.connector.connect(
     account=os.environ["ACCOUNT_SNOWFLAKE"],
     warehouse=os.environ["WAREHOUSE_SNOWFLAKE"],
     role=os.environ["ROLE_SNOWFLAKE"],
-    )
+)
 
 # Start tests
+
 
 @pytest.mark.dependency(name="generate_test_model")
 def test_generate_test_model():
@@ -170,7 +172,7 @@ def test_generate_sources_snowflake():
     with conn.cursor() as cursor:
         cursor.execute(query)
         result = cursor.fetch_pandas_all()
-    
+
     # Validate columns
     with open(metadata_file, "r") as file:
         metadata_csv = csv.reader(file, delimiter=",")
@@ -178,7 +180,7 @@ def test_generate_sources_snowflake():
         for row in metadata_csv:
             if row[4] != "":
                 row_name = row[4]
-            else: 
+            else:
                 row_name = row[3]
             assert row_name.upper() in list(result.columns)
 
@@ -193,9 +195,11 @@ def cleanup_snowflake(request):
         # Return to root folder
         os.chdir("..")
         os.chdir("..")
+
     def delete_folders():
         # Delete models folder if exists
         shutil.rmtree(os.path.join("tests", project_dir, "models"), ignore_errors=True)
+
     def delete_test_model():
         # Delete test table
         with conn.cursor() as cursor:

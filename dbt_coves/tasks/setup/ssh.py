@@ -1,15 +1,15 @@
 import os
-from subprocess import CalledProcessError
-import questionary
 import subprocess
-
 from pathlib import Path
+from subprocess import CalledProcessError
+
+import questionary
 from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils.shell import shell_run, run_and_capture, run_and_capture_shell
-from .utils import print_row
+from dbt_coves.utils.shell import run_and_capture, shell_run
 
+from .utils import print_row
 
 console = Console()
 
@@ -59,7 +59,7 @@ class SetupSSHTask(NonDbtBaseTask):
         found_keys = [
             file
             for file in os.listdir(self.ssh_keys_dir_abs)
-            if "id_" in file.lower() and not ".p" in file.lower()
+            if "id_" in file.lower() and ".p" not in file.lower()
         ]
 
         if found_keys:
@@ -80,13 +80,9 @@ class SetupSSHTask(NonDbtBaseTask):
             key_path_abs = f"{self.ssh_keys_dir_abs}/{selected_ssh_key}"
             public_key_path_abs = f"{key_path_abs}.pub"
 
-            ssh_configured = self.output_public_key_for_private(
-                key_path_abs, public_key_path_abs
-            )
+            ssh_configured = self.output_public_key_for_private(key_path_abs, public_key_path_abs)
         else:
-            print_row(
-                f"Checking for key in '{ssh_keys_dir}'", ssh_status, new_section=False
-            )
+            print_row(f"Checking for key in '{ssh_keys_dir}'", ssh_status, new_section=False)
             action = (
                 questionary.select(
                     "Would you like to provide your existent private SSH key or generate a new one?",
@@ -115,14 +111,12 @@ class SetupSSHTask(NonDbtBaseTask):
             return 0
         else:
             raise Exception(
-                f"You must first configure you SSH key in your Git server then rerun 'dbt-coves setup'"
+                "You must first configure you SSH key in your Git server then rerun 'dbt-coves setup'"
             )
 
     def generate_ecdsa_keys(self, key_path_abs):
         try:
-            return shell_run(
-                args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs]
-            )
+            return shell_run(args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs])
         except CalledProcessError as e:
             raise SetupSSHException(e.output)
 
@@ -155,7 +149,8 @@ class SetupSSHTask(NonDbtBaseTask):
         if not ssh_file_name:
             os.remove(provided_key_path)
             raise SetupSSHException(
-                f"Provided ssh key type {public_type} is not supported (must provide dsa/ecdsa/ed25519/rsa). Please try again"
+                f"Provided ssh key type {public_type} is not supported"
+                f" (must provide dsa/ecdsa/ed25519/rsa). Please try again"
             )
 
         private_key_path = provided_key_path.replace("id_datacoves", ssh_file_name)
@@ -218,12 +213,13 @@ class SetupSSHTask(NonDbtBaseTask):
 
         console.print(f"\nOpenSSL public key saved at {openssl_public_key_path}")
         console.print(
-            "Please configure the following key (yellow text) in services that require OpenSSL public keys to authenticate you (snowflake, etc.)\n"
+            "Please configure the following key (yellow text) in services that "
+            "require OpenSSL public keys to authenticate you (snowflake, etc.)\n"
         )
         openssl_public_key = open(openssl_public_key_path, "r").read()
-        openssl_public_key = openssl_public_key.replace(
-            "-----BEGIN PUBLIC KEY-----\n", ""
-        ).replace("-----END PUBLIC KEY-----\n", "")
+        openssl_public_key = openssl_public_key.replace("-----BEGIN PUBLIC KEY-----\n", "").replace(
+            "-----END PUBLIC KEY-----\n", ""
+        )
         console.print(f"[yellow]{openssl_public_key}[/yellow]")
 
     def gen_print_openssl_key(
@@ -254,9 +250,7 @@ class SetupSSHTask(NonDbtBaseTask):
     def output_public_keys(self, public_key_path_abs, openssl_private_path=None):
         openssl = self.get_config_value("open_ssl_public_key")
         if openssl:
-            openssl_private_key_path = (
-                openssl_private_path or f"{self.ssh_keys_dir_abs}/rsa_key.p8"
-            )
+            openssl_private_key_path = openssl_private_path or f"{self.ssh_keys_dir_abs}/rsa_key.p8"
             openssl_public_key_path = f"{self.ssh_keys_dir_abs}/rsa_key.pub"
             self.gen_print_openssl_key(
                 openssl_private_path is None,

@@ -40,8 +40,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser.add_argument(
             "--model-props-strategy",
             type=str,
-            help="Strategy for model properties file generation,"
-            " i.e. 'one_file_per_model'",
+            help="Strategy for model properties file generation," " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
             "--metadata",
@@ -112,9 +111,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 f"An error occurred listing your dbt models: \n {result.stdout or result.stderr}"
             )
         if "no nodes selected" in result.stdout.lower():
-            raise GeneratePropertiesException(
-                f"{result.stdout}\nSelectors used: {user_selectors}"
-            )
+            raise GeneratePropertiesException(f"{result.stdout}\nSelectors used: {user_selectors}")
 
         manifest_json_lines = filter(
             lambda i: len(i) > 0 and i[0] == "{", result.stdout.splitlines()
@@ -131,7 +128,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
         manifest_path = glob.glob(path_pattern)[0]
 
         if not manifest_path:
-            raise GeneratePropertiesException(f"Could not find manifest.json")
+            raise GeneratePropertiesException("Could not find manifest.json")
 
         with open(manifest_path, "r") as manifest:
             manifest_data = manifest.read()
@@ -182,9 +179,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
                 columns = self.adapter.get_columns_in_relation(relation)
-                model_destination = self.render_path_template(
-                    prop_destination, model, manifest
-                )
+                model_destination = self.render_path_template(prop_destination, model, manifest)
                 model_path = Path().joinpath(model_destination)
 
                 self.render_templates(relation, columns, model_path, options)

@@ -1,16 +1,17 @@
 # Integration tests of dbt-coves generate sources with BigQuery adapter
 
 # Imports
-import pytest
-import os
-import subprocess
-import shutil
 import csv
+import os
+import shutil
+import subprocess
+
+import pytest
 import yaml
-from jinja2 import Template
 from dotenv import load_dotenv
 from google.cloud import bigquery
 from google.oauth2 import service_account
+from jinja2 import Template
 
 # Load env vars for test only
 load_dotenv()
@@ -32,14 +33,13 @@ sa_key_path = "service_account.json"
 
 # Get BigQuery Client
 credentials = service_account.Credentials.from_service_account_file(
-    sa_key_path, 
-    scopes=["https://www.googleapis.com/auth/cloud-platform"])
+    sa_key_path, scopes=["https://www.googleapis.com/auth/cloud-platform"]
+)
 
-client = bigquery.Client(
-    credentials=credentials, 
-    project=os.environ["PROJECT_BIGQUERY"])
+client = bigquery.Client(credentials=credentials, project=os.environ["PROJECT_BIGQUERY"])
 
 # Start tests
+
 
 @pytest.mark.dependency(name="generate_test_model")
 def test_generate_test_model():
@@ -134,7 +134,7 @@ def test_generate_sources_bigquery():
         # Validate schema.yml
         assert schema_yml != None
         assert schema_yml["sources"][0]["name"] == dataset_id.lower()
-                
+
         found_table = False
         for tables in schema_yml["sources"][0]["tables"]:
             if tables["name"] == test_table:
@@ -179,7 +179,7 @@ def test_generate_sources_bigquery():
     query_job = client.query(query)
     query_job.result()
     assert query_job.errors == None
-    
+
     rows = []
 
     for row in query_job:
@@ -197,9 +197,10 @@ def test_generate_sources_bigquery():
         for row in metadata_csv:
             if row[4] != "":
                 row_name = row[4]
-            else: 
+            else:
                 row_name = row[3]
             assert row_name in list(columns)
+
 
 # Finalizers, clean up
 @pytest.fixture(scope="module", autouse=True)
@@ -210,9 +211,11 @@ def cleanup_bigquery(request):
         os.chdir("..")
         # Delete credentials after use
         os.remove(sa_key_path)
+
     def delete_folders():
         # Delete models folder if exists
         shutil.rmtree(os.path.join("tests", project_dir, "models"), ignore_errors=True)
+
     def delete_test_model():
         # Delete test model
         job_query = client.query(f"DROP TABLE {dataset_id}.{test_table};")
@@ -222,7 +225,7 @@ def cleanup_bigquery(request):
         job_query = client.query(f"DROP SCHEMA `{project_id}.{dataset_id}`;")
         job_query.result()
         assert job_query.errors == None
-    
+
     request.addfinalizer(delete_folders)
     request.addfinalizer(delete_sa)
     request.addfinalizer(delete_test_model)

@@ -66,6 +66,7 @@ class NonDbtBaseTask(BaseTask):
     Task class that requires a configuration
     """
 
+    arg_parser = None
     needs_config = True
     needs_dbt_project = False
 
@@ -86,9 +87,8 @@ class NonDbtBaseTask(BaseTask):
         instance.coves_flags = flags
         return instance
 
-    @classmethod
-    def run(cls) -> int:
-        raise MissingCommand(cls.arg_parser)
+    def run(self) -> int:
+        raise MissingCommand(self.arg_parser)
 
 
 class NonDbtBaseConfiguredTask(BaseTask):

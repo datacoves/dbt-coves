@@ -1,6 +1,8 @@
-from jinja2 import Template
 import os
+
 from dotenv import load_dotenv
+from jinja2 import Template
+
 
 # Jinja functions
 def env_var(key):

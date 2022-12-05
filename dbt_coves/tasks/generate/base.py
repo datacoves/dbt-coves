@@ -1,6 +1,7 @@
 import csv
 import re
 from pathlib import Path
+from typing import Any, List, Optional
 
 import questionary
 import yaml
@@ -19,7 +20,6 @@ class BaseGenerateTask(BaseConfiguredTask):
     Provides common functionality for all "Generate" sub tasks.
     """
 
-    arg_parser = None
     NESTED_FIELD_TYPES = {
         "SnowflakeAdapter": "VARIANT",
         "BigQueryAdapter": "STRUCT",
@@ -62,7 +62,7 @@ class BaseGenerateTask(BaseConfiguredTask):
 
             filtered_schemas = self.select_schemas(schemas)
             if not filtered_schemas:
-                console.print(f"No schemas selected")
+                console.print("No schemas selected")
                 exit()
         return filtered_schemas
 
@@ -75,9 +75,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         return selected_schemas
 
     def get_relations(self, filtered_schemas):
-        rel_name_selectors = [
-            relation for relation in self.get_config_value("relations")
-        ]
+        rel_name_selectors = [relation for relation in self.get_config_value("relations")]
         rel_wildcard_selectors = []
         for rel_name in rel_name_selectors:
             if "*" in rel_name:
@@ -94,14 +92,10 @@ class BaseGenerateTask(BaseConfiguredTask):
                     break
 
         intersected_rels = [
-            relation
-            for relation in listed_relations
-            if relation.name in rel_name_selectors
+            relation for relation in listed_relations if relation.name in rel_name_selectors
         ]
         rels = (
-            intersected_rels
-            if rel_name_selectors and rel_name_selectors[0]
-            else listed_relations
+            intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
         )
 
         return rels
@@ -110,7 +104,8 @@ class BaseGenerateTask(BaseConfiguredTask):
         raise NotImplementedError()
 
     def get_metadata_map_key(self, row):
-        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}-{row['column'].lower()}-{row.get('key', '').lower()}"
+        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}"
+        f"-{row['column'].lower()}-{row.get('key', '').lower()}"
         return map_key
 
     def get_metadata_map_item(self, row):
@@ -133,6 +128,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_metadata(self):
         """
         If metadata path is configured, returns a dictionary with column keys and their corresponding values.
+
         If metadata is already set, do not load again and return the existing value.
         """
         path = self.get_config_value("metadata")
@@ -153,7 +149,8 @@ class BaseGenerateTask(BaseConfiguredTask):
                             ] = self.get_metadata_map_item(row)
                         except KeyError as e:
                             raise Exception(
-                                f"Key {e} not found in {path}. Please check this sample metadata file: https://raw.githubusercontent.com/datacoves/dbt-coves/main/sample_metadata.csv."
+                                f"Key {e} not found in {path}. Please check this sample metadata file:"
+                                f" https://raw.githubusercontent.com/datacoves/dbt-coves/main/sample_metadata.csv."
                             )
             except FileNotFoundError as e:
                 raise Exception(f"Metadata file not found: {e}")
@@ -165,9 +162,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"][self.args.task][key]
 
-    def render_templates(
-        self, relation, columns, destination, options=None, json_cols=None
-    ):
+    def render_templates(self, relation, columns, destination, options=None, json_cols=None):
         destination.parent.mkdir(parents=True, exist_ok=True)
         context = self.get_templates_context(relation, columns, json_cols)
         self.render_templates_with_context(context, destination, options)
@@ -255,9 +250,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             current_yml = open_yaml(yml_path)
             if not current_yml:
                 # target yml path exists but it's empty -> recreate file
-                return self.create_property_file(
-                    template, context, yml_path, templates_folder
-                )
+                return self.create_property_file(template, context, yml_path, templates_folder)
             object_in_yml = self.new_object_exists_in_current_yml(
                 current_yml,
                 template,
@@ -275,7 +268,8 @@ class BaseGenerateTask(BaseConfiguredTask):
                 ):
                     if update_strategy == "ask":
                         console.print(
-                            f"{resource_type} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
+                            f"{resource_type} [yellow][b]{new_object_id}"
+                            f"[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
                         )
                         action = questionary.select(
                             "What would you like to do with it?",
@@ -307,9 +301,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                     elif update_strategy == "recreate":
                         sel_action = "recreate"
                     else:
-                        console.print(
-                            f"Update strategy {update_strategy} not a valid option."
-                        )
+                        console.print(f"Update strategy {update_strategy} not a valid option.")
                         exit()
                 elif options[strategy_key_recreate_all]:
                     sel_action = "recreate"
@@ -367,15 +359,14 @@ class BaseGenerateTask(BaseConfiguredTask):
                     if action == "recreate":
                         current_yml[resource_type_key][idx] = new_object
                     if action == "update":
-                        current_yml[resource_type_key][
-                            idx
-                        ] = self.update_object_properties(
+                        current_yml[resource_type_key][idx] = self.update_object_properties(
                             curr_obj, new_object, resource_type
                         )
 
         # "{Model/Source} {name} created/recreated/updated on file {filepath}"
         console.print(
-            f"{resource_type.capitalize()} [green][b]{new_object.get('name')}[/b][/green] {action}d on file [green][b]{yml_path}[/b][/green]"
+            f"{resource_type.capitalize()} [green][b]{new_object.get('name')}[/b][/green]"
+            f"{action}d on file [green][b]{yml_path}[/b][/green]"
         )
 
         save_yaml(yml_path, current_yml)
@@ -389,16 +380,16 @@ class BaseGenerateTask(BaseConfiguredTask):
             templates_folder=templates_folder,
         )
 
-    def update_model_columns(self, columns_a: list, columns_b: list):
+    def update_model_columns(self, columns_a: List[Any], columns_b: List[Any]):
         model_a_column_names = [col.get("name") for col in columns_a]
         for new_column in columns_b:
             if new_column.get("name") in model_a_column_names:
                 # If column exists in A, update it's description
                 # and leave as-is to avoid overriding tests
                 for current_column in columns_a:
-                    if (
-                        current_column.get("name") == new_column.get("name")
-                    ) and new_column.get("description"):
+                    if (current_column.get("name") == new_column.get("name")) and new_column.get(
+                        "description"
+                    ):
                         current_column["description"] = new_column.get("description")
             else:
                 columns_a.append(new_column)
@@ -406,10 +397,13 @@ class BaseGenerateTask(BaseConfiguredTask):
     def update_model_properties(self, model_a: dict, model_b: dict):
         if model_b.get("description"):
             model_a["description"] = model_b.get("description")
-        self.update_model_columns(model_a.get("columns"), model_b.get("columns"))
+        model_a_columns: Optional[List[Any]] = model_a.get("columns")
+        model_b_columns: Optional[List[Any]] = model_b.get("columns")
+        if model_a_columns is not None and model_b_columns is not None:
+            self.update_model_columns(model_a_columns, model_b_columns)
         return model_a
 
-    def update_source_tables(self, tables_a: list, tables_b: list):
+    def update_source_tables(self, tables_a: List[Any], tables_b: List[Any]):
         source_a_table_names = [table.get("name") for table in tables_a]
         for new_table in tables_b:
             if new_table.get("name") in source_a_table_names:
@@ -428,5 +422,8 @@ class BaseGenerateTask(BaseConfiguredTask):
         source_a["database"] = source_b.get("database")
         if source_b.get("schema"):
             source_a["schema"] = source_b.get("schema")
-        self.update_source_tables(source_a.get("tables"), source_b.get("tables"))
+        source_a_tables: Optional[List[Any]] = source_a.get("tables")
+        source_b_tables: Optional[List[Any]] = source_b.get("tables")
+        if source_a_tables is not None and source_b_tables is not None:
+            self.update_source_tables(source_a_tables, source_b_tables)
         return source_a
