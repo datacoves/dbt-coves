@@ -24,21 +24,8 @@ jobs:
           python-version: 3.8
           cache: 'poetry'
 
-      #- name: Install Poetry
-      #  uses: Gr1N/setup-poetry@v7
-
-      #- name: Cache Poetry virtualenv
-      #  uses: actions/cache@v1
-      #  id: cache
-      #  with:
-      #    path: ~/.virtualenvs
-      #    key: poetry-$
-      #    restore-keys: |
-      #      poetry-$
-
       - name: Install Dependencies using Poetry
         run: poetry install --with test
-        #if: steps.cache.outputs.cache-hit != 'true'
 
       - name: Decrypt secrets
         run: |
