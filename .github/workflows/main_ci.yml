@@ -57,7 +57,7 @@ jobs:
           PYTHONPATH=src/ poetry run python -m pytest --cov-report=xml:coverage-reports/coverage.xml --cov-report term-missing  --cov=dbt_coves tests/
 
       - name: Upload coverage report to CodeCov
-        uses: codecov/codecov-action@v3
+        uses: codecov/codecov-action@v2
         with:
           env_vars: GITHUB_RUN_ID
           file: coverage-reports/coverage.xml
