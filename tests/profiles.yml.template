@@ -1,0 +1,39 @@
+test_dbt_coves_redshift:
+  outputs:
+    dev:
+      dbname: {{ env_var('DATABASE_REDSHIFT')}}
+      host: {{ env_var('HOST_REDSHIFT')}}
+      password: {{ env_var('PASSWORD_REDSHIFT')}}
+      port: 5439
+      schema: {{ env_var('SCHEMA_REDSHIFT')}}
+      threads: 1
+      type: redshift
+      user: {{ env_var('USER_REDSHIFT')}}
+  target: dev
+test_dbt_coves_bigquery:
+  outputs:
+    dev:
+      dataset: {{ env_var('DATASET_BIGQUERY')}}
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      keyfile: {{ env_var('SERVICE_ACCOUNT_GCP_PATH')}}
+      location: US
+      method: service-account
+      priority: interactive
+      project: {{ env_var('PROJECT_BIGQUERY')}}
+      threads: 1
+      type: bigquery
+  target: dev
+test_dbt_coves_snowflake:
+  outputs:
+    dev:
+      account: {{ env_var('ACCOUNT_SNOWFLAKE')}}
+      database: {{ env_var('DATABASE_SNOWFLAKE')}}
+      password: {{ env_var('PASSWORD_SNOWFLAKE')}}
+      role: {{ env_var('ROLE_SNOWFLAKE')}}
+      schema: {{ env_var('SCHEMA_SNOWFLAKE')}}
+      threads: 1
+      type: snowflake
+      user: {{ env_var('USER_SNOWFLAKE')}}
+      warehouse: {{ env_var('WAREHOUSE_SNOWFLAKE')}}
+  target: dev

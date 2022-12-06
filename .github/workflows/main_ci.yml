@@ -1,6 +1,6 @@
 name: Build, Test, Report Coverage
 
-on: ["push", "pull_request"]
+on: ["pull_request"]
 
 jobs:
   build:
@@ -13,28 +13,19 @@ jobs:
 
     steps:
       - name: Checkout branch
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
+
+      - name : Install Poetry
+        run: pipx install poetry
 
       - name: Set up Python 3.8
-        uses: actions/setup-python@v2
+        uses: actions/setup-python@v4
         with:
           python-version: 3.8
-
-      - name: Install Poetry
-        uses: Gr1N/setup-poetry@v7
-
-      - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
-        id: cache
-        with:
-          path: ~/.virtualenvs
-          key: poetry-$
-          restore-keys: |
-            poetry-$
+          cache: 'poetry'
 
       - name: Install Dependencies using Poetry
-        run: poetry install --with tests
-        if: steps.cache.outputs.cache-hit != 'true'
+        run: poetry install --with test
 
       - name: Decrypt secrets
         run: |
@@ -42,12 +33,18 @@ jobs:
           gpg --import <(echo "$GPG_PRIVATE_KEY")
           git secret reveal -f
 
+      - name: Create profiles
+        run: |
+          poetry run python tests/create_profiles.py
+          mkdir $HOME/.dbt
+          mv tests/profiles.yml $HOME/.dbt/profiles.yml
+
       - name: Run Tests and Coverage Report
         run: |
           PYTHONPATH=src/ poetry run python -m pytest --cov-report=xml:coverage-reports/coverage.xml --cov-report term-missing  --cov=dbt_coves tests/
 
       - name: Upload coverage report to CodeCov
-        uses: codecov/codecov-action@v1
+        uses: codecov/codecov-action@v2
         with:
           env_vars: GITHUB_RUN_ID
           file: coverage-reports/coverage.xml
