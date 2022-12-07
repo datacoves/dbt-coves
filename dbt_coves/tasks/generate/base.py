@@ -142,7 +142,7 @@ class BaseGenerateTask(BaseConfiguredTask):
 
         metadata_map = dict()
         if path:
-            metadata_path = Path().joinpath(path)
+            metadata_path = Path(self.config.project_root).joinpath(path)
             try:
                 with open(metadata_path, "r") as csvfile:
                     rows = csv.DictReader(csvfile, skipinitialspace=True)

@@ -105,7 +105,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
         if user_selectors:
             dbt_params += user_selectors
 
-        result = subprocess.run(dbt_params, capture_output=True, text=True)
+        result = subprocess.run(
+            dbt_params, capture_output=True, text=True, cwd=self.config.project_root
+        )
 
         if result.returncode != 0:
             raise GeneratePropertiesException(
@@ -127,7 +129,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
     def load_manifest_nodes(self):
 
-        path_pattern = f"{os.getcwd()}/**/manifest.json"
+        path_pattern = f"{self.config.project_root}/**/manifest.json"
         manifest_path = glob.glob(path_pattern)[0]
 
         if not manifest_path:
@@ -185,7 +187,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 model_destination = self.render_path_template(
                     prop_destination, model, manifest
                 )
-                model_path = Path().joinpath(model_destination)
+                model_path = Path(self.config.project_root).joinpath(model_destination)
 
                 self.render_templates(relation, columns, model_path, options)
 
