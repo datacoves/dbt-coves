@@ -57,7 +57,17 @@ class DbtCovesFlags:
             },
         }
         self.extract = {
-            "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
+            "airbyte": {
+                "path": None,
+                "host": None,
+                "port": None,
+            },
+            "fivetran": {
+                "path": None,
+                "api_key": None,
+                "api_secret": None,
+                "credentials": None,
+            },
         }
         self.load = {
             "airbyte": {
@@ -68,8 +78,17 @@ class DbtCovesFlags:
                 "secrets_url": None,
                 "secrets_token": None,
                 "secrets_path": None,
-                "dbt_list_args": None,
-            }
+            },
+            "fivetran": {
+                "path": None,
+                "api_key": None,
+                "api_secret": None,
+                "secrets_manager": None,
+                "secrets_url": None,
+                "secrets_token": None,
+                "secrets_path": None,
+                "credentials": None,
+            },
         }
         self.init = {
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
@@ -120,22 +139,32 @@ class DbtCovesFlags:
                         relation.strip() for relation in self.args.relations.split(",")
                     ]
                 if self.args.sources_destination:
-                    self.generate["sources"]["sources_destination"] = self.args.sources_destination
+                    self.generate["sources"][
+                        "sources_destination"
+                    ] = self.args.sources_destination
                 if self.args.models_destination:
-                    self.generate["sources"]["models_destination"] = self.args.models_destination
+                    self.generate["sources"][
+                        "models_destination"
+                    ] = self.args.models_destination
                 if self.args.model_props_destination:
                     self.generate["sources"][
                         "model_props_destination"
                     ] = self.args.model_props_destination
                 if self.args.update_strategy:
-                    self.generate["sources"]["update_strategy"] = self.args.update_strategy
+                    self.generate["sources"][
+                        "update_strategy"
+                    ] = self.args.update_strategy
                 if self.args.templates_folder:
-                    self.generate["sources"]["templates_folder"] = self.args.templates_folder
+                    self.generate["sources"][
+                        "templates_folder"
+                    ] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
-                    self.generate["properties"]["templates_folder"] = self.args.templates_folder
+                    self.generate["properties"][
+                        "templates_folder"
+                    ] = self.args.templates_folder
                 if self.args.model_props_strategy:
                     self.generate["properties"][
                         "model_props_strategy"
@@ -149,7 +178,9 @@ class DbtCovesFlags:
                 if self.args.destination:
                     self.generate["properties"]["destination"] = self.args.destination
                 if self.args.update_strategy:
-                    self.generate["sources"]["update_strategy"] = self.args.update_strategy
+                    self.generate["sources"][
+                        "update_strategy"
+                    ] = self.args.update_strategy
                 if self.args.select:
                     self.generate["properties"]["select"] = self.args.select
                 if self.args.exclude:
@@ -191,8 +222,23 @@ class DbtCovesFlags:
                     self.load["airbyte"]["secrets_token"] = self.args.secrets_token
                 if self.args.secrets_path:
                     self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+            if self.args.cls.__name__ == "LoadFivetranTask":
+                if self.args.path:
+                    self.load["fivetran"]["path"] = self.args.path
+                if self.args.api_key:
+                    self.load["fivetran"]["api_key"] = self.args.api_key
+                if self.args.api_secret:
+                    self.load["fivetran"]["api_secret"] = self.args.api_secret
+                if self.args.secrets_manager:
+                    self.load["fivetran"]["secrets_manager"] = self.args.secrets_manager
+                if self.args.secrets_url:
+                    self.load["fivetran"]["secrets_url"] = self.args.secrets_url
+                if self.args.secrets_token:
+                    self.load["fivetran"]["secrets_token"] = self.args.secrets_token
                 if self.args.secrets_path:
-                    self.load["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
+                    self.load["fivetran"]["secrets_path"] = self.args.secrets_path
+                if self.args.credentials:
+                    self.load["fivetran"]["credentials"] = self.args.credentials
 
             if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
@@ -200,16 +246,27 @@ class DbtCovesFlags:
                 if self.args.host and self.args.port:
                     self.extract["airbyte"]["host"] = self.args.host
                     self.extract["airbyte"]["port"] = self.args.port
-                if self.args.dbt_list_args:
-                    self.extract["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
 
+            if self.args.cls.__name__ == "ExtractFivetranTask":
+                if self.args.path:
+                    self.extract["fivetran"]["path"] = self.args.path
+                if self.args.api_key:
+                    self.extract["fivetran"]["api_key"] = self.args.api_key
+                if self.args.api_secret:
+                    self.extract["fivetran"]["api_secret"] = self.args.api_secret
+                if self.args.credentials:
+                    self.extract["fivetran"]["credentials"] = self.args.credentials
             if self.args.cls.__name__ == "SetupAllTask":
                 if self.args.open_ssl_public_key:
-                    self.setup["all"]["open_ssl_public_key"] = self.args.open_ssl_public_key
+                    self.setup["all"][
+                        "open_ssl_public_key"
+                    ] = self.args.open_ssl_public_key
 
             if self.args.cls.__name__ == "SetupSSHTask":
                 if self.args.open_ssl_public_key:
-                    self.setup["ssh"]["open_ssl_public_key"] = self.args.open_ssl_public_key
+                    self.setup["ssh"][
+                        "open_ssl_public_key"
+                    ] = self.args.open_ssl_public_key
 
             if self.args.cls.__name__ == "SetupGitTask":
                 if self.args.no_prompt:

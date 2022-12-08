@@ -53,7 +53,13 @@ class ExtractAirbyteModel(BaseModel):
     path: Optional[str] = ""
     host: Optional[str] = ""
     port: Optional[str] = ""
-    dbt_list_args: Optional[str] = ""
+
+
+class ExtractFivetranModel(BaseModel):
+    path: Optional[str] = ""
+    api_key: Optional[str] = ""
+    api_secret: Optional[str] = ""
+    credentials: Optional[str] = ""
 
 
 class LoadAirbyteModel(BaseModel):
@@ -64,15 +70,27 @@ class LoadAirbyteModel(BaseModel):
     secrets_url: Optional[str] = ""
     secrets_token: Optional[str] = ""
     secrets_path: Optional[str] = ""
-    dbt_list_args: Optional[str] = ""
+
+
+class LoadFivetranModel(BaseModel):
+    path: Optional[str] = ""
+    api_key: Optional[str] = ""
+    api_secret: Optional[str] = ""
+    secrets_manager: Optional[str] = ""
+    secrets_url: Optional[str] = ""
+    secrets_token: Optional[str] = ""
+    secrets_path: Optional[str] = ""
+    credentials: Optional[str] = ""
 
 
 class ExtractModel(BaseModel):
     airbyte: Optional[ExtractAirbyteModel] = ExtractAirbyteModel()
+    fivetran: Optional[ExtractFivetranModel] = ExtractFivetranModel()
 
 
 class LoadModel(BaseModel):
     airbyte: Optional[LoadAirbyteModel] = LoadAirbyteModel()
+    fivetran: Optional[LoadFivetranModel] = LoadFivetranModel()
 
 
 class SetupAllModel(BaseModel):
@@ -136,7 +154,6 @@ class DbtCovesConfig:
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",
-        "extract.airbyte.dbt_list_args",
         "load.airbyte.path",
         "load.airbyte.host",
         "load.airbyte.port",
@@ -144,13 +161,24 @@ class DbtCovesConfig:
         "load.airbyte.secrets_url",
         "load.airbyte.secrets_token",
         "load.airbyte.secrets_path",
-        "load.airbyte.dbt_list_args",
         "setup.all.open_ssl_public_key",
         "setup.ssh.open_ssl_public_key",
         "setup.git.no_prompt",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",
+        "extract.fivetran.path",
+        "extract.fivetran.api_key",
+        "extract.fivetran.api_secret",
+        "extract.fivetran.credentials",
+        "load.fivetran.path",
+        "load.fivetran.api_key",
+        "load.fivetran.api_secret",
+        "load.fivetran.secrets_manager",
+        "load.fivetran.secrets_url",
+        "load.fivetran.secrets_token",
+        "load.fivetran.secrets_path",
+        "load.fivetran.credentials",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

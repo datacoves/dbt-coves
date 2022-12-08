@@ -3,16 +3,18 @@ import json
 import os
 import pathlib
 import re
-import requests
 import subprocess
 from os import path
 from typing import Dict
 
+import requests
 from rich.console import Console
 
 from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.utils import shell
 from dbt_coves.utils.airbyte_api import AirbyteApiCaller, AirbyteApiCallerException
+
+from .base import BaseLoadTask
 
 console = Console()
 
@@ -21,7 +23,7 @@ class AirbyteLoaderException(Exception):
     pass
 
 
-class LoadAirbyteTask(BaseConfiguredTask):
+class LoadAirbyteTask(BaseLoadTask):
     """
     Task that loads airbyte sources, connections and destinations and stores them as json files
     """
@@ -64,11 +66,6 @@ class LoadAirbyteTask(BaseConfiguredTask):
             type=str,
             help="Secret files location for Airbyte configuration, i.e. './secrets'",
         )
-        subparser.add_argument(
-            "--dbt-list-args",
-            type=str,
-            help="Extra dbt arguments, selectors or modifiers",
-        )
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
@@ -100,7 +97,6 @@ class LoadAirbyteTask(BaseConfiguredTask):
         self.airbyte_port = self.get_config_value("port")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
-        self.dbt_modifiers = self.get_config_value("dbt_list_args")
 
         if not (self.airbyte_host and self.airbyte_port and self.load_destination):
             raise AirbyteLoaderException(
@@ -133,89 +129,45 @@ class LoadAirbyteTask(BaseConfiguredTask):
             f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n"
         )
 
-        dbt_ls_cmd = f"dbt ls --resource-type source {self.dbt_modifiers}"
+        # Load all exported
+        extracted_sources = self.retrieve_all_jsons_from_path(
+            self.sources_load_destination
+        )
+        # Create/update sources
+        extracted_destinations = self.retrieve_all_jsons_from_path(
+            self.destinations_load_destination
+        )
+        # Create/update destinations
+        extracted_connections = self.retrieve_all_jsons_from_path(
+            self.connections_load_destination
+        )
+        for source in extracted_sources:
+            self._create_or_update_source(source)
+        for destination in extracted_destinations:
+            self._create_or_update_destination(destination)
+        for connection in extracted_connections:
+            self._create_or_update_connection(connection)
 
-        if not self.dbt_packages_exist(os.getcwd()):
-            raise AirbyteLoaderException(
-                f"Could not locate dbt_packages folder, make sure 'dbt deps' was ran."
-            )
-
-        # Look for dbt sources
-        try:
-            dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
-        except subprocess.CalledProcessError as e:
-            raise AirbyteLoaderException(
-                f"Command '{dbt_ls_cmd}' failed and returned with error (code {e.returncode})\n"
-                f"Output: {e.output.decode('utf-8')}"
-            )
-
-        if dbt_sources_list:
-            dbt_sources_list = self._remove_sources_prefix(dbt_sources_list)
-            for source in dbt_sources_list:
-                # Obtain table_name from dbt's 'db.schema.table'
-                source_table = [element.lower() for element in source.split(".")][2]
-                # Which connection.json corresponds to that source
-                connection_json = self._get_conn_json_for_source(source_table)
-
-                if connection_json:
-                    # Get it's source.json
-                    source_json = self._get_src_json_by_source_name(
-                        connection_json["sourceName"]
-                    )
-                    # Get it's destination.json
-                    destination_json = self._get_dest_json_by_destination_name(
-                        connection_json["destinationName"]
-                    )
-                    if source_json and destination_json:
-
-                        source_id = self._create_or_update_source(source_json)
-                        destination_id = self._create_or_update_destination(
-                            destination_json
-                        )
-                        self._create_or_update_connection(
-                            connection_json, source_table, source_id, destination_id
-                        )
-
-                    else:
-                        # raise AirbyteLoaderException(f"There is no exported source-destination combination for connection {connection_json['connectionId']}")
-                        print(
-                            f"Airbyte Connection {connection_json['connectionId']} has no exported source-destination combination. Skipping update"
-                        )
-                else:
-                    # raise AirbyteLoaderException(f"There is no exported Connection configuration for {source_table}")
-                    print(
-                        f"dbt source {source_table} has no exported Airbyte information. Skipping"
-                    )
-
-            console.print(
-                f"""Load results:\n
+        console.print(
+            f"""Load results:\n
 Sources:
-    Created: {self.loading_results['sources']['created']}
-    Updated: {self.loading_results['sources']['updated']}
+Created: {self.loading_results['sources']['created']}
+Updated: {self.loading_results['sources']['updated']}
 Destinations:
-    Created: {self.loading_results['destinations']['created']}
-    Updated: {self.loading_results['destinations']['updated']}
+Created: {self.loading_results['destinations']['created']}
+Updated: {self.loading_results['destinations']['updated']}
 Connections:
-    Created: {self.loading_results['connections']['created']}
-    Updated: {self.loading_results['connections']['updated']}
+Created: {self.loading_results['connections']['created']}
+Updated: {self.loading_results['connections']['updated']}
 """
-            )
-            return 0
-        else:
-            raise AirbyteLoaderException("There are no compiled DBT Sources")
+        )
+        return 0
 
     def dbt_packages_exist(self, dbt_project_path):
         return glob.glob(f"{str(dbt_project_path)}/dbt_packages")
 
     def _remove_sources_prefix(self, sources_list):
         return [source.lower().replace("_airbyte_raw_", "") for source in sources_list]
-
-    def _retrieve_all_jsons_from_path(self, path):
-        jsons = []
-        for file in glob.glob(path + "/*.json"):
-            with open(file, "r") as json_file:
-                jsons.append(json.load(json_file))
-        return jsons
 
     def _get_conn_json_for_source(self, table_name):
         for json_file in self._retrieve_all_jsons_from_path(
@@ -548,27 +500,75 @@ Connections:
                     return conn["connectionId"]
         return False
 
-    def _create_or_update_connection(
-        self, exported_json_data, table_name, source_id, destination_id
-    ):
+    def _get_source_id_by_name(self, source_name):
+        for source in self.airbyte_api_caller.airbyte_sources_list:
+            if source["name"].lower() == source_name:
+                return source["sourceId"]
+
+    def _get_destination_id_by_name(self, destination_name):
+        for destination in self.airbyte_api_caller.airbyte_destinations_list:
+            if destination["name"].lower() == destination_name:
+                return destination["destinationId"]
+
+    def _get_connection_id_by_endpoints(self, source_id, destination_id):
+        for connection in self.airbyte_api_caller.airbyte_connections_list:
+            if (
+                connection["sourceId"] == source_id
+                and connection["destinationId"] == destination_id
+            ):
+                return connection["connectionId"]
+        pass
+
+    def _create_or_update_connection(self, connection_json):
         """
-        Decide whether creating or updating an existing connection\n
-        if exported_data -> stream_name exists in Airbyte Sources, it's for modifying
+        Identify source_id and destination_id by their names
+        Update or create connection
         """
-        connection_id = self._get_connection_id_by_table_name(table_name)
+        source_name = connection_json["sourceName"]
+        destination_name = connection_json["destinationName"]
+        source_id = self._get_source_id_by_name(source_name)
+        destination_id = self._get_destination_id_by_name(destination_name)
+        if not source_id or not destination_id:
+            console.print(
+                f"No existent source-destination pair found for {connection_json['name']}"
+            )
+            return
+        connection_id = self._get_connection_id_by_endpoints(source_id, destination_id)
         if connection_id:
             # Connection update
             self._delete_connection(connection_id)
             conn_name = self._create_connection(
-                exported_json_data, source_id, destination_id
+                connection_json, source_id, destination_id
             )
             self._add_update_result("connections", conn_name)
         else:
             # Connection creation
             conn_name = self._create_connection(
-                exported_json_data, source_id, destination_id
+                connection_json, source_id, destination_id
             )
             self.loading_results["connections"]["created"].append(conn_name)
+
+    # def _create_or_update_connection(
+    #     self, exported_json_data, table_name, source_id, destination_id
+    # ):
+    #     """
+    #     Decide whether creating or updating an existing connection\n
+    #     if exported_data -> stream_name exists in Airbyte Sources, it's for modifying
+    #     """
+    #     connection_id = self._get_connection_id_by_table_name(table_name)
+    #     if connection_id:
+    #         # Connection update
+    #         self._delete_connection(connection_id)
+    #         conn_name = self._create_connection(
+    #             exported_json_data, source_id, destination_id
+    #         )
+    #         self._add_update_result("connections", conn_name)
+    #     else:
+    #         # Connection creation
+    #         conn_name = self._create_connection(
+    #             exported_json_data, source_id, destination_id
+    #         )
+    #         self.loading_results["connections"]["created"].append(conn_name)
 
     def _add_update_result(self, obj_type, obj_name):
         if (obj_name not in self.loading_results[obj_type]["updated"]) and (
