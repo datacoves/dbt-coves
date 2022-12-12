@@ -125,6 +125,7 @@ class LoadFivetranTask(BaseLoadTask):
                 f"No Fivetran extracted data found on {self.extract_destination.absolute()}"
             )
 
+        self.loaded_secrets = []
         if secrets_path:
             self.secrets_path = Path(secrets_path)
             self.loaded_secrets = self.retrieve_all_jsons_from_path(
@@ -175,7 +176,7 @@ class LoadFivetranTask(BaseLoadTask):
             api_key = credentials[fivetran_account]["api_key"]
             api_secret = credentials[fivetran_account]["api_secret"]
         else:
-            default_credentials = next(iter(credentials.items())).values()
+            default_credentials = next(iter(credentials.values()))
             api_key = default_credentials["api_key"]
             api_secret = default_credentials["api_secret"]
 
@@ -272,12 +273,7 @@ class LoadFivetranTask(BaseLoadTask):
         for exported_connector in exported_dest_connectors.values():
             exported_connector_details = exported_connector["details"]
             exported_connector_details["run_setup_tests"] = False
-            if not exported_connector_details["config"].get("schema"):
-                exported_connector_details["config"]["schema"] = questionary.text(
-                    f"Enter new schema for exported {exported_connector_details['service']} "
-                    f"Connector {exported_connector_details['schema']} in Destination {group_name}:"
-                ).ask()
-
+            self._fill_required_config_fields(exported_connector_details, group_name)
             if current_destination and self._exported_connector_exists_in_destination(
                 exported_connector_details, current_destination
             ):
@@ -285,11 +281,6 @@ class LoadFivetranTask(BaseLoadTask):
                     exported_connector_details
                 )
             else:
-                if not exported_connector_details["config"].get("table"):
-                    exported_connector_details["config"]["table"] = questionary.text(
-                        f"Enter new table for exported {exported_connector_details['service']} "
-                        f"Connector {exported_connector_details['schema']} in Destination {group_name}:"
-                    ).ask()
                 target_connector = self._create_fivetran_connector(
                     exported_connector_details
                 )
@@ -299,6 +290,18 @@ class LoadFivetranTask(BaseLoadTask):
                 self._update_target_connector_schema_config(
                     target_connector, exported_schemas
                 )
+
+    def _fill_required_config_fields(self, connector_details, group_name):
+        service_type = connector_details["service"]
+        required_config_fields = self.fivetran_api.get_service_required_fields(
+            service_type
+        )
+        for field in required_config_fields:
+            if not connector_details["config"].get(field):
+                connector_details["config"][field] = questionary.text(
+                    f"Enter new {field} for exported {service_type} "
+                    f"Connector {connector_details['schema']} in Destination {group_name}:"
+                ).ask()
 
     def _exported_connector_exists_in_destination(
         self, exported_connector, existent_destination

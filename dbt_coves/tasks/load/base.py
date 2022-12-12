@@ -3,7 +3,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils import shell
 
 
@@ -11,7 +11,7 @@ class LoadException(Exception):
     pass
 
 
-class BaseLoadTask(BaseConfiguredTask):
+class BaseLoadTask(NonDbtBaseTask):
     def __init__(self, args, config):
         super().__init__(args, config)
 

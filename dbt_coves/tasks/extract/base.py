@@ -2,7 +2,7 @@ import json
 import subprocess
 from pathlib import Path
 
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils import shell
 
 
@@ -10,7 +10,7 @@ class ExtractException(Exception):
     pass
 
 
-class BaseExtractTask(BaseConfiguredTask):
+class BaseExtractTask(NonDbtBaseTask):
     def __init__(self, args, config):
         super().__init__(args, config)
 

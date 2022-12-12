@@ -114,7 +114,7 @@ class ExtractFivetranTask(BaseExtractTask):
             api_key = credentials[fivetran_account]["api_key"]
             api_secret = credentials[fivetran_account]["api_secret"]
         else:
-            default_credentials = next(iter(credentials.items())).values()
+            default_credentials = next(iter(credentials.values()))
             api_key = default_credentials["api_key"]
             api_secret = default_credentials["api_secret"]
 

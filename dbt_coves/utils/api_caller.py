@@ -18,6 +18,7 @@ FIVETRAN_API_ENDPOINTS = {
     "CONNECTOR_CREATE": FIVETRAN_API_BASE_URL + "/connectors/",
     "CONNECTOR_DETAILS": FIVETRAN_API_BASE_URL + "/connectors/{connector}",
     "CONNECTOR_SCHEMAS": FIVETRAN_API_BASE_URL + "/connectors/{connector}/schemas",
+    "SOURCE_METADATA": FIVETRAN_API_BASE_URL + "/metadata/connectors/{service}",
 }
 
 
@@ -319,3 +320,10 @@ class FivetranApiCaller:
             "GET", FIVETRAN_API_ENDPOINTS["GROUP_DETAILS"].format(group=group_id)
         )
         return group_data.get("data", {}).get("name", "")
+
+    def get_service_required_fields(self, service_type):
+        source_metadata = self._fivetran_api_call(
+            "GET",
+            FIVETRAN_API_ENDPOINTS["SOURCE_METADATA"].format(service=service_type),
+        )
+        return source_metadata.get("data", {}).get("config", {}).get("required", [])
