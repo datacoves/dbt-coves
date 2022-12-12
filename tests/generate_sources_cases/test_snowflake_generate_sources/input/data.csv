@@ -1,2 +1,0 @@
-test_smallint,test_integer,test_bigint,test_decimal,test_numeric,test_char,test_varchar,test_date,test_timestamp,test_boolean,test_json
-1,1,1,1.1,1.1,'a','a','2020-01-01','2020-01-01 00:00:00',TRUE,"{""json_value_1"":""abc"",""json_value_2"": 2}"

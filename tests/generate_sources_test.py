@@ -131,9 +131,10 @@ def test_generate_data(input, expected):
         account = os.environ["ACCOUNT_SNOWFLAKE"]
         warehouse = os.environ["WAREHOUSE_SNOWFLAKE"]
         role = os.environ["ROLE_SNOWFLAKE"]
-        database = os.environ["DATABASE_SNOWFLAKE"]
-        schema = os.environ["SCHEMA_SNOWFLAKE"]
-        table = os.environ["TABLE_SNOWFLAKE"]
+
+        database = input["settings"]["database"]
+        schema = input["settings"]["schema"]
+        table = input["settings"]["table"]
 
         # Get connector
         conn = get_connector_snowflake(
@@ -163,6 +164,7 @@ def test_generate_data(input, expected):
             cursor.execute(f"SELECT * FROM {schema}.{table} LIMIT 1;")
             result = cursor.fetchall()
         assert len(result) >= 1
+        conn.close()
     elif input["adapter"] == "redshift":
         pass
     elif input["adapter"] == "bigquery":
@@ -174,18 +176,20 @@ def test_generate_data(input, expected):
         assert "TABLE_BIGQUERY" in os.environ
 
         # Get env vars
-        dataset_id = os.environ["DATASET_BIGQUERY"]
-        test_table = os.environ["TABLE_BIGQUERY"]
         project_id = os.environ["PROJECT_BIGQUERY"]
         sa_key = os.environ["SERVICE_ACCOUNT_GCP"]
+
+        database = input["settings"]["database"]
+        schema = input["settings"]["schema"]
+        table = input["settings"]["table"]
 
         # Get client
         client = get_client_bigquery(sa_key, project_id)
 
         # Generate data
-        dataset = bigquery.Dataset(f"{project_id}.{dataset_id}")
-        dataset.location = "US"
-        dataset = client.create_dataset(dataset, timeout=30)
+        query_job = client.query(f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;")
+        query_job.result()
+        assert query_job.errors == None
         with open(input["create_model_sql_file"], "r") as sql_file:
             query = sql_file.read()
         query_job = client.query(query, location="US")
@@ -196,7 +200,7 @@ def test_generate_data(input, expected):
         query_job = client.query(query, location="US")
         query_job.result()
         assert query_job.errors == None
-        query_job = client.query(f"SELECT * FROM {dataset_id}.{test_table} LIMIT 1;")
+        query_job = client.query(f"SELECT * FROM {schema}.{table} LIMIT 1;")
         query_job.result()
         rows = []
         assert query_job.errors == None
@@ -303,8 +307,23 @@ def test_check_models(input, expected):
             sep=",",
             index=False,
         )
+        conn.close()
     elif input["adapter"] == "redshift":
         pass
+    elif input["adapter"] == "bigquery":
+        project_id = os.environ["PROJECT_BIGQUERY"]
+        sa_key = os.environ["SERVICE_ACCOUNT_GCP"]
+
+        client = get_client_bigquery(sa_key, project_id)
+
+        query_job = client.query(query)
+        query_job.result()
+        query_job.to_dataframe().to_csv(
+            os.path.join(os.getcwd(), input["output_dir"], "data.csv"),
+            sep=",",
+            index=False,
+        )
+        assert query_job.errors == None
     else:
         raise Exception("Adapter not supported")
 
@@ -368,3 +387,57 @@ def test_check_models(input, expected):
     diff_files = set(table_model_output).symmetric_difference(set(table_model_expected))
 
     assert len(list(diff_files)) == 0
+
+# Clear tests
+@pytest.mark.dependency(name="cleanup", depends=["check_data"])
+@pytest.mark.parametrize("input, expected", cases_list)
+def tests_cleanup(input, expected):
+    # Delete models folder if exists
+    shutil.rmtree(os.path.join(os.getcwd(), input["output_dir"]), ignore_errors=False)
+
+    if input["adapter"] == "snowflake":
+        # Delete Snowflake tests database
+        conn = get_connector_snowflake(
+            user=os.environ["USER_SNOWFLAKE"],
+            password=os.environ["PASSWORD_SNOWFLAKE"],
+            account=os.environ["ACCOUNT_SNOWFLAKE"],
+            warehouse=os.environ["WAREHOUSE_SNOWFLAKE"],
+            role=os.environ["ROLE_SNOWFLAKE"],
+            database=input["settings"]["database"],
+        )
+
+        database = input["settings"]["database"]
+
+        with conn.cursor() as cursor:
+            cursor.execute(f"DROP DATABASE IF EXISTS {database};")
+        conn.commit()
+        conn.close()
+    elif input["adapter"] == "redshift":
+        pass
+    elif input["adapter"] == "bigquery":
+        # Delete Bigquery tests schema
+
+        project_id = os.environ["PROJECT_BIGQUERY"]
+        sa_key = os.environ["SERVICE_ACCOUNT_GCP"]
+
+        database = input["settings"]["database"]
+        schema = input["settings"]["schema"]
+        table = input["settings"]["table"]
+
+        client = get_client_bigquery(sa_key, project_id)
+
+        # Delete table
+        job_query = client.query(f"DROP TABLE `{schema}.{table}`;")
+        job_query.result()
+        assert job_query.errors == None
+
+        # Delete dataset
+        job_query = client.query(f"DROP SCHEMA `{schema}`;")
+        job_query.result()
+        assert job_query.errors == None
+
+        # Delete SA
+        os.remove("service_account.json")
+
+    else:
+        raise Exception("Adapter not supported")
