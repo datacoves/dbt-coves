@@ -426,8 +426,11 @@ extract:
     path: /config/workspace/load/airbyte # Where json files will be generated
     host: http://airbyte-server # Airbyte's API hostname
     port: 8001 # Airbyte's API port
-  fivetran: /config/workspace/load/airbyte
-
+  fivetran: 
+    path: /config/workspace/load/fivetran
+    api_key: [KEY]
+    api_secret: [SECRET]
+    credentials: /opt/fivetran_credentials.yml
 
 load:
   airbyte:
@@ -438,6 +441,13 @@ load:
     secrets_path: /config/workspace/secrets # (optional) Secret files location if secrets_manager was not specified
     secrets_url: https://api.datacoves.localhost/service-credentials/airbyte # Secrets url if secrets_manager is datacoves
     secrets_token: <TOKEN> # Secrets auth token if secrets_manager is datacoves
+  fivetran:
+    path: /config/workspace/load/fivetran
+    api_key: [KEY]
+    api_secret: [SECRET]
+    secrets_path: /config/workspace/secrets/fivetran
+    credentials: /opt/fivetran_credentials.yml
+
 ```
 
 ## Override generation templates

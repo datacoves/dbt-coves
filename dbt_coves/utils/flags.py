@@ -83,9 +83,6 @@ class DbtCovesFlags:
                 "path": None,
                 "api_key": None,
                 "api_secret": None,
-                "secrets_manager": None,
-                "secrets_url": None,
-                "secrets_token": None,
                 "secrets_path": None,
                 "credentials": None,
             },
@@ -229,12 +226,6 @@ class DbtCovesFlags:
                     self.load["fivetran"]["api_key"] = self.args.api_key
                 if self.args.api_secret:
                     self.load["fivetran"]["api_secret"] = self.args.api_secret
-                if self.args.secrets_manager:
-                    self.load["fivetran"]["secrets_manager"] = self.args.secrets_manager
-                if self.args.secrets_url:
-                    self.load["fivetran"]["secrets_url"] = self.args.secrets_url
-                if self.args.secrets_token:
-                    self.load["fivetran"]["secrets_token"] = self.args.secrets_token
                 if self.args.secrets_path:
                     self.load["fivetran"]["secrets_path"] = self.args.secrets_path
                 if self.args.credentials:

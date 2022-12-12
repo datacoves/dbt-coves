@@ -59,17 +59,6 @@ class LoadFivetranTask(BaseLoadTask):
             help="Secret files location for Fivetran configuration, i.e. './secrets'",
         )
         subparser.add_argument(
-            "--secrets-manager",
-            type=str,
-            help="Secret credentials provider, i.e. 'datacoves'",
-        )
-        subparser.add_argument(
-            "--secrets-url", type=str, help="Secret credentials provider url"
-        )
-        subparser.add_argument(
-            "--secrets-token", type=str, help="Secret credentials provider token"
-        )
-        subparser.add_argument(
             "--credentials", type=str, help="Path to Fivetran credentials YAML file"
         )
         subparser.set_defaults(cls=cls, which="fivetran")

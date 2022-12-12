@@ -76,9 +76,6 @@ class LoadFivetranModel(BaseModel):
     path: Optional[str] = ""
     api_key: Optional[str] = ""
     api_secret: Optional[str] = ""
-    secrets_manager: Optional[str] = ""
-    secrets_url: Optional[str] = ""
-    secrets_token: Optional[str] = ""
     secrets_path: Optional[str] = ""
     credentials: Optional[str] = ""
 
@@ -174,9 +171,6 @@ class DbtCovesConfig:
         "load.fivetran.path",
         "load.fivetran.api_key",
         "load.fivetran.api_secret",
-        "load.fivetran.secrets_manager",
-        "load.fivetran.secrets_url",
-        "load.fivetran.secrets_token",
         "load.fivetran.secrets_path",
         "load.fivetran.credentials",
     ]
