@@ -122,19 +122,38 @@ def get_cases(path_dir):
                 if resource == f"{folder}/dbt_project.yml" and os.path.isfile(resource):
                     case_dict_input["dbt_project_dir"] = os.path.dirname(resource)
                     case_dict_input["adapter"] = get_adapter(os.path.dirname(resource))
-            cases_list.append((os.path.basename(folder), case_dict_input, case_dict_expected))
+            cases_list.append(
+                {
+                    "id": os.path.basename(folder),
+                    "input": case_dict_input,
+                    "expected": case_dict_expected,
+                }
+            )
     return cases_list
 
 
 # Check case folders
 cases_list = get_cases("tests/generate_sources_cases")
 
-# Start test cases
+# Generate data tests
+
+generate_data_cases = []
+
+for case in cases_list:
+    id = case["id"]
+    generate_data_cases.append(
+        pytest.param(
+            case["input"],
+            id=case["id"],
+            marks=pytest.mark.dependency(name=f"test_generate_data[{id}]", depends=[]),
+        )
+    )
+
+# Start tests
 
 
-@pytest.mark.dependency(name="generate_data")
-@pytest.mark.parametrize("test_name, input, expected", cases_list)
-def test_generate_data(test_name, input, expected):
+@pytest.mark.parametrize("input", generate_data_cases)
+def test_generate_data(input):
 
     # Check adapter
     if input["adapter"] == "snowflake":
@@ -260,9 +279,26 @@ def test_generate_data(test_name, input, expected):
         raise Exception("Adapter not supported")
 
 
-@pytest.mark.dependency(name="generate_sources", depends=["generate_data"])
-@pytest.mark.parametrize("test_name, input, expected", cases_list)
-def test_generate_sources(test_name, input, expected):
+# Generate sources cases
+
+cases_list_generate_sources = []
+
+for case in cases_list:
+    id = case["id"]
+    cases_list_generate_sources.append(
+        pytest.param(
+            case["input"],
+            id=case["id"],
+            marks=pytest.mark.dependency(
+                name=f"test_generate_sources[{id}]",
+                depends=[f"test_generate_data[{id}]"],
+            ),
+        )
+    )
+
+
+@pytest.mark.parametrize("input", cases_list_generate_sources)
+def test_generate_sources(input):
     # Generate sources command
     command = [
         "dbt-coves",
@@ -308,9 +344,27 @@ def test_generate_sources(test_name, input, expected):
     assert os.path.isdir(os.path.join(input["output_dir"], "models")) == True
 
 
-@pytest.mark.dependency(name="check_data", depends=["generate_sources"])
-@pytest.mark.parametrize("test_name, input, expected", cases_list)
-def test_check_models(test_name, input, expected):
+# Check models cases
+
+check_models_cases = []
+
+for case in cases_list:
+    id = case["id"]
+    check_models_cases.append(
+        pytest.param(
+            case["input"],
+            case["expected"],
+            id=case["id"],
+            marks=pytest.mark.dependency(
+                name=f"test_check_models[{id}]",
+                depends=[f"test_generate_data[{id}]", f"test_generate_sources[{id}]"],
+            ),
+        )
+    )
+
+
+@pytest.mark.parametrize("input, expected", check_models_cases)
+def test_check_models(input, expected):
     with open(
         os.path.join(
             os.getcwd(),
@@ -451,12 +505,24 @@ def test_check_models(test_name, input, expected):
     assert len(list(diff_files)) == 0
 
 
+# Cleanup cases
+
+cleanup_cases = []
+
+for case in cases_list:
+    cleanup_cases.append(
+        pytest.param(
+            case["input"],
+            id=case["id"],
+            marks=pytest.mark.dependency(name=f"tests_cleanup[{id}]", depends=[]),
+        )
+    )
+
 # Clear tests
-@pytest.mark.dependency(name="cleanup", depends=["check_data"])
-@pytest.mark.parametrize("test_name, input, expected", cases_list)
-def tests_cleanup(test_name, input, expected):
+@pytest.mark.parametrize("input", cleanup_cases)
+def tests_cleanup(input):
     # Delete models folder if exists
-    shutil.rmtree(os.path.join(os.getcwd(), input["output_dir"]), ignore_errors=False)
+    shutil.rmtree(os.path.join(os.getcwd(), input["output_dir"]), ignore_errors=True)
 
     if input["adapter"] == "snowflake":
         # Delete Snowflake tests database
