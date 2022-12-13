@@ -14,19 +14,15 @@ jobs:
     steps:
       - uses: actions/checkout@v3
 
-      - name : Install Poetry
-        run: pipx install poetry
-
       - name: Set up Python ${{ matrix.python-version }}
         uses: actions/setup-python@v4
         with:
           python-version: ${{ matrix.python-version }}
-          cache: poetry
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install tox tox-gh-actions pytest tox-poetry-installer
+          pip install tox tox-gh-actions pytest tox-poetry-installer poetry
 
       - name: Test with tox
         run: tox -e py
