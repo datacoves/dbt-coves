@@ -65,6 +65,7 @@ def get_connector_redshift(host, user, password, database):
         database=database,
         user=user,
         password=password,
+        timeout=180
     )
     return conn
 
