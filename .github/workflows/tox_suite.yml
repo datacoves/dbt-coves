@@ -28,3 +28,4 @@ jobs:
         run: tox -e py
         env:
           PLATFORM: ${{ matrix.platform }}
+
