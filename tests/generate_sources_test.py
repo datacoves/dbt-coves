@@ -17,12 +17,20 @@ import snowflake.connector
 from google.cloud import bigquery
 from google.oauth2 import service_account
 
+# Redshift
+import redshift_connector
+
 # Load env vars
 load_dotenv()
 
 # Functions
 
+# Convert SQL to Jinja2 Template and replace function
+def source(schema, table):
+    return f"{schema}.{table}"
 
+
+# Get adapter from dbt profile
 def get_adapter(project_dir):
     with open(os.path.join(project_dir, "dbt_project.yml"), "r") as f:
         dbt_project = yaml.load(f, Loader=yaml.FullLoader)
@@ -37,6 +45,7 @@ def get_adapter(project_dir):
     return adapter
 
 
+# Connector snowflake
 def get_connector_snowflake(user, password, account, warehouse, role, database):
     conn = snowflake.connector.connect(
         user=user,
@@ -49,6 +58,18 @@ def get_connector_snowflake(user, password, account, warehouse, role, database):
     return conn
 
 
+# Connector redshift
+def get_connector_redshift(host, user, password, database):
+    conn = redshift_connector.connect(
+        host=host,
+        database=database,
+        user=user,
+        password=password,
+    )
+    return conn
+
+
+# COnnector Bigquery
 def get_client_bigquery(sa_key, project_id):
     # Generate SA credentials file
     with open("service_account.json", "w") as f:
@@ -65,6 +86,7 @@ def get_client_bigquery(sa_key, project_id):
     return client
 
 
+# Get all cases from folder cases
 def get_cases(path_dir):
     case_folders = glob(f"{path_dir}/*", recursive=True)
     cases_list = []
@@ -100,7 +122,7 @@ def get_cases(path_dir):
                 if resource == f"{folder}/dbt_project.yml" and os.path.isfile(resource):
                     case_dict_input["dbt_project_dir"] = os.path.dirname(resource)
                     case_dict_input["adapter"] = get_adapter(os.path.dirname(resource))
-            cases_list.append((case_dict_input, case_dict_expected))
+            cases_list.append((os.path.basename(folder), case_dict_input, case_dict_expected))
     return cases_list
 
 
@@ -111,8 +133,8 @@ cases_list = get_cases("tests/generate_sources_cases")
 
 
 @pytest.mark.dependency(name="generate_data")
-@pytest.mark.parametrize("input, expected", cases_list)
-def test_generate_data(input, expected):
+@pytest.mark.parametrize("test_name, input, expected", cases_list)
+def test_generate_data(test_name, input, expected):
 
     # Check adapter
     if input["adapter"] == "snowflake":
@@ -122,9 +144,6 @@ def test_generate_data(input, expected):
         assert "ACCOUNT_SNOWFLAKE" in os.environ
         assert "WAREHOUSE_SNOWFLAKE" in os.environ
         assert "ROLE_SNOWFLAKE" in os.environ
-        assert "DATABASE_SNOWFLAKE" in os.environ
-        assert "SCHEMA_SNOWFLAKE" in os.environ
-        assert "TABLE_SNOWFLAKE" in os.environ
 
         user = os.environ["USER_SNOWFLAKE"]
         password = os.environ["PASSWORD_SNOWFLAKE"]
@@ -166,14 +185,41 @@ def test_generate_data(input, expected):
         assert len(result) >= 1
         conn.close()
     elif input["adapter"] == "redshift":
-        pass
+        # Check env vars
+        assert "HOST_REDSHIFT" in os.environ
+        assert "USER_REDSHIFT" in os.environ
+        assert "PASSWORD_REDSHIFT" in os.environ
+
+        database = input["settings"]["database"]
+        schema = input["settings"]["schema"]
+        table = input["settings"]["table"]
+
+        # Get connector
+        conn = get_connector_redshift(
+            host=os.environ["HOST_REDSHIFT"],
+            user=os.environ["USER_REDSHIFT"],
+            password=os.environ["PASSWORD_REDSHIFT"],
+            database=database,
+        )
+
+        with conn.cursor() as cursor:
+            cursor.execute(f"CREATE SCHEMA IF NOT EXISTS {schema};")
+            with open(input["create_model_sql_file"], "r") as sql_file:
+                query = sql_file.read()
+            cursor.execute(query)
+            with open(input["insert_data_sql_file"], "r") as sql_file:
+                query = sql_file.read()
+            cursor.execute(query)
+            conn.commit()
+            cursor.execute(f"SELECT * FROM {schema}.{table} LIMIT 1;")
+            result = cursor.fetchall()
+        assert len(result) == 1
+        conn.close()
+
     elif input["adapter"] == "bigquery":
         # Check env vars
-        assert "PROJECT_DIR_BIGQUERY" in os.environ
         assert "PROJECT_BIGQUERY" in os.environ
         assert "SERVICE_ACCOUNT_GCP" in os.environ
-        assert "DATASET_BIGQUERY" in os.environ
-        assert "TABLE_BIGQUERY" in os.environ
 
         # Get env vars
         project_id = os.environ["PROJECT_BIGQUERY"]
@@ -187,7 +233,9 @@ def test_generate_data(input, expected):
         client = get_client_bigquery(sa_key, project_id)
 
         # Generate data
-        query_job = client.query(f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;")
+        query_job = client.query(
+            f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;"
+        )
         query_job.result()
         assert query_job.errors == None
         with open(input["create_model_sql_file"], "r") as sql_file:
@@ -207,13 +255,14 @@ def test_generate_data(input, expected):
         for row in query_job:
             rows.append(row)
         assert len(rows) == 1
+        client.close()
     else:
         raise Exception("Adapter not supported")
 
 
 @pytest.mark.dependency(name="generate_sources", depends=["generate_data"])
-@pytest.mark.parametrize("input, expected", cases_list)
-def test_generate_sources(input, expected):
+@pytest.mark.parametrize("test_name, input, expected", cases_list)
+def test_generate_sources(test_name, input, expected):
     # Generate sources command
     command = [
         "dbt-coves",
@@ -260,12 +309,8 @@ def test_generate_sources(input, expected):
 
 
 @pytest.mark.dependency(name="check_data", depends=["generate_sources"])
-@pytest.mark.parametrize("input, expected", cases_list)
-def test_check_models(input, expected):
-    # Convert SQL to Jinja2 Template and replace function
-    def source(schema, table):
-        return f"{schema}.{table}"
-
+@pytest.mark.parametrize("test_name, input, expected", cases_list)
+def test_check_models(test_name, input, expected):
     with open(
         os.path.join(
             os.getcwd(),
@@ -309,7 +354,22 @@ def test_check_models(input, expected):
         )
         conn.close()
     elif input["adapter"] == "redshift":
-        pass
+        conn = get_connector_redshift(
+            host=os.environ["HOST_REDSHIFT"],
+            user=os.environ["USER_REDSHIFT"],
+            password=os.environ["PASSWORD_REDSHIFT"],
+            database=input["settings"]["database"],
+        )
+
+        with conn.cursor() as cursor:
+            cursor.execute(query)
+            result = cursor.fetch_dataframe()
+            result.to_csv(
+                os.path.join(os.getcwd(), input["output_dir"], "data.csv"),
+                sep=",",
+                index=False,
+            )
+        conn.close()
     elif input["adapter"] == "bigquery":
         project_id = os.environ["PROJECT_BIGQUERY"]
         sa_key = os.environ["SERVICE_ACCOUNT_GCP"]
@@ -324,12 +384,14 @@ def test_check_models(input, expected):
             index=False,
         )
         assert query_job.errors == None
+        client.close()
     else:
         raise Exception("Adapter not supported")
 
-
     # Read CSV output data
-    with open(os.path.join(os.getcwd(), input["output_dir"], "data.csv"), "r") as csv_file:
+    with open(
+        os.path.join(os.getcwd(), input["output_dir"], "data.csv"), "r"
+    ) as csv_file:
         output_data = csv_file.readlines()
 
     # Read CSV expected data
@@ -388,32 +450,50 @@ def test_check_models(input, expected):
 
     assert len(list(diff_files)) == 0
 
+
 # Clear tests
 @pytest.mark.dependency(name="cleanup", depends=["check_data"])
-@pytest.mark.parametrize("input, expected", cases_list)
-def tests_cleanup(input, expected):
+@pytest.mark.parametrize("test_name, input, expected", cases_list)
+def tests_cleanup(test_name, input, expected):
     # Delete models folder if exists
     shutil.rmtree(os.path.join(os.getcwd(), input["output_dir"]), ignore_errors=False)
 
     if input["adapter"] == "snowflake":
         # Delete Snowflake tests database
+
+        database = input["settings"]["database"]
+
         conn = get_connector_snowflake(
             user=os.environ["USER_SNOWFLAKE"],
             password=os.environ["PASSWORD_SNOWFLAKE"],
             account=os.environ["ACCOUNT_SNOWFLAKE"],
             warehouse=os.environ["WAREHOUSE_SNOWFLAKE"],
             role=os.environ["ROLE_SNOWFLAKE"],
-            database=input["settings"]["database"],
+            database=database,
         )
-
-        database = input["settings"]["database"]
 
         with conn.cursor() as cursor:
             cursor.execute(f"DROP DATABASE IF EXISTS {database};")
         conn.commit()
         conn.close()
     elif input["adapter"] == "redshift":
-        pass
+
+        schema = input["settings"]["schema"]
+        test_table = input["settings"]["table"]
+        database = input["settings"]["database"]
+
+        conn = get_connector_redshift(
+            host=os.environ["HOST_REDSHIFT"],
+            user=os.environ["USER_REDSHIFT"],
+            password=os.environ["PASSWORD_REDSHIFT"],
+            database=database,
+        )
+
+        with conn.cursor() as cursor:
+            cursor.execute(f"DROP TABLE IF EXISTS {schema}.{test_table};")
+            cursor.execute(f"DROP SCHEMA IF EXISTS {schema};")
+        conn.commit()
+        conn.close()
     elif input["adapter"] == "bigquery":
         # Delete Bigquery tests schema
 
@@ -435,6 +515,8 @@ def tests_cleanup(input, expected):
         job_query = client.query(f"DROP SCHEMA `{schema}`;")
         job_query.result()
         assert job_query.errors == None
+
+        client.close()
 
         # Delete SA
         os.remove("service_account.json")
