@@ -3,6 +3,7 @@
 # Imports
 import pytest
 import os
+import pathlib
 import subprocess
 import shutil
 import yaml
@@ -32,12 +33,12 @@ def source(schema, table):
 
 # Get adapter from dbt profile
 def get_adapter(project_dir):
-    with open(os.path.join(project_dir, "dbt_project.yml"), "r") as f:
+    with open(pathlib.Path(project_dir, "dbt_project.yml"), "r") as f:
         dbt_project = yaml.load(f, Loader=yaml.FullLoader)
     dbt_project = dbt_project["profile"]
 
     home_dir = os.path.expanduser("~")
-    dbt_profiles_path = os.path.join(home_dir, ".dbt", "profiles.yml")
+    dbt_profiles_path = pathlib.Path(home_dir, ".dbt", "profiles.yml")
     with open(dbt_profiles_path, "r") as f:
         dbt_profiles = yaml.load(f, Loader=yaml.FullLoader)
     adapter = dbt_profiles[dbt_project]["outputs"]["dev"]["type"]
@@ -61,11 +62,7 @@ def get_connector_snowflake(user, password, account, warehouse, role, database):
 # Connector redshift
 def get_connector_redshift(host, user, password, database):
     conn = redshift_connector.connect(
-        host=host,
-        database=database,
-        user=user,
-        password=password,
-        timeout=180
+        host=host, database=database, user=user, password=password, timeout=180
     )
     return conn
 
@@ -73,12 +70,19 @@ def get_connector_redshift(host, user, password, database):
 # COnnector Bigquery
 def get_client_bigquery(sa_key, project_id):
     # Generate SA credentials file
-    with open("service_account.json", "w") as f:
+    with open(
+        pathlib.Path(
+            os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"
+        ),
+        "w",
+    ) as f:
         f.write(sa_key)
 
     # Get BigQuery Client
     credentials = service_account.Credentials.from_service_account_file(
-        "service_account.json",
+        pathlib.Path(
+            os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"
+        ),
         scopes=["https://www.googleapis.com/auth/cloud-platform"],
     )
 
@@ -134,7 +138,11 @@ def get_cases(path_dir):
 
 
 # Check case folders
-cases_list = get_cases("tests/generate_sources_cases")
+cases_list = get_cases(
+    pathlib.Path(
+        os.path.dirname(pathlib.Path(__file__).absolute()), "generate_sources_cases"
+    )
+)
 
 # Generate data tests
 
@@ -306,7 +314,7 @@ def test_generate_sources(input):
         "generate",
         "sources",
         "--metadata",
-        os.path.join(os.getcwd(), input["metadata_file"]),
+        input["metadata_file"],
         "--database",
         input["settings"]["database"],
         "--schemas",
@@ -318,21 +326,17 @@ def test_generate_sources(input):
         "--update-strategy",
         "update",
         "--models-destination",
-        os.path.join(
-            os.getcwd(),
+        pathlib.Path(
             input["output_dir"],
             "models/staging/{{schema}}/{{relation}}.sql",
         ),
         "--model-props-destination",
-        os.path.join(
-            os.getcwd(),
+        pathlib.Path(
             input["output_dir"],
             "models/staging/{{schema}}/{{relation}}.yml",
         ),
         "--sources-destination",
-        os.path.join(
-            os.getcwd(), input["output_dir"], "models/staging/{{schema}}/sources.yml"
-        ),
+        pathlib.Path(input["output_dir"], "models/staging/{{schema}}/sources.yml"),
         "--verbose",
     ]
 
@@ -342,7 +346,7 @@ def test_generate_sources(input):
     )
 
     assert process.returncode == 0
-    assert os.path.isdir(os.path.join(input["output_dir"], "models")) == True
+    assert os.path.isdir(pathlib.Path(input["output_dir"], "models")) == True
 
 
 # Check models cases
@@ -367,8 +371,7 @@ for case in cases_list:
 @pytest.mark.parametrize("input, expected", check_models_cases)
 def test_check_models(input, expected):
     with open(
-        os.path.join(
-            os.getcwd(),
+        pathlib.Path(
             input["output_dir"],
             "models",
             "staging",
@@ -403,7 +406,7 @@ def test_check_models(input, expected):
         # Save output data to CSV
 
         result.to_csv(
-            os.path.join(os.getcwd(), input["output_dir"], "data.csv"),
+            pathlib.Path(input["output_dir"], "data.csv"),
             sep=",",
             index=False,
         )
@@ -420,7 +423,7 @@ def test_check_models(input, expected):
             cursor.execute(query)
             result = cursor.fetch_dataframe()
             result.to_csv(
-                os.path.join(os.getcwd(), input["output_dir"], "data.csv"),
+                pathlib.Path(input["output_dir"], "data.csv"),
                 sep=",",
                 index=False,
             )
@@ -434,7 +437,7 @@ def test_check_models(input, expected):
         query_job = client.query(query)
         query_job.result()
         query_job.to_dataframe().to_csv(
-            os.path.join(os.getcwd(), input["output_dir"], "data.csv"),
+            pathlib.Path(input["output_dir"], "data.csv"),
             sep=",",
             index=False,
         )
@@ -444,13 +447,11 @@ def test_check_models(input, expected):
         raise Exception("Adapter not supported")
 
     # Read CSV output data
-    with open(
-        os.path.join(os.getcwd(), input["output_dir"], "data.csv"), "r"
-    ) as csv_file:
+    with open(pathlib.Path(input["output_dir"], "data.csv"), "r") as csv_file:
         output_data = csv_file.readlines()
 
     # Read CSV expected data
-    with open(os.path.join(os.getcwd(), expected["data_csv_file"]), "r") as csv_file:
+    with open(pathlib.Path(expected["data_csv_file"]), "r") as csv_file:
         expected_data = csv_file.readlines()
 
     # Diff data
@@ -463,8 +464,7 @@ def test_check_models(input, expected):
 
     # Source model
     with open(
-        os.path.join(
-            os.getcwd(),
+        pathlib.Path(
             input["output_dir"],
             "models",
             "staging",
@@ -475,7 +475,7 @@ def test_check_models(input, expected):
     ) as file_1:
         source_model_output = file_1.readlines()
 
-    with open(os.path.join(os.getcwd(), expected["source_model"]), "r") as file_2:
+    with open(pathlib.Path(expected["source_model"]), "r") as file_2:
         source_model_expected = file_2.readlines()
 
     diff_files = set(source_model_output).symmetric_difference(
@@ -486,8 +486,7 @@ def test_check_models(input, expected):
 
     # Table model
     with open(
-        os.path.join(
-            os.getcwd(),
+        pathlib.Path(
             input["output_dir"],
             "models",
             "staging",
@@ -498,7 +497,7 @@ def test_check_models(input, expected):
     ) as file_1:
         table_model_output = file_1.readlines()
 
-    with open(os.path.join(os.getcwd(), expected["table_model"]), "r") as file_2:
+    with open(pathlib.Path(expected["table_model"]), "r") as file_2:
         table_model_expected = file_2.readlines()
 
     diff_files = set(table_model_output).symmetric_difference(set(table_model_expected))
@@ -523,7 +522,7 @@ for case in cases_list:
 @pytest.mark.parametrize("input", cleanup_cases)
 def tests_cleanup(input):
     # Delete models folder if exists
-    shutil.rmtree(os.path.join(os.getcwd(), input["output_dir"]), ignore_errors=True)
+    shutil.rmtree(pathlib.Path(input["output_dir"]), ignore_errors=True)
 
     if input["adapter"] == "snowflake":
         # Delete Snowflake tests database
@@ -586,7 +585,12 @@ def tests_cleanup(input):
         client.close()
 
         # Delete SA
-        os.remove("service_account.json")
+        os.remove(
+            pathlib.Path(
+                os.path.dirname(pathlib.Path(__file__).absolute()),
+                "service_account.json",
+            )
+        )
 
     else:
         raise Exception("Adapter not supported")

@@ -3,3 +3,4 @@
 dbt_project.yml
 profiles.yml
 generate_sources_cases/*/output
+service_account.json
