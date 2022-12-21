@@ -39,7 +39,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
-            "--relations",
+            "--select",
             type=str,
             help="Comma separated list of relations where raw data resides, "
             "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
@@ -73,6 +73,11 @@ class GenerateSourcesTask(BaseGenerateTask):
             type=str,
             help="Folder with jinja templates that override default "
             "sources generation templates, i.e. 'templates'",
+        )
+        subparser.add_argument(
+            "--exclude",
+            type=str,
+            help="Filter relation(s) to exclude from source file(s) generation",
         )
         subparser.add_argument(
             "--metadata",
