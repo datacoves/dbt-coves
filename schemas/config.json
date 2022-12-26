@@ -1,0 +1,397 @@
+{
+    "title": "dbt-coves-config",
+    "description": "Configuration for dbt-coves",
+    "type": "object",
+    "required": [],
+    "$schema": "http://json-schema.org/draft-07/schema#",
+    "properties": {
+        "generate": {
+            "title": "Generate",
+            "description": "Generate sources, properties and metadata",
+            "type": "object",
+            "properties": {
+                "sources": {
+                    "title": "Sources",
+                    "description": "Generate sources parameters",
+                    "type": "object",
+                    "properties": {
+                        "database": {
+                            "title": "Database",
+                            "description": "Database where to look for source tables",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "relations": {
+                            "type": "array",
+                            "title": "Relations",
+                            "description": "List of relations where to look for source tables",
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "minItems": 1
+                        },
+                        "schemas": {
+                            "type": "array",
+                            "title": "Schemas",
+                            "description": "List of schema names where to look for source tables",
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "minItems": 1
+                        },
+                        "sources_destination": {
+                            "title": "Sources destination",
+                            "description": "Where sources yml files will be generated",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": ".+({{schema}}.yml)$"
+                        },
+                        "models_destination": {
+                            "title": "Models destination",
+                            "description": "Where models sql files will be generated",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": ".+({{relation}}.sql)$"
+                        },
+                        "model_props_destination": {
+                            "title": "Model properties destination",
+                            "description": "Where models yml files will be generated",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": ".+({{relation}}.yml)$"
+                        },
+                        "update_strategy": {
+                            "title": "Update strategy",
+                            "description": "Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)",
+                            "type": "string",
+                            "enum": [
+                                "update",
+                                "recreate",
+                                "fail",
+                                "ask"
+                            ]
+                        },
+                        "templates_folder": {
+                            "title": "Templates folder",
+                            "description": "Folder where source generation jinja templates are located. Override default templates creating  source_props.yml, source_model_props.yml, and source_model.sql under this folder",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "metadata": {
+                            "title": "Metadata",
+                            "description": "",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": [],
+                    "dependencies": {
+                        "relations": [
+                            "database",
+                            "schemas"
+                        ],
+                        "schemas": [
+                            "database"
+                        ]
+                    }
+                },
+                "properties": {
+                    "title": "Properties",
+                    "description": "Generate properties parameters",
+                    "type": "object",
+                    "properties": {
+                        "templates_folder": {
+                            "title": "Templates folder",
+                            "description": "",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "metadata": {
+                            "title": "Metadata",
+                            "description": "",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "update-strategy": {
+                            "title": "Update strategy",
+                            "description": "Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)",
+                            "type": "string",
+                            "enum": [
+                                "update",
+                                "recreate",
+                                "fail",
+                                "ask"
+                            ]
+                        },
+                        "destination": {
+                            "title": "Destination",
+                            "description": "Where models yml files will be generated\nYou can specify a different path by declaring it explicitly, i.e.: \"models/staging/{{model_file_name}}.yml\"",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": ".+({{model_file_name}}.yml)$"
+                        },
+                        "models": {
+                            "title": "Models",
+                            "description": "Model(s) path where 'generate properties' will look for models for generation",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "select": {
+                            "title": "Select",
+                            "description": "",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "exclude": {
+                            "title": "Exclude",
+                            "description": "",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "selector": {
+                            "title": "Selector",
+                            "description": "",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": []
+                },
+                "metadata": {
+                    "title": "Metadata",
+                    "description": "Generate metadata parameters",
+                    "type": "object",
+                    "properties": {
+                        "database": {
+                            "title": "Database",
+                            "description": "Database where to look for source tables",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "schemas": {
+                            "title": "Schemas",
+                            "description": "List of schema names where to look for source tables",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "minItems": 1
+                        },
+                        "relations": {
+                            "title": "Relations",
+                            "description": "",
+                            "type": "array",
+                            "items": {
+                                "type": "string",
+                                "minLength": 1
+                            },
+                            "minItems": 1
+                        },
+                        "destination": {
+                            "title": "Destination",
+                            "description": "Destination filename",
+                            "type": "string",
+                            "minLength": 1,
+                            "pattern": ".+(.csv)$"
+                        }
+                    },
+                    "required": [],
+                    "dependencies": {
+                        "relations": [
+                            "database",
+                            "schemas"
+                        ],
+                        "schemas": [
+                            "database"
+                        ]
+                    }
+                }
+            },
+            "required": [],
+            "oneOf": [
+                { "required": ["sources"] },
+                { "required": ["properties"] },
+                { "required": ["metadata"] }
+            ]
+        },
+        "extract": {
+            "title": "Extract",
+            "description": "Extract data",
+            "type": "object",
+            "properties": {
+                "airbyte": {
+                    "title": "Airbyte config",
+                    "description": "Extract data from Airbyte",
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "title": "Path",
+                            "description": "Where json files will be generated",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "host": {
+                            "title": "Host",
+                            "description": "Airbyte's API hostname",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "port": {
+                            "title": "Port",
+                            "description": "Airbyte's API port",
+                            "type": "number"
+                        },
+                        "dbt_list_args": {
+                            "title": "DBT List Args",
+                            "description": "Extra dbt arguments: selectors, modifiers, etc",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": [
+                        "host"
+                    ]
+                }
+            },
+            "required": []
+        },
+        "load": {
+            "title": "Load",
+            "description": "Load data",
+            "type": "object",
+            "properties": {
+                "airbyte": {
+                    "title": "Airbyte config",
+                    "description": "Load data from Airbyte",
+                    "type": "object",
+                    "properties": {
+                        "path": {
+                            "title": "Path",
+                            "description": "Where json files will be generated",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "host": {
+                            "title": "Host",
+                            "description": "Airbyte's API hostname",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "port": {
+                            "title": "Port",
+                            "description": "Airbyte's API port",
+                            "type": "number"
+                        },
+                        "secrets_manager": {
+                            "title": "Secrets manager",
+                            "description": "Secret credentials provider (secrets_path OR secrets_manager should be used, can't load secrets locally and remotely at the same time)",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "secrets_url": {
+                            "title": "Secrets url",
+                            "description": "Secret credentials provider url",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "secrets_token": {
+                            "title": "Secrets Token",
+                            "description": "",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "secrets_path": {
+                            "title": "Secrets path",
+                            "description": "Secret files location for Airbyte configuration",
+                            "type": "string",
+                            "minLength": 1
+                        },
+                        "dbt_list_args": {
+                            "title": "DBT List Args",
+                            "description": "Extra dbt arguments: selectors, modifiers, etc",
+                            "type": "string",
+                            "minLength": 1
+                        }
+                    },
+                    "required": [
+                        "host"
+                    ]
+                }
+            },
+            "required": []
+        },
+        "setup": {
+            "title": "Setup",
+            "description": "",
+            "type": "object",
+            "properties": {
+                "all": {
+                    "title": "All setup",
+                    "description": "",
+                    "type": "object",
+                    "properties": {
+                        "open_ssl_public_key": {
+                            "title": "Open SSL public key",
+                            "description": "",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": []
+                },
+                "ssh": {
+                    "title": "SSH setup",
+                    "description": "",
+                    "type": "object",
+                    "properties": {
+                        "open_ssl_public_key": {
+                            "title": "Open SSL public key",
+                            "description": "",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": []
+                },
+                "git": {
+                    "title": "Git setup",
+                    "description": "",
+                    "type": "object",
+                    "properties": {
+                        "no_prompt": {
+                            "title": "No prompt",
+                            "description": "",
+                            "type": "boolean"
+                        }
+                    },
+                    "required": []
+                }
+            },
+            "required": []
+        },
+        "dbt": {
+            "title": "dbt",
+            "description": "",
+            "type": "object",
+            "properties": {
+                "command": {
+                    "title": "Command",
+                    "description": "",
+                    "type": "string"
+                },
+                "project_dir": {
+                    "title": "Project Dir",
+                    "description": "",
+                    "type": "string"
+                },
+                "virtualenv": {
+                    "title": "Virtualenv",
+                    "description": "",
+                    "type": "string"
+                }
+            },
+            "required": []
+        }
+    }
+}
