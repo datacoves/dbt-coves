@@ -104,8 +104,6 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if re.search(selector, rel.name):
                     excluded.append(rel.name)
                     break
-        
-        print(excluded)
 
         listed_relations = [
             relation
