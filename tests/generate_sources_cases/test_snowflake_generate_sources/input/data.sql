@@ -10,5 +10,5 @@ SELECT
     'a',
     '2020-01-01',
     '2020-01-01 00:00:00',
-    TRUE,
-    parse_json('{"json_value_1":"abc","json_value_2": 2}');
+    true,
+    parse_json($${"json_value_1":"abc","json_value_2": 2}$$);
