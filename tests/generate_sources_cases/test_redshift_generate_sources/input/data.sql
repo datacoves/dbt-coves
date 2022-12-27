@@ -1,4 +1,3 @@
-
 INSERT INTO tests.test_model VALUES (
     1,
     1,

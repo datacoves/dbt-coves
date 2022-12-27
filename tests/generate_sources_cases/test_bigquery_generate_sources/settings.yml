@@ -1,0 +1,4 @@
+profile: 'test_dbt_coves_bigquery'
+table: 'test_model'
+schema: 'tests'
+database: 'dbt-coves-test'

@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: tests
+    database: dev
+    tables:
+      - name: test_model
+        description: ''
