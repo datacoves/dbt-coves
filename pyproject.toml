@@ -40,7 +40,7 @@ bumpversion = "^0.6.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^6.2.4"
-pytest-cov = "^2.12.1"
+pytest-cov = "^4.0.0"
 mypy = "^0.910"
 towncrier = "^21.3.0"
 pytest-mock = "^3.6.1"
