@@ -1088,14 +1088,14 @@ asn1crypto = ">=1.5.1"
 
 [[package]]
 name = "packaging"
-version = "20.9"
+version = "21.3"
 description = "Core utilities for Python packages"
 category = "main"
 optional = false
-python-versions = ">=2.7, !=3.0.*, !=3.1.*, !=3.2.*, !=3.3.*"
+python-versions = ">=3.6"
 
 [package.dependencies]
-pyparsing = ">=2.0.2"
+pyparsing = ">=2.0.2,<3.0.5 || >3.0.5"
 
 [[package]]
 name = "pandas"
@@ -1759,7 +1759,7 @@ python-versions = ">=3.6"
 
 [[package]]
 name = "sphinx"
-version = "5.1.1"
+version = "5.3.0"
 description = "Python documentation generator"
 category = "dev"
 optional = false
@@ -1767,16 +1767,16 @@ python-versions = ">=3.6"
 
 [package.dependencies]
 alabaster = ">=0.7,<0.8"
-babel = ">=1.3"
-colorama = {version = ">=0.3.5", markers = "sys_platform == \"win32\""}
+babel = ">=2.9"
+colorama = {version = ">=0.4.5", markers = "sys_platform == \"win32\""}
 docutils = ">=0.14,<0.20"
-imagesize = "*"
-importlib-metadata = {version = ">=4.4", markers = "python_version < \"3.10\""}
-Jinja2 = ">=2.3"
-packaging = "*"
-Pygments = ">=2.0"
+imagesize = ">=1.3"
+importlib-metadata = {version = ">=4.8", markers = "python_version < \"3.10\""}
+Jinja2 = ">=3.0"
+packaging = ">=21.0"
+Pygments = ">=2.12"
 requests = ">=2.5.0"
-snowballstemmer = ">=1.1"
+snowballstemmer = ">=2.0"
 sphinxcontrib-applehelp = "*"
 sphinxcontrib-devhelp = "*"
 sphinxcontrib-htmlhelp = ">=2.0.0"
@@ -1786,8 +1786,8 @@ sphinxcontrib-serializinghtml = ">=1.1.5"
 
 [package.extras]
 docs = ["sphinxcontrib-websupport"]
-lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-bugbear", "flake8-comprehensions", "isort", "mypy (>=0.971)", "sphinx-lint", "types-requests", "types-typed-ast"]
-test = ["cython", "html5lib", "pytest (>=4.6)", "typed-ast"]
+lint = ["docutils-stubs", "flake8 (>=3.5.0)", "flake8-bugbear", "flake8-comprehensions", "flake8-simplify", "isort", "mypy (>=0.981)", "sphinx-lint", "types-requests", "types-typed-ast"]
+test = ["cython", "html5lib", "pytest (>=4.6)", "typed_ast"]
 
 [[package]]
 name = "sphinx-argparse"
@@ -1964,18 +1964,18 @@ testing = ["flaky (>=3.4.0)", "freezegun (>=0.3.11)", "pathlib2 (>=2.3.3)", "psu
 
 [[package]]
 name = "tox-poetry-installer"
-version = "0.8.5"
+version = "0.10.0"
 description = "A plugin for Tox that lets you install test environment dependencies from the Poetry lockfile"
 category = "dev"
 optional = false
-python-versions = ">=3.6.1,<4.0.0"
+python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-poetry-core = ">=1.0.0,<2.0.0"
+poetry-core = ">=1.1.0,<2.0.0"
 tox = ">=3.8.0,<4.0.0"
 
 [package.extras]
-poetry = ["poetry (>=1.0.0,<1.2)"]
+poetry = ["cleo (>=1.0.0a5,<2.0.0)", "poetry (>=1.2.0,<2.0.0)"]
 
 [[package]]
 name = "traitlets"
@@ -2087,7 +2087,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<=3.10"
-content-hash = "e358c3900711e46efd791e828a78324189c96f072bc435400ff09d2540e757d5"
+content-hash = "d0a0d1f4462e63429d0973771e124e779c240ac13e1e1bdae80c735d7820d562"
 
 [metadata.files]
 agate = [
@@ -2927,8 +2927,8 @@ oscrypto = [
     {file = "oscrypto-1.3.0.tar.gz", hash = "sha256:6f5fef59cb5b3708321db7cca56aed8ad7e662853351e7991fcf60ec606d47a4"},
 ]
 packaging = [
-    {file = "packaging-20.9-py2.py3-none-any.whl", hash = "sha256:67714da7f7bc052e064859c05c595155bd1ee9f69f76557e21f051443c20947a"},
-    {file = "packaging-20.9.tar.gz", hash = "sha256:5b327ac1320dc863dca72f4514ecc086f31186744b84a230374cc1fd776feae5"},
+    {file = "packaging-21.3-py3-none-any.whl", hash = "sha256:ef103e05f519cdc783ae24ea4e2e0f508a9c99b2d4969652eed6a2e1ea5bd522"},
+    {file = "packaging-21.3.tar.gz", hash = "sha256:dd47c42927d89ab911e606518907cc2d3a1f38bbd026385970643f9c5b8ecfeb"},
 ]
 pandas = [
     {file = "pandas-1.3.5-cp310-cp310-macosx_10_9_universal2.whl", hash = "sha256:62d5b5ce965bae78f12c1c0df0d387899dd4211ec0bdc52822373f13a3a022b9"},
@@ -3423,8 +3423,8 @@ soupsieve = [
     {file = "soupsieve-2.3.2.post1.tar.gz", hash = "sha256:fc53893b3da2c33de295667a0e19f078c14bf86544af307354de5fcf12a3f30d"},
 ]
 sphinx = [
-    {file = "Sphinx-5.1.1-py3-none-any.whl", hash = "sha256:309a8da80cb6da9f4713438e5b55861877d5d7976b69d87e336733637ea12693"},
-    {file = "Sphinx-5.1.1.tar.gz", hash = "sha256:ba3224a4e206e1fbdecf98a4fae4992ef9b24b85ebf7b584bb340156eaf08d89"},
+    {file = "Sphinx-5.3.0.tar.gz", hash = "sha256:51026de0a9ff9fc13c05d74913ad66047e104f56a129ff73e174eb5c3ee794b5"},
+    {file = "sphinx-5.3.0-py3-none-any.whl", hash = "sha256:060ca5c9f7ba57a08a1219e547b269fadf125ae25b06b9fa7f66768efb652d6d"},
 ]
 sphinx-argparse = [
     {file = "sphinx_argparse-0.4.0-py3-none-any.whl", hash = "sha256:73bee01f7276fae2bf621ccfe4d167af7306e7288e3482005405d9f826f9b037"},
@@ -3483,8 +3483,8 @@ tox = [
     {file = "tox-3.28.0.tar.gz", hash = "sha256:d0d28f3fe6d6d7195c27f8b054c3e99d5451952b54abdae673b71609a581f640"},
 ]
 tox-poetry-installer = [
-    {file = "tox-poetry-installer-0.8.5.tar.gz", hash = "sha256:2107c7265afb9d704ca9f3eeff6e4d4ee99f874d0bfafad10815e7f3d6854240"},
-    {file = "tox_poetry_installer-0.8.5-py3-none-any.whl", hash = "sha256:04d2c12964e61d33399597533b8428b453e694919431873be120817599493505"},
+    {file = "tox-poetry-installer-0.10.0.tar.gz", hash = "sha256:c15714973f5b0f7dbd07d6e7c4bc7d5bb8a878f71d5513d8d7f1a5e81ed1c521"},
+    {file = "tox_poetry_installer-0.10.0-py3-none-any.whl", hash = "sha256:3baff43f7926c09d66027b7a837719a2b373d7f284898b2cd9dd2f0caad49bb9"},
 ]
 traitlets = [
     {file = "traitlets-5.8.0-py3-none-any.whl", hash = "sha256:c864831efa0ba6576d09b44884b34e41defc18c0d7e720b4a2d6698c842cab3e"},
