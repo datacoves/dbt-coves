@@ -1964,18 +1964,18 @@ testing = ["flaky (>=3.4.0)", "freezegun (>=0.3.11)", "pathlib2 (>=2.3.3)", "psu
 
 [[package]]
 name = "tox-poetry-installer"
-version = "0.8.5"
+version = "0.10.0"
 description = "A plugin for Tox that lets you install test environment dependencies from the Poetry lockfile"
 category = "dev"
 optional = false
-python-versions = ">=3.6.1,<4.0.0"
+python-versions = ">=3.7,<4.0"
 
 [package.dependencies]
-poetry-core = ">=1.0.0,<2.0.0"
+poetry-core = ">=1.1.0,<2.0.0"
 tox = ">=3.8.0,<4.0.0"
 
 [package.extras]
-poetry = ["poetry (>=1.0.0,<1.2)"]
+poetry = ["cleo (>=1.0.0a5,<2.0.0)", "poetry (>=1.2.0,<2.0.0)"]
 
 [[package]]
 name = "traitlets"
@@ -2087,7 +2087,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<=3.10"
-content-hash = "e358c3900711e46efd791e828a78324189c96f072bc435400ff09d2540e757d5"
+content-hash = "936d9034a15027bb4a417870a45ff2da619a7789f2cf4fa266005f7195c95f1f"
 
 [metadata.files]
 agate = [
@@ -3483,8 +3483,8 @@ tox = [
     {file = "tox-3.28.0.tar.gz", hash = "sha256:d0d28f3fe6d6d7195c27f8b054c3e99d5451952b54abdae673b71609a581f640"},
 ]
 tox-poetry-installer = [
-    {file = "tox-poetry-installer-0.8.5.tar.gz", hash = "sha256:2107c7265afb9d704ca9f3eeff6e4d4ee99f874d0bfafad10815e7f3d6854240"},
-    {file = "tox_poetry_installer-0.8.5-py3-none-any.whl", hash = "sha256:04d2c12964e61d33399597533b8428b453e694919431873be120817599493505"},
+    {file = "tox-poetry-installer-0.10.0.tar.gz", hash = "sha256:c15714973f5b0f7dbd07d6e7c4bc7d5bb8a878f71d5513d8d7f1a5e81ed1c521"},
+    {file = "tox_poetry_installer-0.10.0-py3-none-any.whl", hash = "sha256:3baff43f7926c09d66027b7a837719a2b373d7f284898b2cd9dd2f0caad49bb9"},
 ]
 traitlets = [
     {file = "traitlets-5.8.0-py3-none-any.whl", hash = "sha256:c864831efa0ba6576d09b44884b34e41defc18c0d7e720b4a2d6698c842cab3e"},
