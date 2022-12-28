@@ -12,8 +12,10 @@ from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
 
 console = Console()
 
+
 class RunDbtException(Exception):
     pass
+
 
 class RunDbtTask(NonDbtBaseConfiguredTask):
     """
@@ -104,14 +106,18 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             )
         else:
             cmd_list = shlex.split(command)
-            
+
         try:
             output = subprocess.check_output(cmd_list, env=env, cwd=cwd)
-            console.print(f"{Text.from_ansi(output.decode())}\n"\
-                f"[green]{command} :heavy_check_mark:[/green]")
+            console.print(
+                f"{Text.from_ansi(output.decode())}\n"
+                f"[green]{command} :heavy_check_mark:[/green]"
+            )
         except subprocess.CalledProcessError as e:
-            raise RunDbtException(f"Exception ocurred running [red]{command}[/red]:\n"\
-                 f"{Text.from_ansi(e.output.decode())}")
+            raise RunDbtException(
+                f"Exception ocurred running [red]{command}[/red]:\n"
+                f"{Text.from_ansi(e.output.decode())}"
+            )
 
     def get_config_value(self, key):
         return self.coves_config.integrated["dbt"][key]
