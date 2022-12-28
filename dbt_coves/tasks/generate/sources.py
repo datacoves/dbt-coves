@@ -45,6 +45,11 @@ class GenerateSourcesTask(BaseGenerateTask):
             "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
         )
         subparser.add_argument(
+            "--exclude",
+            type=str,
+            help="Filter relation(s) to exclude from source file(s) generation",
+        )
+        subparser.add_argument(
             "--sources-destination",
             type=str,
             help="Where sources yml files will be generated, default: "
@@ -73,11 +78,6 @@ class GenerateSourcesTask(BaseGenerateTask):
             type=str,
             help="Folder with jinja templates that override default "
             "sources generation templates, i.e. 'templates'",
-        )
-        subparser.add_argument(
-            "--exclude",
-            type=str,
-            help="Filter relation(s) to exclude from source file(s) generation",
         )
         subparser.add_argument(
             "--metadata",
