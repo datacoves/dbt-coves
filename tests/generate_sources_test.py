@@ -1,25 +1,26 @@
 # Generate Sources Test
 
 # Imports
-import pytest
 import os
 import pathlib
-import subprocess
 import shutil
-import yaml
-from jinja2 import Template
-from dotenv import load_dotenv
+import subprocess
 from glob import glob
+
+import pytest
+
+# Redshift
+import redshift_connector
 
 # Snowflake
 import snowflake.connector
+import yaml
+from dotenv import load_dotenv
 
 # Bigquery
 from google.cloud import bigquery
 from google.oauth2 import service_account
-
-# Redshift
-import redshift_connector
+from jinja2 import Template
 
 # Load env vars
 load_dotenv()
@@ -319,7 +320,7 @@ def test_generate_sources(input):
         input["settings"]["database"],
         "--schemas",
         input["settings"]["schema"],
-        "--relations",
+        "--select",
         input["settings"]["table"],
         "--project-dir",
         input["dbt_project_dir"],
