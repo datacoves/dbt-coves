@@ -1,0 +1,26 @@
+version: 2
+
+models:
+  - name: test_model
+    description: ''
+    columns:
+      - name: test_smallint
+        description: "TEST OF SMALLINT COLUMN TYPE"
+      - name: test_integer
+        description: "TEST OF INTEGER COLUMN TYPE"
+      - name: test_bigint
+        description: "TEST OF BIGINT COLUMN TYPE"
+      - name: test_decimal
+        description: "TEST OF DECIMAL COLUMN TYPE"
+      - name: test_numeric
+        description: "TEST OF NUMERIC COLUMN TYPE"
+      - name: test_string
+        description: "TEST OF STRING COLUMN TYPE"
+      - name: test_date
+        description: "TEST OF DATE COLUMN TYPE"
+      - name: test_timestamp
+        description: "TEST OF TIMESTAMP COLUMN TYPE"
+      - name: test_boolean
+        description: "TEST OF BOOLEAN COLUMN TYPE"
+      - name: test_json
+        description: "TEST OF JSON COLUMN TYPE"

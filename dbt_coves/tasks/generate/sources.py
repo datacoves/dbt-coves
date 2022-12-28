@@ -39,10 +39,15 @@ class GenerateSourcesTask(BaseGenerateTask):
             "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
-            "--relations",
+            "--select",
             type=str,
             help="Comma separated list of relations where raw data resides, "
             "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
+        )
+        subparser.add_argument(
+            "--exclude",
+            type=str,
+            help="Filter relation(s) to exclude from source file(s) generation",
         )
         subparser.add_argument(
             "--sources-destination",
@@ -113,7 +118,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         }
         for rel in rels:
             model_dest = self.render_path_template(models_destination, rel)
-            model_sql = Path().joinpath(model_dest)
+            model_sql = Path(self.config.project_root).joinpath(model_dest)
             if not options["override_all"]:
                 if model_sql.exists():
                     overwrite = questionary.select(
@@ -251,7 +256,7 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         # Render model and source YMLs
         model_yml_dest = self.render_path_template(model_property_destination, rel)
-        model_yml_path = Path().joinpath(model_yml_dest)
+        model_yml_path = Path(self.config.project_root).joinpath(model_yml_dest)
         self.render_property_files(
             context,
             options,
@@ -263,7 +268,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         )
 
         source_yml_dest = self.render_path_template(source_property_destination, rel)
-        source_yml_path = Path().joinpath(source_yml_dest)
+        source_yml_path = Path(self.config.project_root).joinpath(source_yml_dest)
         self.render_property_files(
             context,
             options,

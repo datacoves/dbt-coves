@@ -204,7 +204,7 @@ class GenerateMetadataTask(BaseGenerateTask):
 
         for rel in rels:
             csv_dest = self.render_path_template(destination, rel)
-            csv_path = Path().joinpath(csv_dest)
+            csv_path = Path(self.config.project_root).joinpath(csv_dest)
             existing_rows = self.get_existing_csv_rows(csv_path)
             if csv_path.exists() and existing_rows:
                 if (

@@ -5,6 +5,7 @@ from rich.console import Console
 from dbt_coves.tasks.base import BaseConfiguredTask
 
 from .airbyte import LoadAirbyteTask
+from .fivetran import LoadFivetranTask
 
 console = Console()
 
@@ -28,5 +29,6 @@ class LoadTask(BaseConfiguredTask):
             title="dbt-coves load commands", dest="task"
         )
         LoadAirbyteTask.register_parser(sub_parsers, base_subparser)
+        LoadFivetranTask.register_parser(sub_parsers, base_subparser)
         cls.arg_parser = ext_subparser
         return ext_subparser
