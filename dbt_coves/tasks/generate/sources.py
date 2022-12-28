@@ -39,10 +39,15 @@ class GenerateSourcesTask(BaseGenerateTask):
             "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
-            "--relations",
+            "--select",
             type=str,
             help="Comma separated list of relations where raw data resides, "
             "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
+        )
+        subparser.add_argument(
+            "--exclude",
+            type=str,
+            help="Filter relation(s) to exclude from source file(s) generation",
         )
         subparser.add_argument(
             "--sources-destination",

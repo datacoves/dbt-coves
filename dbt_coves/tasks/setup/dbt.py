@@ -9,8 +9,8 @@ from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.jinja import render_template
 from dbt_coves.utils.shell import run_and_capture_cwd
-from .utils import print_row, file_exists
 
+from .utils import file_exists, print_row
 
 console = Console()
 
@@ -60,7 +60,7 @@ class SetupDbtTask(NonDbtBaseTask):
 
         output = run_and_capture_cwd(["dbt", "debug"], dbt_project_yaml_path.parent)
 
-        if output.returncode is 0:
+        if output.returncode == 0:
             debug_status = "[green]SUCCESS :heavy_check_mark:[/green]"
         print_row(
             "dbt debug",
@@ -93,7 +93,7 @@ class SetupDbtTask(NonDbtBaseTask):
                 new_section=True,
             )
             output = run_and_capture_cwd(["dbt", "init"], dbt_project_yaml_path.parent)
-        if output.returncode is 0:
+        if output.returncode == 0:
             init_status = "[green]SUCCESS :heavy_check_mark:[/green]"
             print_row(
                 "dbt init",
@@ -116,7 +116,7 @@ class SetupDbtTask(NonDbtBaseTask):
         if dbt_project_yaml_path.exists():
             output = run_and_capture_cwd(["dbt", "deps"], dbt_project_yaml_path.parent)
 
-            if output.returncode is 0:
+            if output.returncode == 0:
                 deps_status = "[green]SUCCESS :heavy_check_mark:[/green]"
             print_row(
                 "dbt deps",

@@ -140,6 +140,16 @@ dbt-coves generate sources -h
 # Schema to inspect
 ```
 
+```shell
+--select
+# List of relations where raw data resides
+```
+
+```shell
+--exclude
+# Filter relation(s) to exclude from source file(s) generation
+```
+
 ```console
 --sources-destination
 # Where sources yml files will be generated, default: 'models/staging/{{schema}}/sources.yml'
@@ -401,6 +411,8 @@ generate:
     database: RAW # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
+    select: 'TABLE_1,TABLE_2' # Comma separated list of relations where raw data resides
+    exclude: 'TABLE_3,TABLE_4' # Filter relation(s) to exclude from source file(s) generation
     sources_destination: "models/staging/{{schema}}/{{schema}}.yml" # Where sources yml files will be generated
     models_destination: "models/staging/{{schema}}/{{relation}}.sql" # Where models sql files will be generated
     model_props_destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated

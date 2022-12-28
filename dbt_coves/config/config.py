@@ -24,8 +24,9 @@ class GeneratePropertiesModel(BaseModel):
 
 class GenerateSourcesModel(BaseModel):
     database: Optional[str] = ""
-    relations: Optional[List[str]] = [""]
+    select: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = [""]
+    exclude: Optional[List[str]]  = []
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
     model_props_destination: Optional[
@@ -135,7 +136,8 @@ class DbtCovesConfig:
         "generate.properties.select",
         "generate.properties.exclude",
         "generate.properties.selector",
-        "generate.sources.relations",
+        "generate.sources.select",
+        "generate.sources.exclude",
         "generate.sources.database",
         "generate.sources.schemas",
         "generate.sources.sources_destination",

@@ -76,8 +76,13 @@ class BaseGenerateTask(BaseConfiguredTask):
 
     def get_relations(self, filtered_schemas):
         rel_name_selectors = [
-            relation for relation in self.get_config_value("relations")
+            relation for relation in self.get_config_value("select")
         ]
+
+        rel_excludes = [
+            relation for relation in self.get_config_value("exclude")
+        ]
+
         rel_wildcard_selectors = []
         for rel_name in rel_name_selectors:
             if "*" in rel_name:
@@ -93,11 +98,25 @@ class BaseGenerateTask(BaseConfiguredTask):
                     rel_name_selectors.append(rel.name)
                     break
 
+        excluded = []
+        for rel in listed_relations:
+            for selector in rel_excludes:
+                if re.search(selector, rel.name):
+                    excluded.append(rel.name)
+                    break
+
+        listed_relations = [
+            relation
+            for relation in listed_relations
+            if relation.name not in excluded
+        ]
+
         intersected_rels = [
             relation
             for relation in listed_relations
             if relation.name in rel_name_selectors
         ]
+
         rels = (
             intersected_rels
             if rel_name_selectors and rel_name_selectors[0]
