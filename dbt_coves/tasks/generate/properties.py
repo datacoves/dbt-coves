@@ -38,12 +38,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "sources generation templates, i.e. 'templates'",
         )
         subparser.add_argument(
-            "--model-props-strategy",
-            type=str,
-            help="Strategy for model properties file generation,"
-            " i.e. 'one_file_per_model'",
-        )
-        subparser.add_argument(
             "--metadata",
             type=str,
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
@@ -128,7 +122,6 @@ class GeneratePropertiesTask(BaseGenerateTask):
         return list(manifest_data)
 
     def load_manifest_nodes(self):
-
         path_pattern = f"{self.config.project_root}/**/manifest.json"
         manifest_path = glob.glob(path_pattern)[0]
 
