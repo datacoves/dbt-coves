@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: test_model
-    description: ''
+    description: ""
     columns:
       - name: json_value_1
         description: "TEST OF JSON VALUE 1 FLATTENED"

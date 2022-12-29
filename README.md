@@ -340,7 +340,7 @@ account_name: # Any name, used by dbt-coves to ask which to use when more than o
 
 This YML file approach allows you to both work with multiple Fivetran accounts, and treat this credentials file as a secret.
 
->:warning: **Warning**: --api-key/secret and --credentials flags are mutually exclusive, don't use them together.
+> :warning: **Warning**: --api-key/secret and --credentials flags are mutually exclusive, don't use them together.
 
 ### Loading secrets
 
@@ -349,6 +349,7 @@ Secret credentials can be approached via `--secrets-path` flag
 ```console
 dbt-coves load fivetran --secrets-path /path/to/secret/directory
 ```
+
 #### Field naming convention
 
 Although secret files can have any name, unencrypted JSON files must follow a simple structure:
@@ -360,15 +361,15 @@ For example:
 
 ```json
 {
-    "extract_muscle": { // Internal ID that Fivetran gave to a Snowflake warehouse Destination
-        "password": "[PASSWORD]" // Field:Value pair
-    },
-    "centre_straighten": {
-        "password": "[PASSWORD]"
-    }
+  "extract_muscle": {
+    // Internal ID that Fivetran gave to a Snowflake warehouse Destination
+    "password": "[PASSWORD]" // Field:Value pair
+  },
+  "centre_straighten": {
+    "password": "[PASSWORD]"
+  }
 }
 ```
-
 
 ## Run dbt commands
 
@@ -411,8 +412,8 @@ generate:
     database: RAW # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
-    select: 'TABLE_1,TABLE_2' # Comma separated list of relations where raw data resides
-    exclude: 'TABLE_3,TABLE_4' # Filter relation(s) to exclude from source file(s) generation
+    select: "TABLE_1,TABLE_2" # Comma separated list of relations where raw data resides
+    exclude: "TABLE_3,TABLE_4" # Filter relation(s) to exclude from source file(s) generation
     sources_destination: "models/staging/{{schema}}/{{schema}}.yml" # Where sources yml files will be generated
     models_destination: "models/staging/{{schema}}/{{relation}}.sql" # Where models sql files will be generated
     model_props_destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
@@ -438,7 +439,7 @@ extract:
     path: /config/workspace/load/airbyte # Where json files will be generated
     host: http://airbyte-server # Airbyte's API hostname
     port: 8001 # Airbyte's API port
-  fivetran: 
+  fivetran:
     path: /config/workspace/load/fivetran
     api_key: [KEY]
     api_secret: [SECRET]
@@ -459,7 +460,6 @@ load:
     api_secret: [SECRET]
     secrets_path: /config/workspace/secrets/fivetran
     credentials: /opt/fivetran_credentials.yml
-
 ```
 
 ## Override generation templates

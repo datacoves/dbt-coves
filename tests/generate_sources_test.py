@@ -8,15 +8,12 @@ import subprocess
 from glob import glob
 
 import pytest
-
 # Redshift
 import redshift_connector
-
 # Snowflake
 import snowflake.connector
 import yaml
 from dotenv import load_dotenv
-
 # Bigquery
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -72,18 +69,14 @@ def get_connector_redshift(host, user, password, database):
 def get_client_bigquery(sa_key, project_id):
     # Generate SA credentials file
     with open(
-        pathlib.Path(
-            os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"
-        ),
+        pathlib.Path(os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"),
         "w",
     ) as f:
         f.write(sa_key)
 
     # Get BigQuery Client
     credentials = service_account.Credentials.from_service_account_file(
-        pathlib.Path(
-            os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"
-        ),
+        pathlib.Path(os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"),
         scopes=["https://www.googleapis.com/auth/cloud-platform"],
     )
 
@@ -140,9 +133,7 @@ def get_cases(path_dir):
 
 # Check case folders
 cases_list = get_cases(
-    pathlib.Path(
-        os.path.dirname(pathlib.Path(__file__).absolute()), "generate_sources_cases"
-    )
+    pathlib.Path(os.path.dirname(pathlib.Path(__file__).absolute()), "generate_sources_cases")
 )
 
 # Generate data tests
@@ -262,9 +253,7 @@ def test_generate_data(input):
         client = get_client_bigquery(sa_key, project_id)
 
         # Generate data
-        query_job = client.query(
-            f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;"
-        )
+        query_job = client.query(f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;")
         query_job.result()
         assert query_job.errors == None
         with open(input["create_model_sql_file"], "r") as sql_file:
@@ -342,9 +331,7 @@ def test_generate_sources(input):
     ]
 
     # Execute CLI command and interact with it
-    process = subprocess.run(
-        args=command, input="\n\x1B[B\x1B[B\x1B[B\n", encoding="utf-8"
-    )
+    process = subprocess.run(args=command, input="\n\x1B[B\x1B[B\x1B[B\n", encoding="utf-8")
 
     assert process.returncode == 0
     assert os.path.isdir(pathlib.Path(input["output_dir"], "models")) == True
@@ -479,9 +466,7 @@ def test_check_models(input, expected):
     with open(pathlib.Path(expected["source_model"]), "r") as file_2:
         source_model_expected = file_2.readlines()
 
-    diff_files = set(source_model_output).symmetric_difference(
-        set(source_model_expected)
-    )
+    diff_files = set(source_model_output).symmetric_difference(set(source_model_expected))
 
     assert len(list(diff_files)) == 0
 

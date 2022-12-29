@@ -134,19 +134,15 @@ class ExtractAirbyteTask(BaseExtractTask):
         for destination in self.airbyte_api.airbyte_destinations_list:
             if destination["destinationId"] == destinationId:
                 # Grab Source definition ID
-                destination_definition = (
-                    self._get_airbyte_destination_definition_from_id(
-                        destination["destinationDefinitionId"]
-                    )
+                destination_definition = self._get_airbyte_destination_definition_from_id(
+                    destination["destinationDefinitionId"]
                 )
                 # Get Secret fields for source definition
                 airbyte_secret_fields = self._get_airbyte_secret_fields_for_definition(
                     destination_definition
                 )
                 # Ensure all airbyte_secret fields are effectively hidden
-                destination[
-                    "connectionConfiguration"
-                ] = self._hide_configuration_secret_fields(
+                destination["connectionConfiguration"] = self._hide_configuration_secret_fields(
                     destination["connectionConfiguration"], airbyte_secret_fields
                 )
 
@@ -166,9 +162,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         for definition in definitions_list:
             if definition[lookup_field] == definition_id:
                 return definition["dockerImageTag"]
-        raise AirbyteExtractorException(
-            f"No connector definition found for ID {definition_id}"
-        )
+        raise AirbyteExtractorException(f"No connector definition found for ID {definition_id}")
 
     def _get_airbyte_source_definition_from_id(self, definition_id):
         req_body = {
@@ -179,9 +173,7 @@ class ExtractAirbyteTask(BaseExtractTask):
             self.airbyte_api.airbyte_endpoint_get_source_definition, req_body
         )
 
-    def _hide_configuration_secret_fields(
-        self, connection_configuration, airbyte_secret_fields
-    ):
+    def _hide_configuration_secret_fields(self, connection_configuration, airbyte_secret_fields):
         for k, v in connection_configuration.items():
             if isinstance(v, dict):
                 self._hide_configuration_secret_fields(v, airbyte_secret_fields)
@@ -198,10 +190,7 @@ class ExtractAirbyteTask(BaseExtractTask):
                     self._get_airbyte_secret_fields_for_definition(v, k, secret_fields)
                 else:
                     if "airbyte_secret" in str(k):
-                        if (
-                            bool(definition["airbyte_secret"])
-                            and dict_name not in secret_fields
-                        ):
+                        if bool(definition["airbyte_secret"]) and dict_name not in secret_fields:
                             secret_fields.append(dict_name)
             return secret_fields
         except KeyError as e:
@@ -225,9 +214,7 @@ class ExtractAirbyteTask(BaseExtractTask):
                     source_definition
                 )
                 # Ensure all airbyte_secret fields are effectively hidden
-                source[
-                    "connectionConfiguration"
-                ] = self._hide_configuration_secret_fields(
+                source["connectionConfiguration"] = self._hide_configuration_secret_fields(
                     source["connectionConfiguration"], airbyte_secret_fields
                 )
 
@@ -254,9 +241,9 @@ class ExtractAirbyteTask(BaseExtractTask):
         connection = copy(connection)
         connection.pop("connectionId")
 
-        connection_source_name = self._get_airbyte_source_from_id(
-            connection["sourceId"]
-        )["name"].lower()
+        connection_source_name = self._get_airbyte_source_from_id(connection["sourceId"])[
+            "name"
+        ].lower()
         connection_destination_name = self._get_airbyte_destination_from_id(
             connection["destinationId"]
         )["name"].lower()

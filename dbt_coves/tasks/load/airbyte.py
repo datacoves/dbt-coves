@@ -55,9 +55,7 @@ class LoadAirbyteTask(BaseLoadTask):
             type=str,
             help="Secret credentials provider, i.e. 'datacoves'",
         )
-        subparser.add_argument(
-            "--secrets-url", type=str, help="Secret credentials provider url"
-        )
+        subparser.add_argument("--secrets-url", type=str, help="Secret credentials provider url")
         subparser.add_argument(
             "--secrets-token", type=str, help="Secret credentials provider token"
         )
@@ -71,9 +69,7 @@ class LoadAirbyteTask(BaseLoadTask):
 
     def _load_secret_data(self) -> dict:
         # Contact the manager and retrieve Service Credentials
-        secrets_url = os.getenv("DBT_COVES_SECRETS_URL") or self.get_config_value(
-            "secrets_url"
-        )
+        secrets_url = os.getenv("DBT_COVES_SECRETS_URL") or self.get_config_value("secrets_url")
         secrets_token = os.getenv("DBT_COVES_SECRETS_TOKEN") or self.get_config_value(
             "secrets_token"
         )
@@ -125,22 +121,16 @@ class LoadAirbyteTask(BaseLoadTask):
 
         self.airbyte_api_caller = AirbyteApiCaller(self.airbyte_host, self.airbyte_port)
 
-        console.print(
-            f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n"
-        )
+        console.print(f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n")
 
         # Load all exported
-        extracted_sources = self.retrieve_all_jsons_from_path(
-            self.sources_load_destination
-        )
+        extracted_sources = self.retrieve_all_jsons_from_path(self.sources_load_destination)
         # Create/update sources
         extracted_destinations = self.retrieve_all_jsons_from_path(
             self.destinations_load_destination
         )
         # Create/update destinations
-        extracted_connections = self.retrieve_all_jsons_from_path(
-            self.connections_load_destination
-        )
+        extracted_connections = self.retrieve_all_jsons_from_path(self.connections_load_destination)
         for source in extracted_sources:
             self._create_or_update_source(source)
         for destination in extracted_destinations:
@@ -170,24 +160,18 @@ Updated: {self.loading_results['connections']['updated']}
         return [source.lower().replace("_airbyte_raw_", "") for source in sources_list]
 
     def _get_conn_json_for_source(self, table_name):
-        for json_file in self._retrieve_all_jsons_from_path(
-            self.connections_load_destination
-        ):
+        for json_file in self._retrieve_all_jsons_from_path(self.connections_load_destination):
             for stream in json_file["syncCatalog"]["streams"]:
                 if stream["config"]["aliasName"].lower() == table_name:
                     return json_file
 
     def _get_src_json_by_source_name(self, source_name):
-        for json_file in self._retrieve_all_jsons_from_path(
-            self.sources_load_destination
-        ):
+        for json_file in self._retrieve_all_jsons_from_path(self.sources_load_destination):
             if json_file["name"].lower() == source_name:
                 return json_file
 
     def _get_dest_json_by_destination_name(self, destination_name):
-        for json_file in self._retrieve_all_jsons_from_path(
-            self.destinations_load_destination
-        ):
+        for json_file in self._retrieve_all_jsons_from_path(self.destinations_load_destination):
             if json_file["name"].lower() == destination_name:
                 return json_file
 
@@ -314,18 +298,16 @@ Updated: {self.loading_results['connections']['updated']}
         # Grab password from secret
         exported_json_data = self._get_secrets(exported_json_data, "sources")
         exported_json_data["workspaceId"] = self.airbyte_api_caller.airbyte_workspace_id
-        exported_json_data[
-            "sourceDefinitionId"
-        ] = self._get_source_definition_id_by_name(exported_json_data.pop("sourceName"))
+        exported_json_data["sourceDefinitionId"] = self._get_source_definition_id_by_name(
+            exported_json_data.pop("sourceName")
+        )
         try:
             response = self.airbyte_api_caller.api_call(
                 self.airbyte_api_caller.airbyte_endpoint_create_sources,
                 exported_json_data,
             )
             self.airbyte_api_caller.airbyte_sources_list.append(response)
-            self.loading_results["sources"]["created"].append(
-                exported_json_data["name"]
-            )
+            self.loading_results["sources"]["created"].append(exported_json_data["name"])
             return response["sourceId"]
 
         except AirbyteApiCallerException as e:
@@ -407,9 +389,7 @@ Updated: {self.loading_results['connections']['updated']}
         exported_json_data.pop("connectorVersion")
         exported_json_data = self._get_secrets(exported_json_data, "destinations")
         exported_json_data["workspaceId"] = self.airbyte_api_caller.airbyte_workspace_id
-        exported_json_data[
-            "destinationDefinitionId"
-        ] = self._get_destination_definition_id_by_name(
+        exported_json_data["destinationDefinitionId"] = self._get_destination_definition_id_by_name(
             exported_json_data.pop("destinationName")
         )
         try:
@@ -419,9 +399,7 @@ Updated: {self.loading_results['connections']['updated']}
                 exported_json_data,
             )
             self.airbyte_api_caller.airbyte_destinations_list.append(response)
-            self.loading_results["destinations"]["created"].append(
-                exported_json_data["name"]
-            )
+            self.loading_results["destinations"]["created"].append(exported_json_data["name"])
             return response["destinationId"]
         except:
             raise AirbyteApiCallerException("Could not create Airbyte destination")
@@ -451,16 +429,16 @@ Updated: {self.loading_results['connections']['updated']}
 
         for destination in self.airbyte_api_caller.airbyte_destinations_list:
             if exported_json_data["name"] == destination["name"]:
-                return self._update_destination(
-                    exported_json_data, destination["destinationId"]
-                )
+                return self._update_destination(exported_json_data, destination["destinationId"])
 
         return self._create_destination(exported_json_data)
 
     def _create_connection(self, exported_json_data, source_id, destination_id):
         exported_json_data["sourceId"] = source_id
         exported_json_data["destinationId"] = destination_id
-        connection_name = f"{exported_json_data['sourceName']}-{exported_json_data['destinationName']}"
+        connection_name = (
+            f"{exported_json_data['sourceName']}-{exported_json_data['destinationName']}"
+        )
         # The custom fields `sourceName` and `destinationName` (created by dbt-coves extract) must be popped (Airbyte's API responds they are unrecognized)
         exported_json_data.pop("sourceName")
         exported_json_data.pop("destinationName")
@@ -486,9 +464,7 @@ Updated: {self.loading_results['connections']['updated']}
                 conn_delete_req_body,
             )
         except:
-            raise AirbyteLoaderException(
-                "Could not delete Airbyte connection for re-creation"
-            )
+            raise AirbyteLoaderException("Could not delete Airbyte connection for re-creation")
 
     def _get_connection_id_by_table_name(self, table_name):
         """
@@ -537,15 +513,11 @@ Updated: {self.loading_results['connections']['updated']}
         if connection_id:
             # Connection update
             self._delete_connection(connection_id)
-            conn_name = self._create_connection(
-                connection_json, source_id, destination_id
-            )
+            conn_name = self._create_connection(connection_json, source_id, destination_id)
             self._add_update_result("connections", conn_name)
         else:
             # Connection creation
-            conn_name = self._create_connection(
-                connection_json, source_id, destination_id
-            )
+            conn_name = self._create_connection(connection_json, source_id, destination_id)
             self.loading_results["connections"]["created"].append(conn_name)
 
     # def _create_or_update_connection(
@@ -586,10 +558,7 @@ Updated: {self.loading_results['connections']['updated']}
                 exported_json_data["destinationName"]
             )
 
-        if (
-            exported_json_data["connectorVersion"]
-            != object_definition["dockerImageTag"]
-        ):
+        if exported_json_data["connectorVersion"] != object_definition["dockerImageTag"]:
             console.print(
                 f"""[red]WARNING:[/red] Current Airbyte [b]{object_definition['name']}[/b] {object_type} connector version \
 [b]({object_definition['dockerImageTag']})[/b] doesn't match exported [b]{exported_json_data['name']}[/b] \

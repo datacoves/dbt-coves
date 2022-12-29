@@ -41,9 +41,7 @@ class SetupDbtTask(NonDbtBaseTask):
     @classmethod
     def get_config_folder(cls, mandatory=True):
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
-        return DbtCovesConfig.get_config_folder(
-            workspace_path=workspace_path, mandatory=mandatory
-        )
+        return DbtCovesConfig.get_config_folder(workspace_path=workspace_path, mandatory=mandatory)
 
     @classmethod
     def dbt_debug(cls, config_folder=None):
@@ -84,9 +82,7 @@ class SetupDbtTask(NonDbtBaseTask):
             output = run_and_capture_cwd(["dbt", "init"], Path.cwd())
 
         else:
-            init_status = (
-                "[green]FOUND :heavy_check_mark:[/green] project already exists"
-            )
+            init_status = "[green]FOUND :heavy_check_mark:[/green] project already exists"
             print_row(
                 "dbt init",
                 init_status,
@@ -126,9 +122,7 @@ class SetupDbtTask(NonDbtBaseTask):
             if output.returncode > 0:
                 raise Exception("dbt deps error. Check logs.")
         else:
-            deps_status = (
-                "[green]FOUND :heavy_check_mark:[/green] dbt project not found"
-            )
+            deps_status = "[green]FOUND :heavy_check_mark:[/green] dbt project not found"
             print_row(
                 "dbt deps",
                 deps_status,

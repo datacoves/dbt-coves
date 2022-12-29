@@ -18,8 +18,7 @@ API_ENDPOINTS = {
     "GROUP_CREATE": FIVETRAN_API_BASE_URL + "/groups/",
     "DESTINATION_LIST": FIVETRAN_API_BASE_URL + "/groups",
     "DESTINATION_DETAILS": FIVETRAN_API_BASE_URL + "/destinations/{destination}",
-    "CONNECTOR_DESTINATION_LIST": FIVETRAN_API_BASE_URL
-    + "/groups/{destination}/connectors",
+    "CONNECTOR_DESTINATION_LIST": FIVETRAN_API_BASE_URL + "/groups/{destination}/connectors",
     "CONNECTOR_DETAILS": FIVETRAN_API_BASE_URL + "/connectors/{connector}",
     "CONNECTOR_SCHEMAS": FIVETRAN_API_BASE_URL + "/connectors/{connector}/schemas",
 }
@@ -137,9 +136,7 @@ class LoadFivetranTask(BaseLoadTask):
                 if target_group_id != exported_group_id:
                     self._update_group_id(fivetran_destination, target_group_id)
 
-                self._update_or_create_fivetran_destination(
-                    fivetran_destination, target_group_id
-                )
+                self._update_or_create_fivetran_destination(fivetran_destination, target_group_id)
 
         if (
             len(self.load_results["destinations"]["updated"]) > 0
@@ -173,9 +170,9 @@ class LoadFivetranTask(BaseLoadTask):
 
     def _update_fivetran_destination(self, destination_details):
         destination_id = destination_details["id"]
-        destination_name = self.fivetran_api.fivetran_groups[
-            destination_details["group_id"]
-        ]["name"]
+        destination_name = self.fivetran_api.fivetran_groups[destination_details["group_id"]][
+            "name"
+        ]
         updated_destination = self.fivetran_api.update_destination(
             destination_id, destination_details
         )
@@ -186,17 +183,15 @@ class LoadFivetranTask(BaseLoadTask):
         created_destination = {}
         del destination_details["id"]
         created_destination = self.fivetran_api.create_destination(destination_details)
-        destination_name = self.fivetran_api.fivetran_groups[
-            created_destination["group_id"]
-        ]["name"]
+        destination_name = self.fivetran_api.fivetran_groups[created_destination["group_id"]][
+            "name"
+        ]
         self.load_results["destinations"]["created"].add(destination_name)
         return created_destination
 
     def _update_fivetran_connector(self, connector_details):
         connector_id = connector_details["id"]
-        updated_connector = self.fivetran_api.update_connector(
-            connector_id, connector_details
-        )
+        updated_connector = self.fivetran_api.update_connector(connector_id, connector_details)
         connector_schema = updated_connector["schema"]
         self.load_results["connectors"]["updated"].add(connector_schema)
         return updated_connector
@@ -234,9 +229,7 @@ class LoadFivetranTask(BaseLoadTask):
                         for k, v in secret_data.items():
                             self._replace_dict_key(object_details, k, v)
 
-    def _update_or_create_fivetran_destination(
-        self, exported_destination, target_group_id
-    ):
+    def _update_or_create_fivetran_destination(self, exported_destination, target_group_id):
         """
         Given exported destination data
         - update if ID exists
@@ -266,25 +259,17 @@ class LoadFivetranTask(BaseLoadTask):
             if current_destination and self._exported_connector_exists_in_destination(
                 exported_connector_details, current_destination
             ):
-                target_connector = self._update_fivetran_connector(
-                    exported_connector_details
-                )
+                target_connector = self._update_fivetran_connector(exported_connector_details)
             else:
-                target_connector = self._create_fivetran_connector(
-                    exported_connector_details
-                )
+                target_connector = self._create_fivetran_connector(exported_connector_details)
 
             exported_schemas = exported_connector.get("schemas", {})
             if exported_schemas:
-                self._update_target_connector_schema_config(
-                    target_connector, exported_schemas
-                )
+                self._update_target_connector_schema_config(target_connector, exported_schemas)
 
     def _fill_required_config_fields(self, connector_details, group_name):
         service_type = connector_details["service"]
-        required_config_fields = self.fivetran_api.get_service_required_fields(
-            service_type
-        )
+        required_config_fields = self.fivetran_api.get_service_required_fields(service_type)
         for field in required_config_fields:
             if not connector_details["config"].get(field):
                 connector_details["config"][field] = questionary.text(
@@ -292,9 +277,7 @@ class LoadFivetranTask(BaseLoadTask):
                     f"Connector {connector_details['schema']} in Destination {group_name}:"
                 ).ask()
 
-    def _exported_connector_exists_in_destination(
-        self, exported_connector, existent_destination
-    ):
+    def _exported_connector_exists_in_destination(self, exported_connector, existent_destination):
         exported_connector_name = exported_connector["schema"]
         for existent_connector in existent_destination.get("connectors", {}).values():
             if existent_connector["details"]["schema"] == exported_connector_name:
@@ -328,9 +311,7 @@ class LoadFivetranTask(BaseLoadTask):
             if service_type == group_data["service"]:
                 group_candidates_ids.add(existent_group_id)
 
-        console.print(
-            f"Extracted Fivetran group with ID [red]{group_id}[/red] not found."
-        )
+        console.print(f"Extracted Fivetran group with ID [red]{group_id}[/red] not found.")
 
         # Path 2: get destination with the same Service type
         if group_candidates_ids:

@@ -136,34 +136,24 @@ class DbtCovesFlags:
                         relation.strip() for relation in self.args.select.split(",")
                     ]
                 if self.args.sources_destination:
-                    self.generate["sources"][
-                        "sources_destination"
-                    ] = self.args.sources_destination
+                    self.generate["sources"]["sources_destination"] = self.args.sources_destination
                 if self.args.models_destination:
-                    self.generate["sources"][
-                        "models_destination"
-                    ] = self.args.models_destination
+                    self.generate["sources"]["models_destination"] = self.args.models_destination
                 if self.args.model_props_destination:
                     self.generate["sources"][
                         "model_props_destination"
                     ] = self.args.model_props_destination
                 if self.args.update_strategy:
-                    self.generate["sources"][
-                        "update_strategy"
-                    ] = self.args.update_strategy
+                    self.generate["sources"]["update_strategy"] = self.args.update_strategy
                 if self.args.templates_folder:
-                    self.generate["sources"][
-                        "templates_folder"
-                    ] = self.args.templates_folder
+                    self.generate["sources"]["templates_folder"] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
                 if self.args.exclude:
                     self.generate["sources"]["exclude"] = self.args.exclude.split(",")
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
-                    self.generate["properties"][
-                        "templates_folder"
-                    ] = self.args.templates_folder
+                    self.generate["properties"]["templates_folder"] = self.args.templates_folder
                 if self.args.model_props_strategy:
                     self.generate["properties"][
                         "model_props_strategy"
@@ -177,9 +167,7 @@ class DbtCovesFlags:
                 if self.args.destination:
                     self.generate["properties"]["destination"] = self.args.destination
                 if self.args.update_strategy:
-                    self.generate["sources"][
-                        "update_strategy"
-                    ] = self.args.update_strategy
+                    self.generate["sources"]["update_strategy"] = self.args.update_strategy
                 if self.args.select:
                     self.generate["properties"]["select"] = self.args.select
                 if self.args.exclude:
@@ -251,15 +239,11 @@ class DbtCovesFlags:
                     self.extract["fivetran"]["credentials"] = self.args.credentials
             if self.args.cls.__name__ == "SetupAllTask":
                 if self.args.open_ssl_public_key:
-                    self.setup["all"][
-                        "open_ssl_public_key"
-                    ] = self.args.open_ssl_public_key
+                    self.setup["all"]["open_ssl_public_key"] = self.args.open_ssl_public_key
 
             if self.args.cls.__name__ == "SetupSSHTask":
                 if self.args.open_ssl_public_key:
-                    self.setup["ssh"][
-                        "open_ssl_public_key"
-                    ] = self.args.open_ssl_public_key
+                    self.setup["ssh"]["open_ssl_public_key"] = self.args.open_ssl_public_key
 
             if self.args.cls.__name__ == "SetupGitTask":
                 if self.args.no_prompt:

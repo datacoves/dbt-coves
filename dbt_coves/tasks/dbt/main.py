@@ -101,9 +101,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             # conflicts with trailing / at later concatenation
             env_path = Path(os.environ.get(virtualenv, virtualenv))
         if env_path and env_path.exists():
-            cmd_list = shlex.split(
-                f"/bin/bash -c 'source {env_path}/bin/activate && {command}'"
-            )
+            cmd_list = shlex.split(f"/bin/bash -c 'source {env_path}/bin/activate && {command}'")
         else:
             cmd_list = shlex.split(command)
 

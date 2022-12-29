@@ -26,12 +26,10 @@ class GenerateSourcesModel(BaseModel):
     database: Optional[str] = ""
     select: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = [""]
-    exclude: Optional[List[str]]  = []
+    exclude: Optional[List[str]] = []
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
-    model_props_destination: Optional[
-        str
-    ] = "models/staging/{{schema}}/{{relation}}.yml"
+    model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
     update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
@@ -201,11 +199,7 @@ class DbtCovesConfig:
             source = self._flags
             for item in path_items[:-1]:
                 target = target[item]
-                source = (
-                    source.get(item, {})
-                    if type(source) == dict
-                    else getattr(source, item)
-                )
+                source = source.get(item, {}) if type(source) == dict else getattr(source, item)
             key = path_items[-1]
             if source.get(key):
                 target[key] = source[key]

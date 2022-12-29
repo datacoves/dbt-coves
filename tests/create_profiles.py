@@ -1,16 +1,19 @@
 # Generation of profiles and dbt projects for testing
 
 # Imports
-from jinja2 import Template
 import os
 import pathlib
-from dotenv import load_dotenv
 from glob import glob
+
 import yaml
+from dotenv import load_dotenv
+from jinja2 import Template
+
 
 # Jinja functions
 def env_var(key):
     return os.getenv(key)
+
 
 # Path service account key
 os.environ["SERVICE_ACCOUNT_GCP_PATH"] = os.path.join(

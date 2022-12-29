@@ -71,10 +71,7 @@ class GenerateMetadataTask(BaseGenerateTask):
     def select_relations(self, rels):
         selected_rels = questionary.checkbox(
             "Which metadata files would you like to generate?",
-            choices=[
-                Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel)
-                for rel in rels
-            ],
+            choices=[Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels],
         ).ask()
 
         return selected_rels
@@ -119,9 +116,7 @@ class GenerateMetadataTask(BaseGenerateTask):
 
         return results
 
-    def generate_or_append_metadata(
-        self, relation, destination, options, action, existing_rows
-    ):
+    def generate_or_append_metadata(self, relation, destination, options, action, existing_rows):
         destination.parent.mkdir(parents=True, exist_ok=True)
         if action == "append":
             python_fs_action = "a"
@@ -168,9 +163,7 @@ class GenerateMetadataTask(BaseGenerateTask):
                     nested_key_names = list(json.loads(value[0]).keys())
                     result[json_col] = {}
                     for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(
-                            key_name
-                        )
+                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
                 except TypeError:
                     console.print(
                         f"Column {json_col} in relation {relation.name} contains invalid JSON.\n"
@@ -236,9 +229,7 @@ class GenerateMetadataTask(BaseGenerateTask):
             else:
                 action = "create"
 
-            self.generate_or_append_metadata(
-                rel, csv_path, options, action, existing_rows
-            )
+            self.generate_or_append_metadata(rel, csv_path, options, action, existing_rows)
             self.metadata_files_processed.add(csv_path)
 
     def run(self):
