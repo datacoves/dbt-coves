@@ -53,7 +53,8 @@ base_subparser.add_argument(
 
 base_subparser.add_argument(
     "--config-path",
-    help="Full path to .dbt_coves.yml file if not using default. Default is current working directory.",
+    help="""Full path to .dbt_coves.yml file if not using default.
+    Default is current working directory.""",
 )
 
 base_subparser.add_argument(

@@ -1,7 +1,6 @@
 from __future__ import nested_scopes
 
 import json
-import re
 from pathlib import Path
 
 import questionary
@@ -283,7 +282,8 @@ class GenerateSourcesTask(BaseGenerateTask):
         else:
             config_db = ""
         _, data = self.adapter.execute(
-            f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} limit 1",
+            f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} \
+                limit 1",
             fetch=True,
         )
         result = dict()
@@ -331,7 +331,6 @@ class GenerateSourcesTask(BaseGenerateTask):
 
         # initiate connection
         with self.adapter.connection_named("master"):
-
             filtered_schemas = self.get_schemas()
             if not filtered_schemas:
                 return 0

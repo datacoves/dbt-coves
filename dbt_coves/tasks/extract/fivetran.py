@@ -61,14 +61,14 @@ class ExtractFivetranTask(BaseExtractTask):
 
         if api_credentials_path and (self.api_key or self.api_secret):
             raise FivetranExtractorException(
-                f"Flags 'credentials' and 'api key/secret' ones are mutually exclusive."
+                "Flags 'credentials' and 'api key/secret' ones are mutually exclusive."
             )
         if not extract_destination or not (
             (self.api_key and self.api_secret) or api_credentials_path
         ):
             raise FivetranExtractorException(
-                f"Couldn't start extraction: one (or more) of the following arguments is missing: "
-                f"'path', 'api-key', 'api-secret', 'credentials'"
+                "Couldn't start extraction: one (or more) of the following arguments is missing: "
+                "'path', 'api-key', 'api-secret', 'credentials'"
             )
 
         if api_credentials_path:
@@ -99,7 +99,7 @@ class ExtractFivetranTask(BaseExtractTask):
                 f"[u]Extracted[/u]: {self.extraction_results}\n"
             )
         else:
-            console.print(f"No Fivetran Connections were extracted")
+            console.print("No Fivetran Connections were extracted")
         return 0
 
     def _connect_to_api_using_credentials_file(self, credentials_path):

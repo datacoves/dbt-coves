@@ -1,5 +1,3 @@
-from shutil import copytree
-
 from rich.console import Console
 
 from dbt_coves.tasks.base import BaseConfiguredTask

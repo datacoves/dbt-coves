@@ -142,7 +142,8 @@ class GenerateMetadataTask(BaseGenerateTask):
                 else:
                     writer.writerow(csvdict)
         console.print(
-            f"[green]{relation.name}[/green] metadata written to [green]{destination.absolute()}[/green]"
+            f"[green]{relation.name}[/green] metadata written to "
+            f"[green]{destination.absolute()}[/green]"
         )
 
     def get_nested_keys(self, json_cols, relation):
@@ -152,7 +153,8 @@ class GenerateMetadataTask(BaseGenerateTask):
         else:
             config_db = ""
         _, data = self.adapter.execute(
-            f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} limit 1",
+            f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} \
+                limit 1",
             fetch=True,
         )
         result = dict()

@@ -1,4 +1,3 @@
-import subprocess
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, Popen
 from subprocess import run as shell_run

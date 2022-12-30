@@ -28,13 +28,14 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser = sub_parsers.add_parser(
             "properties",
             parents=[base_subparser],
-            help="Generate dbt models property files by inspecting the database schemas and relations.",
+            help="""Generate dbt models property files by inspecting
+            database schemas and relations.""",
         )
         subparser.add_argument(
             "--templates-folder",
             type=str,
-            help="Folder with jinja templates that override default properties generation templates, i.e. 'templates' "
-            "sources generation templates, i.e. 'templates'",
+            help="""Folder with jinja templates that override default
+            properties generation templates, i.e. 'templates' """,
         )
         subparser.add_argument(
             "--metadata",
@@ -181,7 +182,8 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
             else:
                 console.print(
-                    f"Model [red]{schema}.{table}[/red] not materialized, did you execute [u][i]dbt run[/i][/u]?. "
+                    f"Model [red]{schema}.{table}[/red] not materialized, "
+                    "did you execute [u][i]dbt run[/i][/u]?. "
                 )
                 continue
 

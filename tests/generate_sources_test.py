@@ -8,12 +8,15 @@ import subprocess
 from glob import glob
 
 import pytest
+
 # Redshift
 import redshift_connector
+
 # Snowflake
 import snowflake.connector
 import yaml
 from dotenv import load_dotenv
+
 # Bigquery
 from google.cloud import bigquery
 from google.oauth2 import service_account
@@ -23,6 +26,7 @@ from jinja2 import Template
 load_dotenv()
 
 # Functions
+
 
 # Convert SQL to Jinja2 Template and replace function
 def source(schema, table):
@@ -155,7 +159,6 @@ for case in cases_list:
 
 @pytest.mark.parametrize("input", generate_data_cases)
 def test_generate_data(input):
-
     # Check adapter
     if input["adapter"] == "snowflake":
         # Check env vars
@@ -504,6 +507,7 @@ for case in cases_list:
         )
     )
 
+
 # Clear tests
 @pytest.mark.parametrize("input", cleanup_cases)
 def tests_cleanup(input):
@@ -529,7 +533,6 @@ def tests_cleanup(input):
         conn.commit()
         conn.close()
     elif input["adapter"] == "redshift":
-
         schema = input["settings"]["schema"]
         test_table = input["settings"]["table"]
         database = input["settings"]["database"]

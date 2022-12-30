@@ -57,12 +57,12 @@ class BaseGenerateTask(BaseConfiguredTask):
         if not filtered_schemas:
             schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
             console.print(
-                f"Provided {schema_nlg} [u]{', '.join(schema_name_selectors)}[/u] not found in Database.\n"
+                f"{schema_nlg} [u]{', '.join(schema_name_selectors)}[/u] not found in Database.\n"
             )
 
             filtered_schemas = self.select_schemas(schemas)
             if not filtered_schemas:
-                console.print(f"No schemas selected")
+                console.print("No schemas selected")
                 exit()
         return filtered_schemas
 
@@ -119,7 +119,8 @@ class BaseGenerateTask(BaseConfiguredTask):
         raise NotImplementedError()
 
     def get_metadata_map_key(self, row):
-        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}-{row['column'].lower()}-{row.get('key', '').lower()}"
+        map_key = f"{row['database'].lower()}-{row['schema'].lower()}-{row['relation'].lower()}\
+            -{row['column'].lower()}-{row.get('key', '').lower()}"
         return map_key
 
     def get_metadata_map_item(self, row):
@@ -141,7 +142,8 @@ class BaseGenerateTask(BaseConfiguredTask):
 
     def get_metadata(self):
         """
-        If metadata path is configured, returns a dictionary with column keys and their corresponding values.
+        If metadata path is configured, returns a dictionary with column keys
+        and their corresponding values.
         If metadata is already set, do not load again and return the existing value.
         """
         path = self.get_config_value("metadata")
@@ -162,7 +164,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                             ] = self.get_metadata_map_item(row)
                         except KeyError as e:
                             raise Exception(
-                                f"Key {e} not found in {path}. Please check this sample metadata file: https://raw.githubusercontent.com/datacoves/dbt-coves/main/sample_metadata.csv."
+                                f"Key {e} not found in {path}. Please check this sample metadata"
+                                "file: https://raw.githubusercontent.com/datacoves/dbt-coves/main/\
+                                    sample_metadata.csv."
                             )
             except FileNotFoundError as e:
                 raise Exception(f"Metadata file not found: {e}")
@@ -280,7 +284,8 @@ class BaseGenerateTask(BaseConfiguredTask):
                 ):
                     if update_strategy == "ask":
                         console.print(
-                            f"{resource_type} [yellow][b]{new_object_id}[/b][/yellow] already exists in [b][yellow]{yml_path}[/b][/yellow]."
+                            f"{resource_type} [yellow][b]{new_object_id}[/b][/yellow] "
+                            f"already exists in [b][yellow]{yml_path}[/b][/yellow]."
                         )
                         action = questionary.select(
                             "What would you like to do with it?",
@@ -376,7 +381,8 @@ class BaseGenerateTask(BaseConfiguredTask):
 
         # "{Model/Source} {name} created/recreated/updated on file {filepath}"
         console.print(
-            f"{resource_type.capitalize()} [green][b]{new_object.get('name')}[/b][/green] {action}d on file [green][b]{yml_path}[/b][/green]"
+            f"{resource_type.capitalize()} [green][b]{new_object.get('name')}[/b][/green] "
+            f"{action}d on file [green][b]{yml_path}[/b][/green]"
         )
 
         save_yaml(yml_path, current_yml)

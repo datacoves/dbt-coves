@@ -73,7 +73,9 @@ class SetupGitTask(NonDbtBaseTask):
                 email = os.environ.get("USER_EMAIL", "")
                 if not (name and email):
                     raise SetupGitException(
-                        f"[yellow]USER_FULLNAME ({name or 'missing'})[/yellow] and [yellow]USER_EMAIL ({email or 'missing'})[/yellow] environment variables must be set in order to setup Git with [i]--no-prompt[/i]"
+                        f"[yellow]USER_FULLNAME ({name or 'missing'})[/yellow] and"
+                        f"[yellow]USER_EMAIL ({email or 'missing'})[/yellow] environment"
+                        "variables must be set in order to setup Git with [i]--no-prompt[/i]"
                     )
             else:
                 default_name = os.environ.get("USER_FULLNAME", "")
@@ -100,7 +102,7 @@ class SetupGitTask(NonDbtBaseTask):
         cloned_exists = Path(workspace_path, ".git").exists()
         if cloned_exists:
             cloned_status = "[green]FOUND :heavy_check_mark:[/green]"
-        print_row(f"Checking for git repo", cloned_status, new_section=True)
+        print_row("Checking for git repo", cloned_status, new_section=True)
 
         if cloned_exists:
             return
@@ -114,7 +116,8 @@ class SetupGitTask(NonDbtBaseTask):
             repo_url = os.environ.get("GIT_REPO_URL", "")
             if not repo_url:
                 raise SetupGitException(
-                    f"[yellow]GIT_REPO_URL[/yellow] environment variable must be set in order to clone Git repository with [i]--no-prompt[/i]"
+                    "[yellow]GIT_REPO_URL[/yellow] environment variable must be set"
+                    "in order to clone Git repository with [i]--no-prompt[/i]"
                 )
         else:
             default_repo_url = os.environ.get("GIT_REPO_URL", "")

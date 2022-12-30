@@ -3,7 +3,6 @@ import json
 import os
 import pathlib
 from copy import copy
-from typing import Dict
 
 from rich.console import Console
 
@@ -30,7 +29,8 @@ class ExtractAirbyteTask(BaseExtractTask):
         subparser = sub_parsers.add_parser(
             "airbyte",
             parents=[base_subparser],
-            help="Extracts airbyte sources, connections and destinations and stores them as json files",
+            help="""Extracts airbyte sources, connections and destinations
+            and stores them as json files""",
         )
         subparser.add_argument(
             "--path",
@@ -68,7 +68,8 @@ class ExtractAirbyteTask(BaseExtractTask):
 
         if not extract_destination or not airbyte_host or not airbyte_port:
             raise AirbyteExtractorException(
-                f"Couldn't start extraction: one (or more) of the following arguments is missing either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
+                "Couldn't start extraction: one (or more) of the following arguments is missing"
+                "either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
             )
 
         extract_destination = pathlib.Path(extract_destination)
@@ -84,7 +85,8 @@ class ExtractAirbyteTask(BaseExtractTask):
         self.airbyte_api = AirbyteApiCaller(airbyte_host, airbyte_port)
 
         console.print(
-            f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(extract_destination)}\n"
+            "Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b]"
+            f"configurations to {os.path.abspath(extract_destination)}\n"
         )
 
         sources_path.mkdir(exist_ok=True, parents=True)
@@ -111,7 +113,7 @@ class ExtractAirbyteTask(BaseExtractTask):
                 f"[u]Connections[/u]: {self.extraction_results['connections']}\n"
             )
         else:
-            console.print(f"No Airbyte Connections were extracted")
+            console.print("No Airbyte Connections were extracted")
         return 0
 
     def dbt_packages_exist(self, dbt_project_path):
@@ -155,7 +157,8 @@ class ExtractAirbyteTask(BaseExtractTask):
 
                 return destination
         raise AirbyteExtractorException(
-            f"Airbyte extract error: there is no Airbyte Destination for id [red]{destinationId}[/red]"
+            "Airbyte extract error: there is no Airbyte"
+            f"Destination for id [red]{destinationId}[/red]"
         )
 
     def _get_connector_version(self, lookup_field, definitions_list, definition_id):
@@ -195,7 +198,9 @@ class ExtractAirbyteTask(BaseExtractTask):
             return secret_fields
         except KeyError as e:
             raise AirbyteExtractorException(
-                f"There was an error searching secret fields for {definition['connectionSpecification']['title']}"
+                "There was an error searching secret fields for"
+                f"{definition['connectionSpecification']['title']}:"
+                f"{e}"
             )
 
     def _get_airbyte_source_from_id(self, source_id):
@@ -203,7 +208,6 @@ class ExtractAirbyteTask(BaseExtractTask):
         Get the complete Source object from it's ID
         """
         for source in self.airbyte_api.airbyte_sources_list:
-
             if source["sourceId"] == source_id:
                 # Grab Source definition ID
                 source_definition = self._get_airbyte_source_definition_from_id(
@@ -248,7 +252,8 @@ class ExtractAirbyteTask(BaseExtractTask):
             connection["destinationId"]
         )["name"].lower()
 
-        # Once we used the source and destination IDs, they are no longer required and don't need to be saved
+        # Once we used the source and destination IDs,
+        # they are no longer required and don't need to be saved
         # Instead, they are replaced with their respective names
         connection.pop("sourceId", None)
         connection.pop("destinationId", None)

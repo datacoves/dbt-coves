@@ -1,10 +1,8 @@
 import glob
 import json
-import subprocess
 from pathlib import Path
 
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils import shell
 
 
 class LoadException(Exception):

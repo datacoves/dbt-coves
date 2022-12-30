@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from urllib.error import HTTPError
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -51,7 +50,6 @@ class FivetranApiCallerException(Exception):
 
 class AirbyteApiCaller:
     def api_call(self, endpoint: str, body: Dict[str, str] = None):
-
         """
         Generic `api caller` for contacting Airbyte
         """
@@ -61,7 +59,8 @@ class AirbyteApiCaller:
                 return json.loads(response.text) if response.text else None
             else:
                 raise RequestException(
-                    f"Unexpected status code from airbyte in endpoint {endpoint}: {response.status_code}: {json.loads(response.text)['message']}"
+                    f"Unexpected status code from airbyte in endpoint {endpoint}:"
+                    f"{response.status_code}: {json.loads(response.text)['message']}"
                 )
         except RequestException as e:
             raise AirbyteApiCallerException(f"Airbyte API error in endpoint {endpoint}: " + str(e))

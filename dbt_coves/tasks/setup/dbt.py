@@ -1,13 +1,10 @@
 import os
 from pathlib import Path
 
-import questionary
-from jinja2 import Environment, meta
 from rich.console import Console
 
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils.jinja import render_template
 from dbt_coves.utils.shell import run_and_capture_cwd
 
 from .utils import file_exists, print_row
