@@ -41,7 +41,6 @@ class DbtCovesFlags:
             },
             "properties": {
                 "templates_folder": None,
-                "model_props_strategy": None,
                 "metadata": None,
                 "destination": None,
                 "update_strategy": None,
@@ -154,14 +153,6 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
                     self.generate["properties"]["templates_folder"] = self.args.templates_folder
-                if self.args.model_props_strategy:
-                    self.generate["properties"][
-                        "model_props_strategy"
-                    ] = self.args.model_props_strategy
-                if self.args.model_props_strategy:
-                    self.generate["properties"][
-                        "model_props_strategy"
-                    ] = self.args.model_props_strategy
                 if self.args.metadata:
                     self.generate["properties"]["metadata"] = self.args.metadata
                 if self.args.destination:

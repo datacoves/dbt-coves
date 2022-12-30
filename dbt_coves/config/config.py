@@ -16,7 +16,6 @@ class GeneratePropertiesModel(BaseModel):
     metadata: Optional[str] = ""
     update_strategy: Optional[str] = "ask"
     destination: Optional[str] = "{{model_folder_path}}/{{model_file_name}}.yml"
-    models: Optional[str] = ""
     select: Optional[str] = ""
     exclude: Optional[str] = ""
     selector: Optional[str] = ""
@@ -126,7 +125,6 @@ class DbtCovesConfig:
 
     DBT_COVES_CONFIG_FILEPATH = ".dbt_coves/config.yml"
     CLI_OVERRIDE_FLAGS = [
-        "generate.properties.model_props_strategy",
         "generate.properties.templates_folder",
         "generate.properties.metadata",
         "generate.properties.destination",

@@ -1,6 +1,5 @@
 import glob
 import json
-import os
 import subprocess
 from pathlib import Path
 
@@ -34,13 +33,8 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser.add_argument(
             "--templates-folder",
             type=str,
-            help="Folder with jinja templates that override default "
+            help="Folder with jinja templates that override default properties generation templates, i.e. 'templates' "
             "sources generation templates, i.e. 'templates'",
-        )
-        subparser.add_argument(
-            "--model-props-strategy",
-            type=str,
-            help="Strategy for model properties file generation," " i.e. 'one_file_per_model'",
         )
         subparser.add_argument(
             "--metadata",
@@ -125,12 +119,11 @@ class GeneratePropertiesTask(BaseGenerateTask):
         return list(manifest_data)
 
     def load_manifest_nodes(self):
-
         path_pattern = f"{self.config.project_root}/**/manifest.json"
         manifest_path = glob.glob(path_pattern)[0]
 
         if not manifest_path:
-            raise GeneratePropertiesException(f"Could not find manifest.json")
+            raise GeneratePropertiesException("Could not find manifest.json")
 
         with open(manifest_path, "r") as manifest:
             manifest_data = manifest.read()
