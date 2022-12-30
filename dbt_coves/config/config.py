@@ -25,7 +25,7 @@ class GenerateSourcesModel(BaseModel):
     database: Optional[str] = ""
     select: Optional[List[str]] = [""]
     schemas: Optional[List[str]] = [""]
-    exclude: Optional[List[str]] = []
+    exclude: Optional[List[str]] = [""]
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
     model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
@@ -37,7 +37,8 @@ class GenerateSourcesModel(BaseModel):
 class GenerateMetadataModel(BaseModel):
     database: Optional[str] = ""
     schemas: Optional[List[str]] = [""]
-    relations: Optional[List[str]] = [""]
+    select: Optional[List[str]] = [""]
+    exclude: Optional[List[str]] = [""]
     destination: Optional[str] = "metadata.csv"
 
 
@@ -144,7 +145,8 @@ class DbtCovesConfig:
         "generate.sources.metadata",
         "generate.metadata.database",
         "generate.metadata.schemas",
-        "generate.metadata.relations",
+        "generate.metadata.select",
+        "generate.metadata.exclude",
         "generate.metadata.destination",
         "extract.airbyte.path",
         "extract.airbyte.host",

@@ -246,8 +246,13 @@ Usage of these metadata files can be found in [metadata](https://github.com/data
 ```
 
 ```shell
---relations
-# Comma separated list of relations where raw data resides
+--select
+# List of relations where raw data resides
+```
+
+```shell
+--exclude
+# Filter relation(s) to exclude from source file(s) generation
 ```
 
 ```shell
@@ -437,11 +442,15 @@ this:
 ```yaml
 generate:
   sources:
-    database: RAW # Database where to look for source tables
+    database: "RAW" # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
-    select: "TABLE_1,TABLE_2" # Comma separated list of relations where raw data resides
-    exclude: "TABLE_3,TABLE_4" # Filter relation(s) to exclude from source file(s) generation
+    select: # list of relations where raw data resides
+      - TABLE_1
+      - TABLE_2
+    exclude: # Filter relation(s) to exclude from source file(s) generation
+      - TABLE_1
+      - TABLE_2
     sources_destination: "models/staging/{{schema}}/{{schema}}.yml" # Where sources yml files will be generated
     models_destination: "models/staging/{{schema}}/{{relation}}.sql" # Where models sql files will be generated
     model_props_destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
@@ -463,9 +472,12 @@ generate:
     database: RAW # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
-    relations: # List of source tables
-      - TABLE_A
-      - TABLE_B
+    select: # list of relations where raw data resides
+      - TABLE_1
+      - TABLE_2
+    exclude: # Filter relation(s) to exclude from source file(s) generation
+      - TABLE_1
+      - TABLE_2
     destination: # Where metadata file will be generated, default: 'metadata.csv'
 
 extract:

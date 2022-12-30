@@ -51,7 +51,8 @@ class DbtCovesFlags:
             "metadata": {
                 "database": None,
                 "schemas": [],
-                "relations": [],
+                "select": [],
+                "exclude": [],
                 "destination": None,
             },
         }
@@ -172,9 +173,13 @@ class DbtCovesFlags:
                     self.generate["metadata"]["schemas"] = [
                         schema.strip() for schema in self.args.schemas.split(",")
                     ]
-                if self.args.relations:
-                    self.generate["metadata"]["relations"] = [
-                        relation.strip() for relation in self.args.relations.split(",")
+                if self.args.select:
+                    self.generate["metadata"]["select"] = [
+                        relation.strip() for relation in self.args.select.split(",")
+                    ]
+                if self.args.exclude:
+                    self.generate["metadata"]["exclude"] = [
+                        relation.strip() for relation in self.args.exclude.split(",")
                     ]
                 if self.args.destination:
                     self.generate["metadata"]["destination"] = self.args.destination
