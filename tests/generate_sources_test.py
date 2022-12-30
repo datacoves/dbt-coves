@@ -303,7 +303,8 @@ for case in cases_list:
 def test_generate_sources(input):
     # Generate sources command
     command = [
-        "dbt-coves",
+        "python",
+        "../dbt_coves/core/main.py",
         "generate",
         "sources",
         "--metadata",
@@ -334,7 +335,12 @@ def test_generate_sources(input):
     ]
 
     # Execute CLI command and interact with it
-    process = subprocess.run(args=command, input="\n\x1B[B\x1B[B\x1B[B\n", encoding="utf-8")
+    process = subprocess.run(
+        args=command,
+        input="\n\x1B[B\x1B[B\x1B[B\n",
+        encoding="utf-8",
+        cwd=pathlib.Path(__file__).parent.resolve(),
+    )
 
     assert process.returncode == 0
     assert os.path.isdir(pathlib.Path(input["output_dir"], "models")) == True
@@ -464,10 +470,10 @@ def test_check_models(input, expected):
         ),
         "r",
     ) as file_1:
-        source_model_output = file_1.readlines()
+        source_model_output = [line.replace("''", '""') for line in file_1.readlines()]
 
     with open(pathlib.Path(expected["source_model"]), "r") as file_2:
-        source_model_expected = file_2.readlines()
+        source_model_expected = [line.replace("''", '""') for line in file_2.readlines()]
 
     diff_files = set(source_model_output).symmetric_difference(set(source_model_expected))
 
@@ -484,10 +490,10 @@ def test_check_models(input, expected):
         ),
         "r",
     ) as file_1:
-        table_model_output = file_1.readlines()
+        table_model_output = [line.replace("''", '""') for line in file_1.readlines()]
 
     with open(pathlib.Path(expected["table_model"]), "r") as file_2:
-        table_model_expected = file_2.readlines()
+        table_model_expected = [line.replace("''", '""') for line in file_2.readlines()]
 
     diff_files = set(table_model_output).symmetric_difference(set(table_model_expected))
 
