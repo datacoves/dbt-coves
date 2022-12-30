@@ -34,7 +34,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser.add_argument(
             "--templates-folder",
             type=str,
-            help="Folder with jinja templates that override default "
+            help="Folder with jinja templates that override default properties generation templates, i.e. 'templates' "
             "sources generation templates, i.e. 'templates'",
         )
         subparser.add_argument(
