@@ -30,14 +30,16 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             "dbt",
             parents=[base_subparser],
             # help="Run dbt on an isolated environment",
-            help="Use this command to run dbt commands on special environments such as Airflow, or CI workers.",
+            help="""Use this command to run dbt commands on special environments
+            such as Airflow, or CI workers.""",
         )
         ext_subparser.set_defaults(cls=cls, which="dbt")
         cls.arg_parser = ext_subparser
         ext_subparser.add_argument(
             "--virtualenv",
             type=str,
-            help="Virtual environment variable or path. i.e.: AIRFLOW__VIRTUALENV_PATH or /opt/user/virtualenvs/airflow",
+            help="""Virtual environment variable or path. i.e.:
+            AIRFLOW__VIRTUALENV_PATH or /opt/user/virtualenvs/airflow""",
         )
         ext_subparser.add_argument(
             "command",
@@ -73,12 +75,15 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         return 0
 
     def run_dbt(self, args: list, cwd: str):
-        """Run dbt command on a specific directory passing received arguments. Runs dbt deps if missing packages"""
+        """
+        Run dbt command on a specific directory passing received arguments.
+        Runs dbt deps if missing packages
+        """
         if not os.path.exists(os.path.join(cwd, "dbt_packages")) and not os.path.exists(
             os.path.join(cwd, "dbt_modules")
         ):
-            console.print(f"[red]Missing dbt packages[/red]")
-            self.run_command(f"dbt deps", cwd=cwd)
+            console.print("[red]Missing dbt packages[/red]")
+            self.run_command("dbt deps", cwd=cwd)
         str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in args])
         self.run_command(f"dbt {str_args}", cwd=cwd)
 
@@ -101,9 +106,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             # conflicts with trailing / at later concatenation
             env_path = Path(os.environ.get(virtualenv, virtualenv))
         if env_path and env_path.exists():
-            cmd_list = shlex.split(
-                f"/bin/bash -c 'source {env_path}/bin/activate && {command}'"
-            )
+            cmd_list = shlex.split(f"/bin/bash -c 'source {env_path}/bin/activate && {command}'")
         else:
             cmd_list = shlex.split(command)
 

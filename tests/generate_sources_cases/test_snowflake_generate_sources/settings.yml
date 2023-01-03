@@ -1,4 +1,4 @@
-profile: 'test_dbt_coves_snowflake'
-table: 'TEST_MODEL'
-schema: 'TESTS'
-database: 'DBT_COVES_TEST'
+profile: "test_dbt_coves_snowflake"
+table: "TEST_MODEL"
+schema: "TESTS"
+database: "DBT_COVES_TEST"

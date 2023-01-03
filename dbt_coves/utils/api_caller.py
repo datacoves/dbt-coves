@@ -1,6 +1,5 @@
 import json
 from typing import Any, Dict
-from urllib.error import HTTPError
 
 import requests
 from requests.auth import HTTPBasicAuth
@@ -13,8 +12,7 @@ FIVETRAN_API_ENDPOINTS = {
     "DESTINATION_LIST": FIVETRAN_API_BASE_URL + "/groups",
     "DESTINATION_DETAILS": FIVETRAN_API_BASE_URL + "/destinations/{destination}",
     "DESTINATION_CREATE": FIVETRAN_API_BASE_URL + "/destinations",
-    "CONNECTOR_DESTINATION_LIST": FIVETRAN_API_BASE_URL
-    + "/groups/{destination}/connectors",
+    "CONNECTOR_DESTINATION_LIST": FIVETRAN_API_BASE_URL + "/groups/{destination}/connectors",
     "CONNECTOR_CREATE": FIVETRAN_API_BASE_URL + "/connectors/",
     "CONNECTOR_DETAILS": FIVETRAN_API_BASE_URL + "/connectors/{connector}",
     "CONNECTOR_SCHEMAS": FIVETRAN_API_BASE_URL + "/connectors/{connector}/schemas",
@@ -30,9 +28,7 @@ def api_call(
     auth=None,
 ):
     """Generic `api caller`"""
-    response = requests.request(
-        method, url=endpoint, json=body, headers=headers, auth=auth
-    )
+    response = requests.request(method, url=endpoint, json=body, headers=headers, auth=auth)
     try:
         if response.status_code == 404:
             return {}
@@ -54,7 +50,6 @@ class FivetranApiCallerException(Exception):
 
 class AirbyteApiCaller:
     def api_call(self, endpoint: str, body: Dict[str, str] = None):
-
         """
         Generic `api caller` for contacting Airbyte
         """
@@ -64,12 +59,11 @@ class AirbyteApiCaller:
                 return json.loads(response.text) if response.text else None
             else:
                 raise RequestException(
-                    f"Unexpected status code from airbyte in endpoint {endpoint}: {response.status_code}: {json.loads(response.text)['message']}"
+                    f"Unexpected status code from airbyte in endpoint {endpoint}:"
+                    f"{response.status_code}: {json.loads(response.text)['message']}"
                 )
         except RequestException as e:
-            raise AirbyteApiCallerException(
-                f"Airbyte API error in endpoint {endpoint}: " + str(e)
-            )
+            raise AirbyteApiCallerException(f"Airbyte API error in endpoint {endpoint}: " + str(e))
 
     def __init__(self, api_host, api_port):
         airbyte_host = api_host
@@ -81,16 +75,12 @@ class AirbyteApiCaller:
         self.airbyte_endpoint_list_connections = airbyte_api_list_component.format(
             component="connections"
         )
-        self.airbyte_endpoint_list_sources = airbyte_api_list_component.format(
-            component="sources"
-        )
+        self.airbyte_endpoint_list_sources = airbyte_api_list_component.format(component="sources")
         self.airbyte_endpoint_list_destinations = airbyte_api_list_component.format(
             component="destinations"
         )
 
-        airbyte_endpoint_list_workspaces = airbyte_api_list_component.format(
-            component="workspaces"
-        )
+        airbyte_endpoint_list_workspaces = airbyte_api_list_component.format(component="workspaces")
 
         airbyte_api_create_component = airbyte_api_base_endpoint + "{component}/create"
         self.airbyte_endpoint_create_connections = airbyte_api_create_component.format(
@@ -110,9 +100,7 @@ class AirbyteApiCaller:
         self.airbyte_endpoint_update_destinations = airbyte_api_update_component.format(
             component="destinations"
         )
-        self.airbyte_endpoint_delete_connection = (
-            airbyte_api_base_endpoint + "connections/delete"
-        )
+        self.airbyte_endpoint_delete_connection = airbyte_api_base_endpoint + "connections/delete"
 
         self.airbyte_endpoint_list_destination_definitions = (
             airbyte_api_base_endpoint + "destination_definitions/list"
@@ -189,9 +177,7 @@ class FivetranApiCaller:
         """
         destination_details = self._fivetran_api_call(
             "GET",
-            FIVETRAN_API_ENDPOINTS["DESTINATION_DETAILS"].format(
-                destination=destination_id
-            ),
+            FIVETRAN_API_ENDPOINTS["DESTINATION_DETAILS"].format(destination=destination_id),
         )
         return destination_details.get("data")
 
@@ -221,20 +207,14 @@ class FivetranApiCaller:
         """
         destination_connectors = self._fivetran_api_call(
             "GET",
-            FIVETRAN_API_ENDPOINTS["CONNECTOR_DESTINATION_LIST"].format(
-                destination=destination_id
-            ),
+            FIVETRAN_API_ENDPOINTS["CONNECTOR_DESTINATION_LIST"].format(destination=destination_id),
         )
         connector_data = {}
         for connector in destination_connectors.get("data", {}).get("items", []):
             connector_id = connector["id"]
             connector_data[connector_id] = {}
-            connector_data[connector_id]["details"] = self._get_connector_details(
-                connector_id
-            )
-            connector_data[connector_id]["schemas"] = self._get_connector_schemas(
-                connector_id
-            )
+            connector_data[connector_id]["details"] = self._get_connector_details(connector_id)
+            connector_data[connector_id]["schemas"] = self._get_connector_schemas(connector_id)
         return connector_data
 
     def create_group(self, group_name, service) -> str:
@@ -263,13 +243,9 @@ class FivetranApiCaller:
             fivetran_group_map[destination_id]["name"] = group["name"]
             destination_details = self._get_destination_details(destination_id)
             if destination_details:
-                fivetran_group_map[destination_id]["service"] = destination_details[
-                    "service"
-                ]
+                fivetran_group_map[destination_id]["service"] = destination_details["service"]
                 destination_data["details"] = destination_details
-                destination_data["connectors"] = self._get_destination_connectors(
-                    destination_id
-                )
+                destination_data["connectors"] = self._get_destination_connectors(destination_id)
                 fivetran_data[destination_id] = destination_data
         self.fivetran_groups = fivetran_group_map
         return fivetran_data
@@ -277,9 +253,7 @@ class FivetranApiCaller:
     def update_destination(self, destination_id, destination_details):
         destination = self._fivetran_api_call(
             "PATCH",
-            FIVETRAN_API_ENDPOINTS["DESTINATION_DETAILS"].format(
-                destination=destination_id
-            ),
+            FIVETRAN_API_ENDPOINTS["DESTINATION_DETAILS"].format(destination=destination_id),
             destination_details,
         )
         return destination["data"]

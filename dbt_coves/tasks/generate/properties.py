@@ -1,6 +1,5 @@
 import glob
 import json
-import os
 import subprocess
 from pathlib import Path
 
@@ -29,13 +28,14 @@ class GeneratePropertiesTask(BaseGenerateTask):
         subparser = sub_parsers.add_parser(
             "properties",
             parents=[base_subparser],
-            help="Generate dbt models property files by inspecting the database schemas and relations.",
+            help="""Generate dbt models property files by inspecting
+            database schemas and relations.""",
         )
         subparser.add_argument(
             "--templates-folder",
             type=str,
-            help="Folder with jinja templates that override default properties generation templates, i.e. 'templates' "
-            "sources generation templates, i.e. 'templates'",
+            help="""Folder with jinja templates that override default
+            properties generation templates, i.e. 'templates' """,
         )
         subparser.add_argument(
             "--metadata",
@@ -108,9 +108,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 f"An error occurred listing your dbt models: \n {result.stdout or result.stderr}"
             )
         if "no nodes selected" in result.stdout.lower():
-            raise GeneratePropertiesException(
-                f"{result.stdout}\nSelectors used: {user_selectors}"
-            )
+            raise GeneratePropertiesException(f"{result.stdout}\nSelectors used: {user_selectors}")
 
         manifest_json_lines = filter(
             lambda i: len(i) > 0 and i[0] == "{", result.stdout.splitlines()
@@ -126,7 +124,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
         manifest_path = glob.glob(path_pattern)[0]
 
         if not manifest_path:
-            raise GeneratePropertiesException(f"Could not find manifest.json")
+            raise GeneratePropertiesException("Could not find manifest.json")
 
         with open(manifest_path, "r") as manifest:
             manifest_data = manifest.read()
@@ -177,16 +175,15 @@ class GeneratePropertiesTask(BaseGenerateTask):
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
                 columns = self.adapter.get_columns_in_relation(relation)
-                model_destination = self.render_path_template(
-                    prop_destination, model, manifest
-                )
+                model_destination = self.render_path_template(prop_destination, model, manifest)
                 model_path = Path(self.config.project_root).joinpath(model_destination)
 
                 self.render_templates(relation, columns, model_path, options)
 
             else:
                 console.print(
-                    f"Model [red]{schema}.{table}[/red] not materialized, did you execute [u][i]dbt run[/i][/u]?. "
+                    f"Model [red]{schema}.{table}[/red] not materialized, "
+                    "did you execute [u][i]dbt run[/i][/u]?. "
                 )
                 continue
 

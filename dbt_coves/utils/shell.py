@@ -1,13 +1,10 @@
-import subprocess
 from pathlib import Path
 from subprocess import PIPE, CompletedProcess, Popen
 from subprocess import run as shell_run
 from typing import List, Optional, Union
 
 
-def run(
-    cmd, cwd: Optional[Union[str, Path]] = None, write_to_stdout: bool = True
-) -> Popen:
+def run(cmd, cwd: Optional[Union[str, Path]] = None, write_to_stdout: bool = True) -> Popen:
     with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True, cwd=cwd) as proc:
         if write_to_stdout:
             for line in proc.stdout:

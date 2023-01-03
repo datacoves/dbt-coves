@@ -2,7 +2,7 @@ version: 2
 
 models:
   - name: test_model
-    description: ''
+    description: ""
     columns:
       - name: test_smallint
         description: "TEST OF SMALLINT COLUMN TYPE"

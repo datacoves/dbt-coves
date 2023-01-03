@@ -5,4 +5,4 @@ sources:
     database: dev
     tables:
       - name: test_model
-        description: ''
+        description: ""

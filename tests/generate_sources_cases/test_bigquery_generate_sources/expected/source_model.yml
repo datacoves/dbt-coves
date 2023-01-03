@@ -5,4 +5,4 @@ sources:
     database: dbt-coves-test
     tables:
       - name: test_model
-        description: ''
+        description: ""

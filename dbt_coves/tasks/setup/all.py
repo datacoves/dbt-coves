@@ -2,11 +2,12 @@ import os
 from pathlib import Path
 
 from rich.console import Console
+
 from dbt_coves.tasks.base import NonDbtBaseTask
 
-from .ssh import SetupSSHTask
-from .git import SetupGitTask
 from .dbt import SetupDbtTask
+from .git import SetupGitTask
+from .ssh import SetupSSHTask
 
 console = Console()
 
@@ -42,7 +43,12 @@ class SetupAllTask(NonDbtBaseTask):
 
     def run(self) -> int:
         """
-        Env vars that can be set: USER_FULLNAME, USER_EMAIL, WORKSPACE_PATH, GIT_REPO_URL, DBT_PROFILES_DIR
+        Env vars that can be set:
+        USER_FULLNAME,
+        USER_EMAIL,
+        WORKSPACE_PATH,
+        GIT_REPO_URL,
+        DBT_PROFILES_DIR
         """
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
 

@@ -27,6 +27,7 @@ load_dotenv()
 
 # Functions
 
+
 # Convert SQL to Jinja2 Template and replace function
 def source(schema, table):
     return f"{schema}.{table}"
@@ -72,18 +73,14 @@ def get_connector_redshift(host, user, password, database):
 def get_client_bigquery(sa_key, project_id):
     # Generate SA credentials file
     with open(
-        pathlib.Path(
-            os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"
-        ),
+        pathlib.Path(os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"),
         "w",
     ) as f:
         f.write(sa_key)
 
     # Get BigQuery Client
     credentials = service_account.Credentials.from_service_account_file(
-        pathlib.Path(
-            os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"
-        ),
+        pathlib.Path(os.path.dirname(pathlib.Path(__file__).absolute()), "service_account.json"),
         scopes=["https://www.googleapis.com/auth/cloud-platform"],
     )
 
@@ -140,9 +137,7 @@ def get_cases(path_dir):
 
 # Check case folders
 cases_list = get_cases(
-    pathlib.Path(
-        os.path.dirname(pathlib.Path(__file__).absolute()), "generate_sources_cases"
-    )
+    pathlib.Path(os.path.dirname(pathlib.Path(__file__).absolute()), "generate_sources_cases")
 )
 
 # Generate data tests
@@ -164,7 +159,6 @@ for case in cases_list:
 
 @pytest.mark.parametrize("input", generate_data_cases)
 def test_generate_data(input):
-
     # Check adapter
     if input["adapter"] == "snowflake":
         # Check env vars
@@ -262,9 +256,7 @@ def test_generate_data(input):
         client = get_client_bigquery(sa_key, project_id)
 
         # Generate data
-        query_job = client.query(
-            f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;"
-        )
+        query_job = client.query(f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;")
         query_job.result()
         assert query_job.errors == None
         with open(input["create_model_sql_file"], "r") as sql_file:
@@ -311,7 +303,8 @@ for case in cases_list:
 def test_generate_sources(input):
     # Generate sources command
     command = [
-        "dbt-coves",
+        "python",
+        "../dbt_coves/core/main.py",
         "generate",
         "sources",
         "--metadata",
@@ -343,7 +336,10 @@ def test_generate_sources(input):
 
     # Execute CLI command and interact with it
     process = subprocess.run(
-        args=command, input="\n\x1B[B\x1B[B\x1B[B\n", encoding="utf-8"
+        args=command,
+        input="\n\x1B[B\x1B[B\x1B[B\n",
+        encoding="utf-8",
+        cwd=pathlib.Path(__file__).parent.resolve(),
     )
 
     assert process.returncode == 0
@@ -474,14 +470,12 @@ def test_check_models(input, expected):
         ),
         "r",
     ) as file_1:
-        source_model_output = file_1.readlines()
+        source_model_output = [line.replace("''", '""') for line in file_1.readlines()]
 
     with open(pathlib.Path(expected["source_model"]), "r") as file_2:
-        source_model_expected = file_2.readlines()
+        source_model_expected = [line.replace("''", '""') for line in file_2.readlines()]
 
-    diff_files = set(source_model_output).symmetric_difference(
-        set(source_model_expected)
-    )
+    diff_files = set(source_model_output).symmetric_difference(set(source_model_expected))
 
     assert len(list(diff_files)) == 0
 
@@ -496,10 +490,10 @@ def test_check_models(input, expected):
         ),
         "r",
     ) as file_1:
-        table_model_output = file_1.readlines()
+        table_model_output = [line.replace("''", '""') for line in file_1.readlines()]
 
     with open(pathlib.Path(expected["table_model"]), "r") as file_2:
-        table_model_expected = file_2.readlines()
+        table_model_expected = [line.replace("''", '""') for line in file_2.readlines()]
 
     diff_files = set(table_model_output).symmetric_difference(set(table_model_expected))
 
@@ -518,6 +512,7 @@ for case in cases_list:
             marks=pytest.mark.dependency(name=f"tests_cleanup[{id}]", depends=[]),
         )
     )
+
 
 # Clear tests
 @pytest.mark.parametrize("input", cleanup_cases)
@@ -544,7 +539,6 @@ def tests_cleanup(input):
         conn.commit()
         conn.close()
     elif input["adapter"] == "redshift":
-
         schema = input["settings"]["schema"]
         test_table = input["settings"]["table"]
         database = input["settings"]["database"]
