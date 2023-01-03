@@ -18,11 +18,11 @@ repos:
       - id: trailing-whitespace
         exclude: ^.bumpversion.cfg
   # Disabling Poetry check and lock temporarily to avoid test timeouts
-  # - repo: https://github.com/python-poetry/poetry
-  #   rev: "1.2.2"
-  #   hooks:
-  #     - id: poetry-check
-  #     - id: poetry-lock
+  - repo: https://github.com/python-poetry/poetry
+    rev: "1.2.2"
+    hooks:
+      - id: poetry-check
+      - id: poetry-lock
   # Disabling Mypy temporarily due to abundant Type Annotations warnings
   # - repo: https://github.com/pre-commit/mirrors-mypy
   #   rev: "v0.991"
