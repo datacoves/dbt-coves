@@ -2030,7 +2030,7 @@ python-versions = "*"
 
 [[package]]
 name = "types-pyyaml"
-version = "5.4.12"
+version = "6.0.12.2"
 description = "Typing stubs for PyYAML"
 category = "dev"
 optional = false
@@ -2145,7 +2145,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "72c8c57894b2ceb445ab4c9a4cfecda24a10f5bfefbb1dd28ed75fc12fc09f58"
+content-hash = "b13ca162a32ddc181edd1056af38272acf39d2cba11c493a797e51a21e6a6300"
 
 [metadata.files]
 agate = [
@@ -3596,8 +3596,8 @@ types-python-slugify = [
     {file = "types_python_slugify-7.0.0.1-py3-none-any.whl", hash = "sha256:3644bb44a25847ba5c8f9d15757f1d4b76064857c30e93517723618bd1152a19"},
 ]
 types-pyyaml = [
-    {file = "types-PyYAML-5.4.12.tar.gz", hash = "sha256:3f4daa754357491625ae8c3a39c9e1b0d7cd5632bc4e1c35e7a7f75a64aa124b"},
-    {file = "types_PyYAML-5.4.12-py3-none-any.whl", hash = "sha256:e06083f85375a5678e4c19452ed6467ce2167b71db222313e1792cb8fc76859a"},
+    {file = "types-PyYAML-6.0.12.2.tar.gz", hash = "sha256:6840819871c92deebe6a2067fb800c11b8a063632eb4e3e755914e7ab3604e83"},
+    {file = "types_PyYAML-6.0.12.2-py3-none-any.whl", hash = "sha256:1e94e80aafee07a7e798addb2a320e32956a373f376655128ae20637adb2655b"},
 ]
 types-requests = [
     {file = "types-requests-2.28.11.7.tar.gz", hash = "sha256:0ae38633734990d019b80f5463dfa164ebd3581998ac8435f526da6fe4d598c3"},
