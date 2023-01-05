@@ -47,11 +47,6 @@ class ExtractAirbyteTask(BaseExtractTask):
             type=str,
             help="Airbyte's API port, i.e. '8001'",
         )
-        subparser.add_argument(
-            "--dbt-list-args",
-            type=str,
-            help="Extra dbt arguments, selectors or modifiers",
-        )
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
