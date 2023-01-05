@@ -1,4 +1,5 @@
 import csv
+import fnmatch
 import re
 from pathlib import Path
 
@@ -97,7 +98,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         excluded = []
         for rel in listed_relations:
             for selector in rel_excludes:
-                if re.search(selector, rel.name):
+                if fnmatch.fnmatch(rel.name, selector):
                     excluded.append(rel.name)
                     break
 
