@@ -307,7 +307,7 @@ protobuf = ">=3.13.0,<4"
 
 [[package]]
 name = "dbt-core"
-version = "1.3.0"
+version = "1.3.2"
 description = "With dbt, data analysts and engineers can build analytics the way engineers build applications."
 category = "main"
 optional = false
@@ -348,14 +348,14 @@ python-versions = ">=3.6.1"
 
 [[package]]
 name = "dbt-postgres"
-version = "1.3.0"
+version = "1.3.2"
 description = "The postgres adapter plugin for dbt (data build tool)"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 
 [package.dependencies]
-dbt-core = "1.3.0"
+dbt-core = "1.3.2"
 psycopg2-binary = ">=2.8,<3.0"
 
 [[package]]
@@ -2145,7 +2145,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "72c8c57894b2ceb445ab4c9a4cfecda24a10f5bfefbb1dd28ed75fc12fc09f58"
+content-hash = "360f62beb7933cc42b5fd3cd2b256320a8b8f0ea3ba95253ea77a91392c05ba9"
 
 [metadata.files]
 agate = [
@@ -2387,8 +2387,8 @@ dbt-bigquery = [
     {file = "dbt_bigquery-1.3.0-py3-none-any.whl", hash = "sha256:7d64bffce96b9baf14eddedab213a1d8b5271ef4ab58d36d97cd61123f4ee9ec"},
 ]
 dbt-core = [
-    {file = "dbt-core-1.3.0.tar.gz", hash = "sha256:20d23cf7c20ed16f6d82804d6cf67dafca8ac3c9f2557e5aeaa8c6af9d39c384"},
-    {file = "dbt_core-1.3.0-py3-none-any.whl", hash = "sha256:63f2f691af87790a4315e15267b863ecdd67828da5c76367c2c2f1cad08c6822"},
+    {file = "dbt-core-1.3.2.tar.gz", hash = "sha256:029168f6f92350e2bc534eca59bc9d9e2cfc5a974046240a8549a50c8de81388"},
+    {file = "dbt_core-1.3.2-py3-none-any.whl", hash = "sha256:22caa8a68732b3fdf7d10fc94bce22ab01fb08bbb5b522a60c960cdf88a26b6a"},
 ]
 dbt-extractor = [
     {file = "dbt_extractor-0.4.1-cp36-abi3-macosx_10_7_x86_64.whl", hash = "sha256:4dc715bd740e418d8dc1dd418fea508e79208a24cf5ab110b0092a3cbe96bf71"},
@@ -2409,8 +2409,8 @@ dbt-extractor = [
     {file = "dbt_extractor-0.4.1.tar.gz", hash = "sha256:75b1c665699ec0f1ffce1ba3d776f7dfce802156f22e70a7b9c8f0b4d7e80f42"},
 ]
 dbt-postgres = [
-    {file = "dbt-postgres-1.3.0.tar.gz", hash = "sha256:d35a29d7967b361475e11377ab49cd62191dded8d30fc1099b02c630ed651ca9"},
-    {file = "dbt_postgres-1.3.0-py3-none-any.whl", hash = "sha256:cd54f67288d6e203db8be9e46976afefe1a3fa885ed7d3d0cf380773498f144a"},
+    {file = "dbt-postgres-1.3.2.tar.gz", hash = "sha256:576ec037b0cd8c7628e6aa66a9b8fb51a3dbab3bf72d687ea462ea1dea0b2e60"},
+    {file = "dbt_postgres-1.3.2-py3-none-any.whl", hash = "sha256:9d5ee1ec02ef7bac22a756b245573c281b35c2338ca2534b1a0306bb699b8b8c"},
 ]
 dbt-redshift = [
     {file = "dbt-redshift-1.3.0.tar.gz", hash = "sha256:64908f077a76ef7f5d14fe6bbbccc3718506cbf820e9a356b1941ad864c714a3"},
