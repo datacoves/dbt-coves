@@ -81,6 +81,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         rel_excludes = [relation for relation in self.get_config_value("exclude")]
 
         rel_wildcard_selectors = []
+
         for rel_name in rel_name_selectors:
             if "*" in rel_name:
                 rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
@@ -91,7 +92,7 @@ class BaseGenerateTask(BaseConfiguredTask):
 
         for rel in listed_relations:
             for selector in rel_wildcard_selectors:
-                if re.search(selector, rel.name):
+                if fnmatch.fnmatch(rel.name, selector):
                     rel_name_selectors.append(rel.name)
                     break
 
@@ -106,9 +107,12 @@ class BaseGenerateTask(BaseConfiguredTask):
             relation for relation in listed_relations if relation.name not in excluded
         ]
 
-        intersected_rels = [
-            relation for relation in listed_relations if relation.name in rel_name_selectors
-        ]
+        intersected_rels = []
+        for rel in listed_relations:
+            for selector in rel_name_selectors:
+                if fnmatch.fnmatch(rel.name, selector):
+                    intersected_rels.append(rel)
+                    break
 
         rels = (
             intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
