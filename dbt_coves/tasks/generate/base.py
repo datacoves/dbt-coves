@@ -1,6 +1,5 @@
 import csv
 import fnmatch
-import re
 from pathlib import Path
 
 import questionary
@@ -48,13 +47,22 @@ class BaseGenerateTask(BaseConfiguredTask):
             if schema != "INFORMATION_SCHEMA"
         ]
 
+        filtered_schemas = []
+
         for schema in schemas:
             for selector in schema_wildcard_selectors:
-                if re.search(selector, schema):
-                    schema_name_selectors.append(schema)
+                if fnmatch.fnmatch(schema, selector):
+                    filtered_schemas.append(schema)
                     break
 
-        filtered_schemas = list(set(schemas).intersection(schema_name_selectors))
+        for schema in schemas:
+            for selector in schema_name_selectors:
+                if fnmatch.fnmatch(schema, selector):
+                    filtered_schemas.append(schema)
+                    break
+
+        filtered_schemas = list(set(filtered_schemas))
+
         if not filtered_schemas:
             schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
             console.print(
@@ -65,6 +73,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             if not filtered_schemas:
                 console.print("No schemas selected")
                 exit()
+
         return filtered_schemas
 
     def select_schemas(self, schemas):
