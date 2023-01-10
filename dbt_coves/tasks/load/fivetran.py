@@ -42,6 +42,9 @@ class LoadFivetranTask(BaseLoadTask):
             help="Where json files will be loaded from, i.e. " "'/var/data'",
         )
         subparser.add_argument(
+            "--credentials", type=str, help="Path to Fivetran credentials YAML file"
+        )
+        subparser.add_argument(
             "--api-key",
             type=str,
             help="Fivetran's API Key's secret file path",
@@ -57,8 +60,14 @@ class LoadFivetranTask(BaseLoadTask):
             help="Secret files location for Fivetran configuration, i.e. './secrets'",
         )
         subparser.add_argument(
-            "--credentials", type=str, help="Path to Fivetran credentials YAML file"
+            "--secrets-manager", type=str, help="Secret credentials provider, i.e. 'datacoves'"
         )
+        subparser.add_argument("--secrets-url", type=str, help="Secret credentials provider url")
+        subparser.add_argument(
+            "--secrets-token", type=str, help="Secret credentials provider token"
+        )
+        subparser.add_argument("--secrets-project", type=str, help="Secret credentials project")
+        subparser.add_argument("--secrets-tags", type=str, help="Secret credentials tags")
         subparser.set_defaults(cls=cls, which="fivetran")
         return subparser
 
@@ -78,9 +87,14 @@ class LoadFivetranTask(BaseLoadTask):
         self.secrets_manager = self.get_config_value("secrets_manager")
         self.secrets_url = self.get_config_value("secrets_url")
         self.secrets_token = self.get_config_value("secrets_token")
-        secrets_path = self.get_config_value("secrets_path")
         api_credentials_path = self.get_config_value("credentials")
+        secrets_path = self.get_config_value("secrets_path")
+        secrets_manager = self.get_config_value("secrets_manager")
 
+        if secrets_path and secrets_manager:
+            raise FivetranLoaderException(
+                "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
+            )
         if api_credentials_path and (self.api_key or self.api_secret):
             raise FivetranLoaderException(
                 "Flags 'credentials' and 'api key/secret' ones are mutually exclusive."
@@ -112,16 +126,23 @@ class LoadFivetranTask(BaseLoadTask):
                 f"No Fivetran extracted data found on {self.extract_destination.absolute()}"
             )
 
-        self.loaded_secrets = []
+        self.local_secrets = []
+
         if secrets_path:
             self.secrets_path = Path(secrets_path)
-            self.loaded_secrets = self.retrieve_all_jsons_from_path(
+            self.local_secrets = self.retrieve_all_jsons_from_path(
                 str(self.secrets_path.absolute())
             )
 
+        if secrets_manager:
+            self.secret_manager_data = self._load_secret_data()
+
         for fivetran_destination in self.extracted_destinations:
-            if self.loaded_secrets:
-                self._load_fivetran_object_secrets(fivetran_destination)
+            if self.local_secrets:
+                self._load_fivetran_local_secrets(fivetran_destination)
+            elif self.secret_manager_data and self.secrets_manager.lower() == "datacoves":
+                self._load_fivetran_datacoves_secrets(fivetran_destination)
+
             for destination_data in fivetran_destination.values():
                 destination_details = destination_data["details"]
 
@@ -217,17 +238,28 @@ class LoadFivetranTask(BaseLoadTask):
                 return dest_data
         return {}
 
-    def _load_fivetran_object_secrets(self, obj):
+    def _load_fivetran_local_secrets(self, obj):
         """
         Identify secret files' key:values and replace Fivetran object ones
         """
-        for secret in self.loaded_secrets:
+        for secret in self.local_secrets:
             for fivetran_obj_name, secret_data in secret.items():
                 for destination_data in obj.values():
                     object_details = destination_data["details"]
                     if fivetran_obj_name == object_details["id"]:
                         for k, v in secret_data.items():
                             self._replace_dict_key(object_details, k, v)
+
+    def _load_fivetran_datacoves_secrets(self, object):
+        """
+        TODO
+        """
+        for secret in self.secret_manager_data:
+            for destination_data in object.values():
+                object_details = destination_data["details"]
+                if object_details["id"] == secret.get("slug", ""):
+                    for k, v in secret.get("value", {}).items():
+                        self._replace_dict_key(object_details, k, v)
 
     def _update_or_create_fivetran_destination(self, exported_destination, target_group_id):
         """

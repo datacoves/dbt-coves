@@ -74,10 +74,12 @@ class DbtCovesFlags:
                 "path": None,
                 "host": None,
                 "port": None,
+                "secrets_path": None,
                 "secrets_manager": None,
                 "secrets_url": None,
                 "secrets_token": None,
-                "secrets_path": None,
+                "secrets_project": None,
+                "secrets_tags": None,
             },
             "fivetran": {
                 "path": None,
@@ -199,12 +201,19 @@ class DbtCovesFlags:
                     self.load["airbyte"]["host"] = self.args.host
                 if self.args.secrets_path:
                     self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+                if self.args.secrets_manager:
+                    self.load["airbyte"]["secrets_manager"] = self.args.secrets_manager
                 if self.args.secrets_url:
                     self.load["airbyte"]["secrets_url"] = self.args.secrets_url
                 if self.args.secrets_token:
                     self.load["airbyte"]["secrets_token"] = self.args.secrets_token
-                if self.args.secrets_path:
-                    self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+                if self.args.secrets_project:
+                    self.load["airbyte"]["secrets_project"] = self.args.secrets_project
+                if self.args.secrets_tags:
+                    self.load["airbyte"]["secrets_tags"] = [
+                        tag.strip() for tag in self.args.secrets_tags.split(",")
+                    ]
+
             if self.args.cls.__name__ == "LoadFivetranTask":
                 if self.args.path:
                     self.load["fivetran"]["path"] = self.args.path
@@ -216,6 +225,18 @@ class DbtCovesFlags:
                     self.load["fivetran"]["secrets_path"] = self.args.secrets_path
                 if self.args.credentials:
                     self.load["fivetran"]["credentials"] = self.args.credentials
+                if self.args.secrets_manager:
+                    self.load["fivetran"]["secrets_manager"] = self.args.secrets_manager
+                if self.args.secrets_url:
+                    self.load["fivetran"]["secrets_url"] = self.args.secrets_url
+                if self.args.secrets_token:
+                    self.load["fivetran"]["secrets_token"] = self.args.secrets_token
+                if self.args.secrets_project:
+                    self.load["fivetran"]["secrets_project"] = self.args.secrets_project
+                if self.args.secrets_tags:
+                    self.load["fivetran"]["secrets_tags"] = [
+                        tag.strip() for tag in self.args.secrets_tags.split(",")
+                    ]
 
             if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
