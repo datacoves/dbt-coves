@@ -251,9 +251,6 @@ class LoadFivetranTask(BaseLoadTask):
                             self._replace_dict_key(object_details, k, v)
 
     def _load_fivetran_datacoves_secrets(self, object):
-        """
-        TODO
-        """
         for secret in self.secret_manager_data:
             for destination_data in object.values():
                 object_details = destination_data["details"]
