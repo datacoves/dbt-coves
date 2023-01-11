@@ -23,9 +23,9 @@ class GeneratePropertiesModel(BaseModel):
 
 class GenerateSourcesModel(BaseModel):
     database: Optional[str] = ""
-    select: Optional[List[str]] = []
+    select_relations: Optional[List[str]] = []
     schemas: Optional[List[str]] = []
-    exclude: Optional[List[str]] = []
+    exclude_relations: Optional[List[str]] = []
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
     model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
@@ -37,8 +37,8 @@ class GenerateSourcesModel(BaseModel):
 class GenerateMetadataModel(BaseModel):
     database: Optional[str] = ""
     schemas: Optional[List[str]] = []
-    select: Optional[List[str]] = []
-    exclude: Optional[List[str]] = []
+    select_relations: Optional[List[str]] = []
+    exclude_relations: Optional[List[str]] = []
     destination: Optional[str] = "metadata.csv"
 
 
@@ -133,8 +133,8 @@ class DbtCovesConfig:
         "generate.properties.select",
         "generate.properties.exclude",
         "generate.properties.selector",
-        "generate.sources.select",
-        "generate.sources.exclude",
+        "generate.sources.select_relations",
+        "generate.sources.exclude_relations",
         "generate.sources.database",
         "generate.sources.schemas",
         "generate.sources.sources_destination",
@@ -145,8 +145,8 @@ class DbtCovesConfig:
         "generate.sources.metadata",
         "generate.metadata.database",
         "generate.metadata.schemas",
-        "generate.metadata.select",
-        "generate.metadata.exclude",
+        "generate.metadata.select_relations",
+        "generate.metadata.exclude_relations",
         "generate.metadata.destination",
         "extract.airbyte.path",
         "extract.airbyte.host",

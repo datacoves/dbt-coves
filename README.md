@@ -140,24 +140,19 @@ dbt-coves generate sources -h
 # Schema to inspect
 ```
 
-```shell
---select
-# List of relations where raw data resides
+```console
+--select-relations
+# List of relations where raw data resides. The parameter must be enclosed in quotes. Accepts wildcards.
 ```
 
-```shell
---exclude
-# Filter relation(s) to exclude from source file(s) generation
+```console
+--exclude-relations
+# Filter relation(s) to exclude from source file(s) generation. The parameter must be enclosed in quotes. Accepts wildcards.
 ```
 
 ```console
 --sources-destination
 # Where sources yml files will be generated, default: 'models/staging/{{schema}}/sources.yml'
-```
-
-```console
---sources-destination
-# Where sources yml files will be generated, default: 'models/staging/{{schema}}/{{schema}}.yml'
 ```
 
 ```console
@@ -180,7 +175,7 @@ dbt-coves generate sources -h
 # Folder with jinja templates that override default sources generation templates, i.e. 'templates'
 ```
 
-```
+```console
 --metadata
 # Path to csv file containing metadata, i.e. 'metadata.csv'
 ```
@@ -201,27 +196,27 @@ You can use dbt-coves to generate and update the properties(yml) file for a give
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
 
-```shell
+```console
 -s --select
 # Filter model(s) to generate property file(s)
 ```
 
-```shell
+```console
 --exclude
 # Filter model(s) to exclude from property file(s) generation
 ```
 
-```shell
+```console
 --selector
 # Specify dbt selector for more complex model filtering
 ```
 
-```shell
+```console
 --templates-folder
 # Folder with jinja templates that override default properties generation templates, i.e. 'templates'
 ```
 
-```shell
+```console
 --metadata
 # Path to csv file containing metadata, i.e. 'metadata.csv'
 ```
@@ -235,27 +230,27 @@ Usage of these metadata files can be found in [metadata](https://github.com/data
 
 `dbt-coves generate metadata` supports the following args:
 
-```shell
+```console
 --database
 # Database to inspect
 ```
 
-```shell
+```console
 --schemas
 # Comma separated list of schemas where raw data resides
 ```
 
-```shell
---select
-# List of relations where raw data resides
+```console
+--select-relations
+# List of relations where raw data resides. The parameter must be enclosed in quotes. Accepts wildcards.
 ```
 
-```shell
---exclude
-# Filter relation(s) to exclude from source file(s) generation
+```console
+--exclude-relations
+# Filter relation(s) to exclude from source file(s) generation. The parameter must be enclosed in quotes. Accepts wildcards.
 ```
 
-```shell
+```console
 --destination
 # Where csv file(s) will be generated, default: 'metadata.csv'
 # Supports using the Jinja tags `{{relation}}` and `{{schema}}`

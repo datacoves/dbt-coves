@@ -85,9 +85,9 @@ class BaseGenerateTask(BaseConfiguredTask):
         return selected_schemas
 
     def get_relations(self, filtered_schemas):
-        rel_name_selectors = [relation for relation in self.get_config_value("select")]
+        rel_name_selectors = [relation for relation in self.get_config_value("select_relations")]
 
-        rel_excludes = [relation for relation in self.get_config_value("exclude")]
+        rel_excludes = [relation for relation in self.get_config_value("exclude_relations")]
 
         rel_wildcard_selectors = []
 
