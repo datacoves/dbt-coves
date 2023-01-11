@@ -29,7 +29,8 @@ class DbtCovesFlags:
         self.verbose: bool = False
         self.generate = {
             "sources": {
-                "relations": [],
+                "select_relations": [],
+                "exclude_relations": [],
                 "database": None,
                 "schemas": [],
                 "sources_destination": None,
@@ -51,8 +52,8 @@ class DbtCovesFlags:
             "metadata": {
                 "database": None,
                 "schemas": [],
-                "select": [],
-                "exclude": [],
+                "select_relations": [],
+                "exclude_relations": [],
                 "destination": None,
             },
         }
@@ -131,9 +132,9 @@ class DbtCovesFlags:
                     ]
                 if self.args.database:
                     self.generate["sources"]["database"] = self.args.database
-                if self.args.select:
-                    self.generate["sources"]["select"] = [
-                        relation.strip() for relation in self.args.select.split(",")
+                if self.args.select_relations:
+                    self.generate["sources"]["select_relations"] = [
+                        relation.strip() for relation in self.args.select_relations.split(",")
                     ]
                 if self.args.sources_destination:
                     self.generate["sources"]["sources_destination"] = self.args.sources_destination
@@ -149,8 +150,10 @@ class DbtCovesFlags:
                     self.generate["sources"]["templates_folder"] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
-                if self.args.exclude:
-                    self.generate["sources"]["exclude"] = self.args.exclude.split(",")
+                if self.args.exclude_relations:
+                    self.generate["sources"][
+                        "exclude_relations"
+                    ] = self.args.exclude_relations.split(",")
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
                     self.generate["properties"]["templates_folder"] = self.args.templates_folder
@@ -173,13 +176,13 @@ class DbtCovesFlags:
                     self.generate["metadata"]["schemas"] = [
                         schema.strip() for schema in self.args.schemas.split(",")
                     ]
-                if self.args.select:
-                    self.generate["metadata"]["select"] = [
-                        relation.strip() for relation in self.args.select.split(",")
+                if self.args.select_relations:
+                    self.generate["metadata"]["select_relations"] = [
+                        relation.strip() for relation in self.args.select_relations.split(",")
                     ]
-                if self.args.exclude:
-                    self.generate["metadata"]["exclude"] = [
-                        relation.strip() for relation in self.args.exclude.split(",")
+                if self.args.exclude_relations:
+                    self.generate["metadata"]["exclude_relations"] = [
+                        relation.strip() for relation in self.args.exclude_relations.split(",")
                     ]
                 if self.args.destination:
                     self.generate["metadata"]["destination"] = self.args.destination
