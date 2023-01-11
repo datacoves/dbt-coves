@@ -440,10 +440,10 @@ generate:
     database: "RAW" # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
-    select: # list of relations where raw data resides
+    select_relations: # list of relations where raw data resides
       - TABLE_1
       - TABLE_2
-    exclude: # Filter relation(s) to exclude from source file(s) generation
+    exclude_relations: # Filter relation(s) to exclude from source file(s) generation
       - TABLE_1
       - TABLE_2
     sources_destination: "models/staging/{{schema}}/{{schema}}.yml" # Where sources yml files will be generated
@@ -467,10 +467,10 @@ generate:
     database: RAW # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
-    select: # list of relations where raw data resides
+    select_relations: # list of relations where raw data resides
       - TABLE_1
       - TABLE_2
-    exclude: # Filter relation(s) to exclude from source file(s) generation
+    exclude_relations: # Filter relation(s) to exclude from source file(s) generation
       - TABLE_1
       - TABLE_2
     destination: # Where metadata file will be generated, default: 'metadata.csv'
