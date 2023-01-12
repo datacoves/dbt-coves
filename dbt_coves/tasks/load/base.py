@@ -47,12 +47,10 @@ class BaseLoadTask(NonDbtBaseTask):
                     "[b]secrets_project[/b] must be provided when using 'datacoves'"
                     "as your Secrets Manager "
                 )
-            secrets_url = f"{secrets_url}/api/secrets/{secrets_project}"
+            secrets_url = f"{secrets_url}/api/v1/secrets/{secrets_project}"
             secrets_tags = self.get_config_value("secrets_tags")
             if secrets_tags:
                 secrets_url += f"?tags={'&'.join(secrets_tags)}"
-
-            # https://api.datacoves.localhost/api/secrets/analytics-local?tags=airbyte&fivetran
 
         headers = {"Authorization": f"token {secrets_token}"}
         response = requests.get(secrets_url, headers=headers, verify=False)

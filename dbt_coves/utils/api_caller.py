@@ -243,7 +243,9 @@ class FivetranApiCaller:
             fivetran_group_map[destination_id]["name"] = group["name"]
             destination_details = self._get_destination_details(destination_id)
             if destination_details:
-                fivetran_group_map[destination_id]["service"] = destination_details["service"]
+                fivetran_group_map[destination_id]["service"] = destination_details.get(
+                    "service", ""
+                )
                 destination_data["details"] = destination_details
                 destination_data["connectors"] = self._get_destination_connectors(destination_id)
                 fivetran_data[destination_id] = destination_data
