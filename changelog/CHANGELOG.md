@@ -1,3 +1,11 @@
+## dbt-coves [1.3.0-a.18] - 2022-01-11
+
+### Features
+
+- Renamed select and exclude parameters of generate sources and metadata for select_relations and exclude_relations.
+- Fixed errors when using wildcards in the parameters schema, select_relations and exclude_relations.
+- Updated readme with renamed parameters.
+
 ## dbt-coves [1.0.4-a.20] - 2022-03-24
 
 ### Features

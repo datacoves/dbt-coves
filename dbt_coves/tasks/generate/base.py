@@ -1,5 +1,5 @@
 import csv
-import re
+import fnmatch
 from pathlib import Path
 
 import questionary
@@ -47,13 +47,22 @@ class BaseGenerateTask(BaseConfiguredTask):
             if schema != "INFORMATION_SCHEMA"
         ]
 
+        filtered_schemas = []
+
         for schema in schemas:
             for selector in schema_wildcard_selectors:
-                if re.search(selector, schema):
-                    schema_name_selectors.append(schema)
+                if fnmatch.fnmatch(schema, selector):
+                    filtered_schemas.append(schema)
                     break
 
-        filtered_schemas = list(set(schemas).intersection(schema_name_selectors))
+        for schema in schemas:
+            for selector in schema_name_selectors:
+                if fnmatch.fnmatch(schema, selector):
+                    filtered_schemas.append(schema)
+                    break
+
+        filtered_schemas = list(set(filtered_schemas))
+
         if not filtered_schemas:
             schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
             console.print(
@@ -64,6 +73,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             if not filtered_schemas:
                 console.print("No schemas selected")
                 exit()
+
         return filtered_schemas
 
     def select_schemas(self, schemas):
@@ -75,11 +85,12 @@ class BaseGenerateTask(BaseConfiguredTask):
         return selected_schemas
 
     def get_relations(self, filtered_schemas):
-        rel_name_selectors = [relation for relation in self.get_config_value("select")]
+        rel_name_selectors = [relation for relation in self.get_config_value("select_relations")]
 
-        rel_excludes = [relation for relation in self.get_config_value("exclude")]
+        rel_excludes = [relation for relation in self.get_config_value("exclude_relations")]
 
         rel_wildcard_selectors = []
+
         for rel_name in rel_name_selectors:
             if "*" in rel_name:
                 rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
@@ -90,14 +101,14 @@ class BaseGenerateTask(BaseConfiguredTask):
 
         for rel in listed_relations:
             for selector in rel_wildcard_selectors:
-                if re.search(selector, rel.name):
+                if fnmatch.fnmatch(rel.name, selector):
                     rel_name_selectors.append(rel.name)
                     break
 
         excluded = []
         for rel in listed_relations:
             for selector in rel_excludes:
-                if re.search(selector, rel.name):
+                if fnmatch.fnmatch(rel.name, selector):
                     excluded.append(rel.name)
                     break
 
@@ -105,9 +116,12 @@ class BaseGenerateTask(BaseConfiguredTask):
             relation for relation in listed_relations if relation.name not in excluded
         ]
 
-        intersected_rels = [
-            relation for relation in listed_relations if relation.name in rel_name_selectors
-        ]
+        intersected_rels = []
+        for rel in listed_relations:
+            for selector in rel_name_selectors:
+                if fnmatch.fnmatch(rel.name, selector):
+                    intersected_rels.append(rel)
+                    break
 
         rels = (
             intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
