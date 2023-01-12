@@ -314,9 +314,10 @@ class LoadFivetranTask(BaseLoadTask):
 
         # Avoid field repetition in Config and Reports (PATCH/POST legacy mode workaround)
         if connector_config.get("reports"):
-            for report_field in list(connector_config["reports"]):
-                if report_field in connector_config:
-                    del connector_config[report_field]
+            for report in connector_config["reports"]:
+                for report_field in list(report):
+                    if report_field in connector_config:
+                        del connector_config[report_field]
 
     def _exported_connector_exists_in_destination(self, exported_connector, existent_destination):
         exported_connector_name = exported_connector["schema"]
