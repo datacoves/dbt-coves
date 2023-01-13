@@ -21,9 +21,9 @@
               "type": "string",
               "minLength": 1
             },
-            "select": {
+            "select-relations": {
               "type": "array",
-              "title": "Select",
+              "title": "Select relations",
               "description": "List of relations where to look for source tables",
               "items": {
                 "type": "string",
@@ -31,9 +31,9 @@
               },
               "minItems": 1
             },
-            "exclude": {
+            "exclude-relations": {
               "type": "array",
-              "title": "Exclude",
+              "title": "Exclude relations",
               "description": "List of relations to exclude when searching source tables",
               "items": {
                 "type": "string",
@@ -176,7 +176,7 @@
               },
               "minItems": 1
             },
-            "relations": {
+            "select-relations": {
               "title": "Relations",
               "description": "Default relations to filter when generating metadata file (not recommended as a config option)",
               "type": "array",
@@ -185,6 +185,15 @@
                 "minLength": 1
               },
               "minItems": 1
+            },
+            "exclude-relations": {
+              "title": "Exclude relations",
+              "description": "List of relations to exclude when generating metadata file",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
             },
             "destination": {
               "title": "Destination",
