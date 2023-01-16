@@ -7,7 +7,7 @@
   "properties": {
     "generate": {
       "title": "Generate",
-      "description": "Generate sources, properties and metadata",
+      "description": "Generates dbt source and staging files, model property files and extracts metadata for tables (used as input for sources and properties)",
       "type": "object",
       "properties": {
         "sources": {
@@ -17,14 +17,24 @@
           "properties": {
             "database": {
               "title": "Database",
-              "description": "Default database where the generate sources command will search for tables (optional)",
+              "description": "Default database where the generate sources command will search for tables",
               "type": "string",
               "minLength": 1
+            },
+            "schemas": {
+              "type": "array",
+              "title": "Schemas",
+              "description": "Default schemas where the generate sources command will search for tables",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
             },
             "select-relations": {
               "type": "array",
               "title": "Select relations",
-              "description": "List of relations where to look for source tables",
+              "description": "List of relations to include when searching source tables",
               "items": {
                 "type": "string",
                 "minLength": 1
@@ -35,16 +45,6 @@
               "type": "array",
               "title": "Exclude relations",
               "description": "List of relations to exclude when searching source tables",
-              "items": {
-                "type": "string",
-                "minLength": 1
-              },
-              "minItems": 1
-            },
-            "schemas": {
-              "type": "array",
-              "title": "Schemas",
-              "description": "Default schemas where the generate sources command will search for tables (optional)",
               "items": {
                 "type": "string",
                 "minLength": 1
@@ -86,7 +86,7 @@
             },
             "metadata": {
               "title": "Metadata",
-              "description": "Default file path for metadata csv source file (optional)",
+              "description": "Default file to find metadata file used to fill in field descriptions",
               "type": "string",
               "minLength": 1
             }
@@ -136,19 +136,19 @@
             },
             "select": {
               "title": "Select",
-              "description": "",
+              "description": "dbt graph selector used to look for models e.g. my_model+",
               "type": "string",
               "minLength": 1
             },
             "exclude": {
               "title": "Exclude",
-              "description": "",
+              "description": "dbt graph exclude filter",
               "type": "string",
               "minLength": 1
             },
             "selector": {
               "title": "Selector",
-              "description": "",
+              "description": "dbt selector definition e.g. my_selector.yml",
               "type": "string",
               "minLength": 1
             }
@@ -177,7 +177,7 @@
               "minItems": 1
             },
             "select-relations": {
-              "title": "Relations",
+              "title": "Select relations",
               "description": "Default relations to filter when generating metadata file (not recommended as a config option)",
               "type": "array",
               "items": {
@@ -225,17 +225,17 @@
     },
     "extract": {
       "title": "Extract",
-      "description": "Extract data",
+      "description": "Extract configuration data from Airbyte or Fivetran",
       "type": "object",
       "properties": {
         "airbyte": {
-          "title": "Airbyte config",
+          "title": "Extract Airbyte config",
           "description": "Extract data from Airbyte",
           "type": "object",
           "properties": {
             "path": {
               "title": "Path",
-              "description": "Where json files will be generated",
+              "description": "Path where configuration json files will be created",
               "type": "string",
               "minLength": 1
             },
@@ -248,16 +248,11 @@
             "port": {
               "title": "Port",
               "description": "Airbyte's API port",
-              "type": "number"
-            },
-            "dbt_list_args": {
-              "title": "DBT List Args",
-              "description": "Extra dbt arguments: selectors, modifiers, etc",
-              "type": "string",
+              "type": "number",
               "minLength": 1
             }
           },
-          "required": ["host"]
+          "required": ["host", "port", "path"]
         }
       },
       "required": []
@@ -287,7 +282,8 @@
             "port": {
               "title": "Port",
               "description": "Airbyte's API port",
-              "type": "number"
+              "type": "number",
+              "minLength": 1
             },
             "secrets_manager": {
               "title": "Secrets manager",
@@ -303,7 +299,7 @@
             },
             "secrets_token": {
               "title": "Secrets Token",
-              "description": "",
+              "description": "Secret credentials provider, i.e. 'datacoves'",
               "type": "string",
               "minLength": 1
             },
@@ -313,31 +309,37 @@
               "type": "string",
               "minLength": 1
             },
-            "dbt_list_args": {
-              "title": "DBT List Args",
-              "description": "Extra dbt arguments: selectors, modifiers, etc",
+            "secrets_project": {
+              "title": "Secrets Project",
+              "description": "Secret credentials project",
+              "type": "string",
+              "minLength": 1
+            },
+            "secrets_tags": {
+              "title": "Secrets Tags",
+              "description": "Secret credentials tags",
               "type": "string",
               "minLength": 1
             }
           },
-          "required": ["host"]
+          "required": ["path", "host", "port"]
         }
       },
       "required": []
     },
     "setup": {
       "title": "Setup",
-      "description": "",
+      "description": "Default parameters for the setup command",
       "type": "object",
       "properties": {
         "all": {
           "title": "All setup",
-          "description": "",
+          "description": "Default for setup all command",
           "type": "object",
           "properties": {
             "open_ssl_public_key": {
               "title": "Open SSL public key",
-              "description": "",
+              "description": "Determines whether an Open SSL key will be generated",
               "type": "boolean"
             }
           },
@@ -345,12 +347,12 @@
         },
         "ssh": {
           "title": "SSH setup",
-          "description": "",
+          "description": "SSH key defaults",
           "type": "object",
           "properties": {
             "open_ssl_public_key": {
               "title": "Open SSL public key",
-              "description": "",
+              "description": "Determines whether an Open SSL key will be generated",
               "type": "boolean"
             }
           },
@@ -358,12 +360,12 @@
         },
         "git": {
           "title": "Git setup",
-          "description": "",
+          "description": "Set up Git repository of dbt project",
           "type": "object",
           "properties": {
             "no_prompt": {
               "title": "No prompt",
-              "description": "",
+              "description": "Configure Git without user intervention",
               "type": "boolean"
             }
           },
@@ -374,22 +376,22 @@
     },
     "dbt": {
       "title": "dbt",
-      "description": "",
+      "description": "dbt default commands",
       "type": "object",
       "properties": {
         "command": {
           "title": "Command",
-          "description": "",
+          "description": "dbt command to run, i.e. 'run -s model_name'",
           "type": "string"
         },
         "project_dir": {
           "title": "Project Dir",
-          "description": "",
+          "description": "Path to the dbt project i.e.: /opt/user/dbt_project",
           "type": "string"
         },
         "virtualenv": {
           "title": "Virtualenv",
-          "description": "",
+          "description": "Virtual environment path for the dbt command. i.e.: /opt/user/virtualenvs/airflow",
           "type": "string"
         }
       },
