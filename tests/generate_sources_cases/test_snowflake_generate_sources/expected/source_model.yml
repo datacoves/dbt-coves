@@ -1,0 +1,8 @@
+version: 2
+
+sources:
+  - name: tests
+    database: DBT_COVES_TEST
+    tables:
+      - name: test_model
+        description: ""

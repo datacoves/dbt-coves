@@ -2,18 +2,13 @@ import glob
 import json
 import os
 import pathlib
-import subprocess
 from copy import copy
-from pathlib import Path
-from typing import Dict
 
-from requests.exceptions import RequestException
 from rich.console import Console
 
-from dbt_coves.tasks.base import BaseConfiguredTask
-from dbt_coves.tasks.generate import sources
-from dbt_coves.utils import shell
-from dbt_coves.utils.airbyte_api import AirbyteApiCaller
+from dbt_coves.utils.api_caller import AirbyteApiCaller
+
+from .base import BaseExtractTask
 
 # from dbt_coves.utils import airbyte_api
 
@@ -24,7 +19,7 @@ class AirbyteExtractorException(Exception):
     pass
 
 
-class ExtractAirbyteTask(BaseConfiguredTask):
+class ExtractAirbyteTask(BaseExtractTask):
     """
     Task that extracts airbyte sources, connections and destinations and stores them as json files
     """
@@ -34,7 +29,8 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         subparser = sub_parsers.add_parser(
             "airbyte",
             parents=[base_subparser],
-            help="Extracts airbyte sources, connections and destinations and stores them as json files",
+            help="""Extracts airbyte sources, connections and destinations
+            and stores them as json files""",
         )
         subparser.add_argument(
             "--path",
@@ -51,11 +47,6 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             type=str,
             help="Airbyte's API port, i.e. '8001'",
         )
-        subparser.add_argument(
-            "--dbt-list-args",
-            type=str,
-            help="Extra dbt arguments, selectors or modifiers",
-        )
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
@@ -69,11 +60,11 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         extract_destination = self.get_config_value("path")
         airbyte_host = self.get_config_value("host")
         airbyte_port = self.get_config_value("port")
-        dbt_modifiers = self.get_config_value("dbt_list_args")
 
         if not extract_destination or not airbyte_host or not airbyte_port:
             raise AirbyteExtractorException(
-                f"Couldn't start extraction: one (or more) of the following arguments is missing either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
+                "Couldn't start extraction: one (or more) of the following arguments is missing"
+                "either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
             )
 
         extract_destination = pathlib.Path(extract_destination)
@@ -86,62 +77,30 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         self.destinations_extract_destination = os.path.abspath(destinations_path)
         self.sources_extract_destination = os.path.abspath(sources_path)
 
-        self.airbyte_api_caller = AirbyteApiCaller(airbyte_host, airbyte_port)
+        self.airbyte_api = AirbyteApiCaller(airbyte_host, airbyte_port)
 
         console.print(
-            f"Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b] configurations to {os.path.abspath(extract_destination)}\n"
+            "Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b]"
+            f"configurations to {os.path.abspath(extract_destination)}\n"
         )
 
-        dbt_ls_cmd = f"dbt ls --resource-type source {dbt_modifiers}"
+        sources_path.mkdir(exist_ok=True, parents=True)
+        destinations_path.mkdir(exist_ok=True, parents=True)
+        connections_path.mkdir(exist_ok=True, parents=True)
+        for airbyte_source in self.airbyte_api.airbyte_sources_list:
+            source_id = airbyte_source["sourceId"]
+            source_json = self._get_airbyte_source_from_id(source_id)
+            self._save_json_source(source_json)
 
-        if not self.dbt_packages_exist(os.getcwd()):
-            raise AirbyteExtractorException(
-                f"Could not locate dbt_packages folder, make sure 'dbt deps' was ran."
-            )
+        for airbyte_destination in self.airbyte_api.airbyte_destinations_list:
+            destination_id = airbyte_destination["destinationId"]
+            destination_json = self._get_airbyte_destination_from_id(destination_id)
+            self._save_json_destination(destination_json)
 
-        try:
-            dbt_sources_list = shell.run_dbt_ls(dbt_ls_cmd, None)
-        except subprocess.CalledProcessError as e:
-            raise AirbyteExtractorException(
-                f"Command '{dbt_ls_cmd}' failed and returned with error (code {e.returncode})\n"
-                f"Output: {e.output.decode('utf-8')}"
-            )
+        for airbyte_conn in self.airbyte_api.airbyte_connections_list:
+            self._save_json_connection(airbyte_conn)
 
-        if not dbt_sources_list:
-            raise AirbyteExtractorException(
-                f"No compiled dbt sources found running '{dbt_ls_cmd}'"
-            )
-
-        manifest_json = json.load(open(Path() / "target" / "manifest.json"))
-        dbt_sources_list = self._clean_sources_prefixes(dbt_sources_list)
-        for source in dbt_sources_list:
-            # Obtain db.schema.table
-            source_db = manifest_json["sources"][source]["database"].lower()
-            source_schema = manifest_json["sources"][source]["schema"].lower()
-            source_table = (
-                manifest_json["sources"][source]["identifier"].lower().replace("_airbyte_raw_", "")
-            )
-
-            source_connection = self._get_airbyte_connection_for_table(
-                source_db, source_schema, source_table
-            )
-            if source_connection:
-                source_destination = self._get_airbyte_destination_from_id(
-                    source_connection["destinationId"]
-                )
-                source_source = self._get_airbyte_source_from_id(source_connection["sourceId"])
-
-                if source_destination and source_source:
-                    connections_path.mkdir(parents=True, exist_ok=True)
-                    sources_path.mkdir(parents=True, exist_ok=True)
-                    destinations_path.mkdir(parents=True, exist_ok=True)
-
-                    self._save_json_connection(source_connection)
-                    self._save_json_destination(source_destination)
-                    self._save_json_source(source_source)
-            else:
-                console.print(f"There is no Airbyte Connection for source: [red]{source}[/red]")
-        if len(self.extraction_results["connections"]) >= 1:
+        if len(self.extraction_results["sources"]) >= 1:
             console.print(
                 f"Extraction to path {extract_destination} was successful!\n"
                 f"[u]Sources[/u]: {self.extraction_results['sources']}\n"
@@ -149,61 +108,19 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 f"[u]Connections[/u]: {self.extraction_results['connections']}\n"
             )
         else:
-            console.print(f"No Airbyte Connections were extracted")
+            console.print("No Airbyte Connections were extracted")
         return 0
 
     def dbt_packages_exist(self, dbt_project_path):
         return glob.glob(f"{str(dbt_project_path)}/dbt_packages")
 
-    def _clean_sources_prefixes(self, sources_list):
-        return [source.lower().replace("source:", "source.") for source in sources_list]
-
-    def _get_connection_schema(self, conn, destination_config):
-        """
-        Given an airybte connection, returns a schema name
-        """
-        namespace_definition = conn["namespaceDefinition"]
-
-        if namespace_definition == "source" or (
-            conn["namespaceDefinition"] == "customformat"
-            and conn["namespaceFormat"] == "${SOURCE_NAMESPACE}"
-        ):
-            source = self._get_airbyte_source_from_id(conn["sourceId"])
-            if "schema" in source["connectionConfiguration"]:
-                return source["connectionConfiguration"]["schema"].lower()
-            else:
-                return None
-        elif namespace_definition == "destination":
-            return destination_config["connectionConfiguration"]["schema"].lower()
-        else:
-            if namespace_definition == "customformat":
-                return conn["namespaceFormat"]
-
-    def _get_airbyte_connection_for_table(self, db, schema, table):
-        """
-        Given a table name, returns the corresponding airbyte connection
-        """
-        for conn in self.airbyte_api_caller.airbyte_connections_list:
-            for stream in conn["syncCatalog"]["streams"]:
-                if stream["stream"]["name"].lower() == table:
-                    destination_config = self._get_airbyte_destination_from_id(
-                        conn["destinationId"]
-                    )
-                    # match database
-                    if db == destination_config["connectionConfiguration"]["database"].lower():
-                        airbyte_schema = self._get_connection_schema(conn, destination_config)
-                        # and finally, match schema, if defined
-                        if not airbyte_schema or airbyte_schema.lower() == schema:
-                            return conn
-        return None
-
     def _get_airbyte_destination_definition_from_id(self, definition_id):
         req_body = {
             "destinationDefinitionId": definition_id,
-            "workspaceId": self.airbyte_api_caller.airbyte_workspace_id,
+            "workspaceId": self.airbyte_api.airbyte_workspace_id,
         }
-        return self.airbyte_api_caller.api_call(
-            self.airbyte_api_caller.airbyte_endpoint_get_destination_definition,
+        return self.airbyte_api.api_call(
+            self.airbyte_api.airbyte_endpoint_get_destination_definition,
             req_body,
         )
 
@@ -211,7 +128,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
         """
         Get the complete Destination object from it's ID
         """
-        for destination in self.airbyte_api_caller.airbyte_destinations_list:
+        for destination in self.airbyte_api.airbyte_destinations_list:
             if destination["destinationId"] == destinationId:
                 # Grab Source definition ID
                 destination_definition = self._get_airbyte_destination_definition_from_id(
@@ -229,13 +146,14 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 # Add object definition version
                 destination["connectorVersion"] = self._get_connector_version(
                     "destinationDefinitionId",
-                    self.airbyte_api_caller.destination_definitions,
+                    self.airbyte_api.destination_definitions,
                     destination_definition["destinationDefinitionId"],
                 )
 
                 return destination
         raise AirbyteExtractorException(
-            f"Airbyte extract error: there is no Airbyte Destination for id [red]{destinationId}[/red]"
+            "Airbyte extract error: there is no Airbyte"
+            f"Destination for id [red]{destinationId}[/red]"
         )
 
     def _get_connector_version(self, lookup_field, definitions_list, definition_id):
@@ -247,10 +165,10 @@ class ExtractAirbyteTask(BaseConfiguredTask):
     def _get_airbyte_source_definition_from_id(self, definition_id):
         req_body = {
             "sourceDefinitionId": definition_id,
-            "workspaceId": self.airbyte_api_caller.airbyte_workspace_id,
+            "workspaceId": self.airbyte_api.airbyte_workspace_id,
         }
-        return self.airbyte_api_caller.api_call(
-            self.airbyte_api_caller.airbyte_endpoint_get_source_definition, req_body
+        return self.airbyte_api.api_call(
+            self.airbyte_api.airbyte_endpoint_get_source_definition, req_body
         )
 
     def _hide_configuration_secret_fields(self, connection_configuration, airbyte_secret_fields):
@@ -275,15 +193,16 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             return secret_fields
         except KeyError as e:
             raise AirbyteExtractorException(
-                f"There was an error searching secret fields for {definition['connectionSpecification']['title']}"
+                "There was an error searching secret fields for"
+                f"{definition['connectionSpecification']['title']}:"
+                f"{e}"
             )
 
     def _get_airbyte_source_from_id(self, source_id):
         """
         Get the complete Source object from it's ID
         """
-        for source in self.airbyte_api_caller.airbyte_sources_list:
-
+        for source in self.airbyte_api.airbyte_sources_list:
             if source["sourceId"] == source_id:
                 # Grab Source definition ID
                 source_definition = self._get_airbyte_source_definition_from_id(
@@ -301,7 +220,7 @@ class ExtractAirbyteTask(BaseConfiguredTask):
                 # Add object definition version
                 source["connectorVersion"] = self._get_connector_version(
                     "sourceDefinitionId",
-                    self.airbyte_api_caller.source_definitions,
+                    self.airbyte_api.source_definitions,
                     source_definition["sourceDefinitionId"],
                 )
 
@@ -328,7 +247,8 @@ class ExtractAirbyteTask(BaseConfiguredTask):
             connection["destinationId"]
         )["name"].lower()
 
-        # Once we used the source and destination IDs, they are no longer required and don't need to be saved
+        # Once we used the source and destination IDs,
+        # they are no longer required and don't need to be saved
         # Instead, they are replaced with their respective names
         connection.pop("sourceId", None)
         connection.pop("destinationId", None)

@@ -1,15 +1,15 @@
 import os
-from subprocess import CalledProcessError
-import questionary
 import subprocess
-
 from pathlib import Path
+from subprocess import CalledProcessError
+
+import questionary
 from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils.shell import shell_run, run_and_capture, run_and_capture_shell
-from .utils import print_row
+from dbt_coves.utils.shell import run_and_capture, shell_run
 
+from .utils import print_row
 
 console = Console()
 
@@ -59,7 +59,7 @@ class SetupSSHTask(NonDbtBaseTask):
         found_keys = [
             file
             for file in os.listdir(self.ssh_keys_dir_abs)
-            if "id_" in file.lower() and not ".p" in file.lower()
+            if "id_" in file.lower() and ".p" not in file.lower()
         ]
 
         if found_keys:
@@ -73,23 +73,21 @@ class SetupSSHTask(NonDbtBaseTask):
                 selected_ssh_key = found_keys[0]
             else:
                 selected_ssh_key = questionary.select(
-                    "Which of these SSH Keys would you like to associate to your dbt-coves project?:",
+                    "Which of these SSH Keys would you like to"
+                    "associate to your dbt-coves project?:",
                     choices=found_keys,
                 ).ask()
 
             key_path_abs = f"{self.ssh_keys_dir_abs}/{selected_ssh_key}"
             public_key_path_abs = f"{key_path_abs}.pub"
 
-            ssh_configured = self.output_public_key_for_private(
-                key_path_abs, public_key_path_abs
-            )
+            ssh_configured = self.output_public_key_for_private(key_path_abs, public_key_path_abs)
         else:
-            print_row(
-                f"Checking for key in '{ssh_keys_dir}'", ssh_status, new_section=False
-            )
+            print_row(f"Checking for key in '{ssh_keys_dir}'", ssh_status, new_section=False)
             action = (
                 questionary.select(
-                    "Would you like to provide your existent private SSH key or generate a new one?",
+                    "Would you like to provide your existent"
+                    "private SSH key or generate a new one?",
                     choices=["Provide", "Generate"],
                 )
                 .ask()
@@ -108,21 +106,20 @@ class SetupSSHTask(NonDbtBaseTask):
                 output = self.generate_ecdsa_keys(key_path_abs)
                 if output.returncode == 0:
                     console.print(
-                        f"[green]:heavy_check_mark: SSH ecdsa key generated on '{key_path_abs}'[/green]"
+                        f"[green]:heavy_check_mark: SSH key generated on '{key_path_abs}'[/green]"
                     )
                     ssh_configured = self.output_public_keys(public_key_path_abs)
         if ssh_configured:
             return 0
         else:
             raise Exception(
-                f"You must first configure you SSH key in your Git server then rerun 'dbt-coves setup'"
+                "You must first configure you SSH key in your Git server"
+                "then rerun 'dbt-coves setup'"
             )
 
     def generate_ecdsa_keys(self, key_path_abs):
         try:
-            return shell_run(
-                args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs]
-            )
+            return shell_run(args=["ssh-keygen", "-q", "-t", "ecdsa", "-f", key_path_abs])
         except CalledProcessError as e:
             raise SetupSSHException(e.output)
 
@@ -155,7 +152,8 @@ class SetupSSHTask(NonDbtBaseTask):
         if not ssh_file_name:
             os.remove(provided_key_path)
             raise SetupSSHException(
-                f"Provided ssh key type {public_type} is not supported (must provide dsa/ecdsa/ed25519/rsa). Please try again"
+                f"Provided ssh key type {public_type} is not supported"
+                "(must provide dsa/ecdsa/ed25519/rsa). Please try again"
             )
 
         private_key_path = provided_key_path.replace("id_datacoves", ssh_file_name)
@@ -218,13 +216,14 @@ class SetupSSHTask(NonDbtBaseTask):
 
         console.print(f"\nOpenSSL public key saved at {openssl_public_key_path}")
         console.print(
-            "Please configure the following key (yellow text) in services that require OpenSSL public keys to authenticate you (snowflake, etc.)\n"
+            "Please configure the following key (yellow text) in services that require"
+            "OpenSSL public keys to authenticate you (snowflake, etc.)\n"
         )
-        openssl_public_key = open(openssl_public_key_path, "r").read()
-        openssl_public_key = openssl_public_key.replace(
-            "-----BEGIN PUBLIC KEY-----\n", ""
-        ).replace("-----END PUBLIC KEY-----\n", "")
-        console.print(f"[yellow]{openssl_public_key}[/yellow]")
+        openssl_pub_key = open(openssl_public_key_path, "r").read()
+        openssl_pub_key = openssl_pub_key.replace("-----BEGIN PUBLIC KEY-----\n", "").replace(
+            "-----END PUBLIC KEY-----\n", ""
+        )
+        console.print(f"[yellow]{openssl_pub_key}[/yellow]")
 
     def gen_print_openssl_key(
         self, generate_private, openssl_private_key_path, openssl_public_key_path
@@ -251,20 +250,19 @@ class SetupSSHTask(NonDbtBaseTask):
         openssl_private_path = private_path_abs if public_type == "ssh-rsa" else None
         return self.output_public_keys(public_key_path_abs, openssl_private_path)
 
-    def output_public_keys(self, public_key_path_abs, openssl_private_path=None):
+    def output_public_keys(self, public_key_path_abs, openssl_priv_path=None):
         openssl = self.get_config_value("open_ssl_public_key")
         if openssl:
-            openssl_private_key_path = (
-                openssl_private_path or f"{self.ssh_keys_dir_abs}/rsa_key.p8"
-            )
+            openssl_private_key_path = openssl_priv_path or f"{self.ssh_keys_dir_abs}/rsa_key.p8"
             openssl_public_key_path = f"{self.ssh_keys_dir_abs}/rsa_key.pub"
             self.gen_print_openssl_key(
-                openssl_private_path is None,
+                openssl_priv_path is None,
                 openssl_private_key_path,
                 openssl_public_key_path,
             )
         console.print(
-            "Please configure the following key (yellow text) in your Git server (Gitlab, Github, Bitbucket, etc):\n"
+            "Please configure the following key (yellow text) in your"
+            "Git server (Gitlab, Github, Bitbucket, etc):\n"
         )
         console.print(f"[yellow]{open(public_key_path_abs, 'r').read()}[/yellow]")
         return questionary.confirm(

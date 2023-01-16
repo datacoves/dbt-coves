@@ -16,7 +16,6 @@ class GeneratePropertiesModel(BaseModel):
     metadata: Optional[str] = ""
     update_strategy: Optional[str] = "ask"
     destination: Optional[str] = "{{model_folder_path}}/{{model_file_name}}.yml"
-    models: Optional[str] = ""
     select: Optional[str] = ""
     exclude: Optional[str] = ""
     selector: Optional[str] = ""
@@ -24,13 +23,12 @@ class GeneratePropertiesModel(BaseModel):
 
 class GenerateSourcesModel(BaseModel):
     database: Optional[str] = ""
-    relations: Optional[List[str]] = [""]
-    schemas: Optional[List[str]] = [""]
+    select_relations: Optional[List[str]] = []
+    schemas: Optional[List[str]] = []
+    exclude_relations: Optional[List[str]] = []
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
-    model_props_destination: Optional[
-        str
-    ] = "models/staging/{{schema}}/{{relation}}.yml"
+    model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
     update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
@@ -38,8 +36,9 @@ class GenerateSourcesModel(BaseModel):
 
 class GenerateMetadataModel(BaseModel):
     database: Optional[str] = ""
-    schemas: Optional[List[str]] = [""]
-    relations: Optional[List[str]] = [""]
+    schemas: Optional[List[str]] = []
+    select_relations: Optional[List[str]] = []
+    exclude_relations: Optional[List[str]] = []
     destination: Optional[str] = "metadata.csv"
 
 
@@ -53,7 +52,13 @@ class ExtractAirbyteModel(BaseModel):
     path: Optional[str] = ""
     host: Optional[str] = ""
     port: Optional[str] = ""
-    dbt_list_args: Optional[str] = ""
+
+
+class ExtractFivetranModel(BaseModel):
+    path: Optional[str] = ""
+    api_key: Optional[str] = ""
+    api_secret: Optional[str] = ""
+    credentials: Optional[str] = ""
 
 
 class LoadAirbyteModel(BaseModel):
@@ -64,15 +69,24 @@ class LoadAirbyteModel(BaseModel):
     secrets_url: Optional[str] = ""
     secrets_token: Optional[str] = ""
     secrets_path: Optional[str] = ""
-    dbt_list_args: Optional[str] = ""
+
+
+class LoadFivetranModel(BaseModel):
+    path: Optional[str] = ""
+    api_key: Optional[str] = ""
+    api_secret: Optional[str] = ""
+    secrets_path: Optional[str] = ""
+    credentials: Optional[str] = ""
 
 
 class ExtractModel(BaseModel):
     airbyte: Optional[ExtractAirbyteModel] = ExtractAirbyteModel()
+    fivetran: Optional[ExtractFivetranModel] = ExtractFivetranModel()
 
 
 class LoadModel(BaseModel):
     airbyte: Optional[LoadAirbyteModel] = LoadAirbyteModel()
+    fivetran: Optional[LoadFivetranModel] = LoadFivetranModel()
 
 
 class SetupAllModel(BaseModel):
@@ -112,7 +126,6 @@ class DbtCovesConfig:
 
     DBT_COVES_CONFIG_FILEPATH = ".dbt_coves/config.yml"
     CLI_OVERRIDE_FLAGS = [
-        "generate.properties.model_props_strategy",
         "generate.properties.templates_folder",
         "generate.properties.metadata",
         "generate.properties.destination",
@@ -120,7 +133,8 @@ class DbtCovesConfig:
         "generate.properties.select",
         "generate.properties.exclude",
         "generate.properties.selector",
-        "generate.sources.relations",
+        "generate.sources.select_relations",
+        "generate.sources.exclude_relations",
         "generate.sources.database",
         "generate.sources.schemas",
         "generate.sources.sources_destination",
@@ -131,12 +145,12 @@ class DbtCovesConfig:
         "generate.sources.metadata",
         "generate.metadata.database",
         "generate.metadata.schemas",
-        "generate.metadata.relations",
+        "generate.metadata.select_relations",
+        "generate.metadata.exclude_relations",
         "generate.metadata.destination",
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",
-        "extract.airbyte.dbt_list_args",
         "load.airbyte.path",
         "load.airbyte.host",
         "load.airbyte.port",
@@ -144,13 +158,21 @@ class DbtCovesConfig:
         "load.airbyte.secrets_url",
         "load.airbyte.secrets_token",
         "load.airbyte.secrets_path",
-        "load.airbyte.dbt_list_args",
         "setup.all.open_ssl_public_key",
         "setup.ssh.open_ssl_public_key",
         "setup.git.no_prompt",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",
+        "extract.fivetran.path",
+        "extract.fivetran.api_key",
+        "extract.fivetran.api_secret",
+        "extract.fivetran.credentials",
+        "load.fivetran.path",
+        "load.fivetran.api_key",
+        "load.fivetran.api_secret",
+        "load.fivetran.secrets_path",
+        "load.fivetran.credentials",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:
@@ -177,11 +199,7 @@ class DbtCovesConfig:
             source = self._flags
             for item in path_items[:-1]:
                 target = target[item]
-                source = (
-                    source.get(item, {})
-                    if type(source) == dict
-                    else getattr(source, item)
-                )
+                source = source.get(item, {}) if type(source) == dict else getattr(source, item)
             key = path_items[-1]
             if source.get(key):
                 target[key] = source[key]

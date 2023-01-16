@@ -1,14 +1,10 @@
-from typing import Optional, Union, List
 from pathlib import Path
-
-import subprocess
-from subprocess import PIPE, Popen, CompletedProcess
+from subprocess import PIPE, CompletedProcess, Popen
 from subprocess import run as shell_run
+from typing import List, Optional, Union
 
 
-def run(
-    cmd, cwd: Optional[Union[str, Path]] = None, write_to_stdout: bool = True
-) -> Popen:
+def run(cmd, cwd: Optional[Union[str, Path]] = None, write_to_stdout: bool = True) -> Popen:
     with Popen(cmd, stdout=PIPE, bufsize=1, universal_newlines=True, cwd=cwd) as proc:
         if write_to_stdout:
             for line in proc.stdout:
@@ -26,16 +22,3 @@ def run_and_capture_shell(args_list):
 
 def run_and_capture_cwd(args_list, cwd) -> CompletedProcess:
     return shell_run(args_list, cwd=cwd)
-
-
-def run_dbt_ls(bash_cmd: str, cwd: Optional[Union[str, Path]] = None) -> List[str]:
-    process = subprocess.run(
-        bash_cmd.split(),
-        cwd=cwd,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=True,
-    )
-    stdout = process.stdout.decode().strip()
-    full_stdout = stdout.split("\n") if "\n" in stdout else [stdout]
-    return [line for line in full_stdout if "source:" in line]

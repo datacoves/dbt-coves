@@ -1,0 +1,4 @@
+profile: "test_dbt_coves_redshift"
+table: "test_model"
+schema: "tests"
+database: "dev"

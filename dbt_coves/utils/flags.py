@@ -29,7 +29,8 @@ class DbtCovesFlags:
         self.verbose: bool = False
         self.generate = {
             "sources": {
-                "relations": [],
+                "select_relations": [],
+                "exclude_relations": [],
                 "database": None,
                 "schemas": [],
                 "sources_destination": None,
@@ -41,7 +42,6 @@ class DbtCovesFlags:
             },
             "properties": {
                 "templates_folder": None,
-                "model_props_strategy": None,
                 "metadata": None,
                 "destination": None,
                 "update_strategy": None,
@@ -52,12 +52,23 @@ class DbtCovesFlags:
             "metadata": {
                 "database": None,
                 "schemas": [],
-                "relations": [],
+                "select_relations": [],
+                "exclude_relations": [],
                 "destination": None,
             },
         }
         self.extract = {
-            "airbyte": {"path": None, "host": None, "port": None, "dbt_list_args": None}
+            "airbyte": {
+                "path": None,
+                "host": None,
+                "port": None,
+            },
+            "fivetran": {
+                "path": None,
+                "api_key": None,
+                "api_secret": None,
+                "credentials": None,
+            },
         }
         self.load = {
             "airbyte": {
@@ -68,8 +79,14 @@ class DbtCovesFlags:
                 "secrets_url": None,
                 "secrets_token": None,
                 "secrets_path": None,
-                "dbt_list_args": None,
-            }
+            },
+            "fivetran": {
+                "path": None,
+                "api_key": None,
+                "api_secret": None,
+                "secrets_path": None,
+                "credentials": None,
+            },
         }
         self.init = {
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
@@ -115,9 +132,9 @@ class DbtCovesFlags:
                     ]
                 if self.args.database:
                     self.generate["sources"]["database"] = self.args.database
-                if self.args.relations:
-                    self.generate["sources"]["relations"] = [
-                        relation.strip() for relation in self.args.relations.split(",")
+                if self.args.select_relations:
+                    self.generate["sources"]["select_relations"] = [
+                        relation.strip() for relation in self.args.select_relations.split(",")
                     ]
                 if self.args.sources_destination:
                     self.generate["sources"]["sources_destination"] = self.args.sources_destination
@@ -133,17 +150,13 @@ class DbtCovesFlags:
                     self.generate["sources"]["templates_folder"] = self.args.templates_folder
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
+                if self.args.exclude_relations:
+                    self.generate["sources"][
+                        "exclude_relations"
+                    ] = self.args.exclude_relations.split(",")
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
                     self.generate["properties"]["templates_folder"] = self.args.templates_folder
-                if self.args.model_props_strategy:
-                    self.generate["properties"][
-                        "model_props_strategy"
-                    ] = self.args.model_props_strategy
-                if self.args.model_props_strategy:
-                    self.generate["properties"][
-                        "model_props_strategy"
-                    ] = self.args.model_props_strategy
                 if self.args.metadata:
                     self.generate["properties"]["metadata"] = self.args.metadata
                 if self.args.destination:
@@ -163,9 +176,13 @@ class DbtCovesFlags:
                     self.generate["metadata"]["schemas"] = [
                         schema.strip() for schema in self.args.schemas.split(",")
                     ]
-                if self.args.relations:
-                    self.generate["metadata"]["relations"] = [
-                        relation.strip() for relation in self.args.relations.split(",")
+                if self.args.select_relations:
+                    self.generate["metadata"]["select_relations"] = [
+                        relation.strip() for relation in self.args.select_relations.split(",")
+                    ]
+                if self.args.exclude_relations:
+                    self.generate["metadata"]["exclude_relations"] = [
+                        relation.strip() for relation in self.args.exclude_relations.split(",")
                     ]
                 if self.args.destination:
                     self.generate["metadata"]["destination"] = self.args.destination
@@ -191,8 +208,17 @@ class DbtCovesFlags:
                     self.load["airbyte"]["secrets_token"] = self.args.secrets_token
                 if self.args.secrets_path:
                     self.load["airbyte"]["secrets_path"] = self.args.secrets_path
+            if self.args.cls.__name__ == "LoadFivetranTask":
+                if self.args.path:
+                    self.load["fivetran"]["path"] = self.args.path
+                if self.args.api_key:
+                    self.load["fivetran"]["api_key"] = self.args.api_key
+                if self.args.api_secret:
+                    self.load["fivetran"]["api_secret"] = self.args.api_secret
                 if self.args.secrets_path:
-                    self.load["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
+                    self.load["fivetran"]["secrets_path"] = self.args.secrets_path
+                if self.args.credentials:
+                    self.load["fivetran"]["credentials"] = self.args.credentials
 
             if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
@@ -200,9 +226,16 @@ class DbtCovesFlags:
                 if self.args.host and self.args.port:
                     self.extract["airbyte"]["host"] = self.args.host
                     self.extract["airbyte"]["port"] = self.args.port
-                if self.args.dbt_list_args:
-                    self.extract["airbyte"]["dbt_list_args"] = self.args.dbt_list_args
 
+            if self.args.cls.__name__ == "ExtractFivetranTask":
+                if self.args.path:
+                    self.extract["fivetran"]["path"] = self.args.path
+                if self.args.api_key:
+                    self.extract["fivetran"]["api_key"] = self.args.api_key
+                if self.args.api_secret:
+                    self.extract["fivetran"]["api_secret"] = self.args.api_secret
+                if self.args.credentials:
+                    self.extract["fivetran"]["credentials"] = self.args.credentials
             if self.args.cls.__name__ == "SetupAllTask":
                 if self.args.open_ssl_public_key:
                     self.setup["all"]["open_ssl_public_key"] = self.args.open_ssl_public_key

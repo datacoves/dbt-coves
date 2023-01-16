@@ -141,13 +141,18 @@ dbt-coves generate sources -h
 ```
 
 ```console
---sources-destination
-# Where sources yml files will be generated, default: 'models/staging/{{schema}}/sources.yml'
+--select-relations
+# List of relations where raw data resides. The parameter must be enclosed in quotes. Accepts wildcards.
+```
+
+```console
+--exclude-relations
+# Filter relation(s) to exclude from source file(s) generation. The parameter must be enclosed in quotes. Accepts wildcards.
 ```
 
 ```console
 --sources-destination
-# Where sources yml files will be generated, default: 'models/staging/{{schema}}/{{schema}}.yml'
+# Where sources yml files will be generated, default: 'models/staging/{{schema}}/sources.yml'
 ```
 
 ```console
@@ -163,6 +168,16 @@ dbt-coves generate sources -h
 ```console
 --update-strategy
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
+```
+
+```console
+--templates-folder
+# Folder with jinja templates that override default sources generation templates, i.e. 'templates'
+```
+
+```console
+--metadata
+# Path to csv file containing metadata, i.e. 'metadata.csv'
 ```
 
 ### Properties Generation Arguments
@@ -181,19 +196,29 @@ You can use dbt-coves to generate and update the properties(yml) file for a give
 # Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
 
-```shell
+```console
 -s --select
 # Filter model(s) to generate property file(s)
 ```
 
-```shell
+```console
 --exclude
 # Filter model(s) to exclude from property file(s) generation
 ```
 
-```shell
+```console
 --selector
 # Specify dbt selector for more complex model filtering
+```
+
+```console
+--templates-folder
+# Folder with jinja templates that override default properties generation templates, i.e. 'templates'
+```
+
+```console
+--metadata
+# Path to csv file containing metadata, i.e. 'metadata.csv'
 ```
 
 Note: `--select (or -s)`, `--exclude` and `--selector` work exactly as `dbt ls` selectors do. For usage details, visit [dbt list docs](https://docs.getdbt.com/reference/commands/list)
@@ -205,17 +230,27 @@ Usage of these metadata files can be found in [metadata](https://github.com/data
 
 `dbt-coves generate metadata` supports the following args:
 
-```shell
+```console
 --database
 # Database to inspect
 ```
 
-```shell
---schema
-# Schema to inspect
+```console
+--schemas
+# Comma separated list of schemas where raw data resides
 ```
 
-```shell
+```console
+--select-relations
+# List of relations where raw data resides. The parameter must be enclosed in quotes. Accepts wildcards.
+```
+
+```console
+--exclude-relations
+# Filter relation(s) to exclude from source file(s) generation. The parameter must be enclosed in quotes. Accepts wildcards.
+```
+
+```console
 --destination
 # Where csv file(s) will be generated, default: 'metadata.csv'
 # Supports using the Jinja tags `{{relation}}` and `{{schema}}`
@@ -250,7 +285,7 @@ Extracts the configuration from your Airbyte sources, connections and destinatio
 Full usage example:
 
 ```console
-dbt-coves extract airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load
+dbt-coves extract airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load/airbyte
 ```
 
 ## Load configuration to Airbyte
@@ -291,7 +326,77 @@ To load encrypted fields through a manager (in this case we are connecting to Da
 Full usage example:
 
 ```console
-dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load --secrets-path /config/workspace/secrets
+dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load/airbyte --secrets-path /config/workspace/secrets
+```
+
+## Extract configuration from Fivetran
+
+```console
+dbt-coves extract fivetran
+```
+
+Extracts the configuration from your Fivetran destinations and connectors (excluding credentials) and stores it in the specified folder. The main goal of this feature is to keep track of the configuration changes in your git repo, and rollback to a specific version when needed.
+
+Full usage example:
+
+```console
+dbt-coves extract fivetran --credentials /config/workspace/secrets/fivetran/credentials.yml --path /config/workspace/load/fivetran
+```
+
+## Load configuration to Fivetran
+
+```console
+dbt-coves load fivetran
+```
+
+Loads the Fivetran configuration generated with `dbt-coves extract fivetran` on a Fivetran instance. Secrets folder needs to be specified separately. You can use [git-secret](https://git-secret.io/) to encrypt secrets and make them part of your git repo.
+
+### Credentials
+
+In order for extract/load fivetran to work properly, you need to provide an api key-secret pair (you can generate them [here](https://fivetran.com/account/settings/account)).
+
+These credentials can be used with `--api-key [key] --api-secret [secret]`, or specyfing a YML file with `--credentials /path/to/credentials.yml`. The required structure of this file is the following:
+
+```yaml
+account_name: # Any name, used by dbt-coves to ask which to use when more than one is found
+  api_key: [key]
+  api_secret: [secret]
+account_name_2:
+  api_key: [key]
+  api_secret: [secret]
+```
+
+This YML file approach allows you to both work with multiple Fivetran accounts, and treat this credentials file as a secret.
+
+> :warning: **Warning**: --api-key/secret and --credentials flags are mutually exclusive, don't use them together.
+
+### Loading secrets
+
+Secret credentials can be approached via `--secrets-path` flag
+
+```console
+dbt-coves load fivetran --secrets-path /path/to/secret/directory
+```
+
+#### Field naming convention
+
+Although secret files can have any name, unencrypted JSON files must follow a simple structure:
+
+- Keys should match their corresponding Fivetran destination ID: two words automatically generated by Fivetran, which can be found in previously extracted data.
+- Inside those keys, a nested dictionary of which fields should be overwritten
+
+For example:
+
+```json
+{
+  "extract_muscle": {
+    // Internal ID that Fivetran gave to a Snowflake warehouse Destination
+    "password": "[PASSWORD]" // Field:Value pair
+  },
+  "centre_straighten": {
+    "password": "[PASSWORD]"
+  }
+}
 ```
 
 ## Run dbt commands
@@ -332,14 +437,21 @@ this:
 ```yaml
 generate:
   sources:
-    database: RAW # Database where to look for source tables
+    database: "RAW" # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
+    select_relations: # list of relations where raw data resides
+      - TABLE_1
+      - TABLE_2
+    exclude_relations: # Filter relation(s) to exclude from source file(s) generation
+      - TABLE_1
+      - TABLE_2
     sources_destination: "models/staging/{{schema}}/{{schema}}.yml" # Where sources yml files will be generated
     models_destination: "models/staging/{{schema}}/{{relation}}.sql" # Where models sql files will be generated
     model_props_destination: "models/staging/{{schema}}/{{relation}}.yml" # Where models yml files will be generated
     update_strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
     templates_folder: ".dbt_coves/templates" # Folder where source generation jinja templates are located. Override default templates creating  source_props.yml, source_model_props.yml, and source_model.sql under this folder
+    metadata: "metadata.csv" # Path to csv file containing metadata
 
   properties:
     destination: "{{model_folder_path}}/{{model_file_name}}.yml" # Where models yml files will be generated
@@ -348,30 +460,49 @@ generate:
     select: "models/staging/bays" # Filter model(s) to generate property file(s)
     exclude: "models/staging/bays/test_bay" # Filter model(s) to generate property file(s)
     selector: "selectors/bay_selector.yml" # Specify dbt selector for more complex model filtering
+    templates_folder: ".dbt_coves/templates" # Folder where source generation jinja templates are located. Override default template creating model_props.yml under this folder
+    metadata: "metadata.csv" # Path to csv file containing metadata
 
   metadata:
     database: RAW # Database where to look for source tables
     schemas: # List of schema names where to look for source tables
       - RAW
+    select_relations: # list of relations where raw data resides
+      - TABLE_1
+      - TABLE_2
+    exclude_relations: # Filter relation(s) to exclude from source file(s) generation
+      - TABLE_1
+      - TABLE_2
     destination: # Where metadata file will be generated, default: 'metadata.csv'
 
 extract:
   airbyte:
-    path: /config/workspace/load # Where json files will be generated
+    path: /config/workspace/load/airbyte # Where json files will be generated
     host: http://airbyte-server # Airbyte's API hostname
     port: 8001 # Airbyte's API port
-    dbt_list_args: --exclude source:dbt_artifacts # Extra dbt arguments: selectors, modifiers, etc
+  fivetran:
+    path: /config/workspace/load/fivetran # Where Fivetran export will be generated
+    api_key: [KEY] # Fivetran API Key
+    api_secret: [SECRET] # Fivetran API Secret
+    credentials: /opt/fivetran_credentials.yml # Fivetran set of key:secret pairs
+    # 'api_key' + 'api_secret' are mutually exclusive with 'credentials', use one or the other
 
 load:
   airbyte:
     path: /config/workspace/load
     host: http://airbyte-server
     port: 8001
-    dbt_list_args: --exclude source:dbt_artifacts
     secrets_manager: datacoves # (optional) Secret credentials provider (secrets_path OR secrets_manager should be used, can't load secrets locally and remotely at the same time)
     secrets_path: /config/workspace/secrets # (optional) Secret files location if secrets_manager was not specified
     secrets_url: https://api.datacoves.localhost/service-credentials/airbyte # Secrets url if secrets_manager is datacoves
     secrets_token: <TOKEN> # Secrets auth token if secrets_manager is datacoves
+  fivetran:
+    path: /config/workspace/load/fivetran # Where previous Fivetran export resides, subject of import
+    api_key: [KEY] # Fivetran API Key
+    api_secret: [SECRET] # Fivetran API Secret
+    secrets_path: /config/workspace/secrets/fivetran # Fivetran secret fields
+    credentials: /opt/fivetran_credentials.yml # Fivetran set of key:secret pairs
+    # 'api_key' + 'api_secret' are mutually exclusive with 'credentials', use one or the other
 ```
 
 ## Override generation templates
