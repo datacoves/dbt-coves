@@ -128,12 +128,6 @@
               "minLength": 1,
               "pattern": ".+({{model_file_name}}.yml)$"
             },
-            "models": {
-              "title": "Models",
-              "description": "Filter path used to limit where generate properties will look for model (sql) files.",
-              "type": "string",
-              "minLength": 1
-            },
             "select": {
               "title": "Select",
               "description": "dbt graph selector used to look for models e.g. my_model+",
@@ -253,6 +247,38 @@
             }
           },
           "required": ["host", "port", "path"]
+        },
+        "fivetran": {
+          "title": "Extract Fivetran config",
+          "description": "Extract data from Fivetran",
+          "type": "object",
+          "properties": {
+            "api_key": {
+              "title": "API Key",
+              "description": "Fivetran's API Key",
+              "type": "string",
+              "minLength": 1
+            },
+            "api_secret": {
+              "title": "API Secret",
+              "description": "Fivetran's API Secret",
+              "type": "string",
+              "minLength": 1
+            },
+            "credentials": {
+              "title": "Credentials",
+              "description": "Path to Fivetran credentials YAML file",
+              "type": "string",
+              "minLength": 1
+            },
+            "path": {
+              "title": "Path",
+              "description": "Path where configuration json files will be created",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": []
         }
       },
       "required": []
@@ -308,21 +334,50 @@
               "description": "Secret files location for Airbyte configuration",
               "type": "string",
               "minLength": 1
-            },
-            "secrets_project": {
-              "title": "Secrets Project",
-              "description": "Secret credentials project",
+            }
+          },
+          "required": ["path", "host", "port"],
+          "dependencies": {
+            "secrets_manager": ["secrets_url", "secrets_token"]
+          }
+        },
+        "fivetran": {
+          "title": "Load Fivetran config",
+          "description": "Load data from Fivetran",
+          "type": "object",
+          "properties": {
+            "api_key": {
+              "title": "API Key",
+              "description": "Fivetran's API Key",
               "type": "string",
               "minLength": 1
             },
-            "secrets_tags": {
-              "title": "Secrets Tags",
-              "description": "Secret credentials tags",
+            "api_secret": {
+              "title": "API Secret",
+              "description": "Fivetran's API Secret",
+              "type": "string",
+              "minLength": 1
+            },
+            "credentials": {
+              "title": "Credentials",
+              "description": "Path to Fivetran credentials YAML file",
+              "type": "string",
+              "minLength": 1
+            },
+            "path": {
+              "title": "Path",
+              "description": "Where json files will be generated",
+              "type": "string",
+              "minLength": 1
+            },
+            "secrets_path": {
+              "title": "Secrets Path",
+              "description": "",
               "type": "string",
               "minLength": 1
             }
           },
-          "required": ["path", "host", "port"]
+          "required": []
         }
       },
       "required": []
