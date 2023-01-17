@@ -394,7 +394,7 @@
           "properties": {
             "open_ssl_public_key": {
               "title": "Open SSL public key",
-              "description": "Determines whether an Open SSL key will be generated",
+              "description": "Determines whether an Open SSL key will also be generated",
               "type": "boolean"
             }
           },
@@ -407,7 +407,7 @@
           "properties": {
             "open_ssl_public_key": {
               "title": "Open SSL public key",
-              "description": "Determines whether an Open SSL key will be generated",
+              "description": "Determines whether an Open SSL key will also be generated",
               "type": "boolean"
             }
           },
@@ -431,12 +431,12 @@
     },
     "dbt": {
       "title": "dbt",
-      "description": "dbt default commands",
+      "description": "dbt commands configuration",
       "type": "object",
       "properties": {
         "command": {
           "title": "Command",
-          "description": "dbt command to run, i.e. 'run -s model_name'",
+          "description": "Default dbt command to run, i.e. 'run -s model_name'",
           "type": "string"
         },
         "project_dir": {
@@ -446,7 +446,7 @@
         },
         "virtualenv": {
           "title": "Virtualenv",
-          "description": "Virtual environment path for the dbt command. i.e.: /opt/user/virtualenvs/airflow",
+          "description": "Path to virtual environment where dbt commands will be executed. i.e.: /opt/user/virtualenvs/airflow",
           "type": "string"
         }
       },
