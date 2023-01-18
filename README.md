@@ -18,9 +18,9 @@ python](https://img.shields.io/badge/python-3.8%20%7C%203.9-blue)](https://img.s
 
 ## What is dbt-coves?
 
-dbt-coves is a CLI tool that automates certain tasks for [dbt](https://www.getdbt.com) making life simpler for the dbt user.
+dbt-coves is a CLI tool that automates certain tasks for [dbt](https://www.getdbt.com), making life simpler for the dbt user.
 
-dbt-coves generates dbt soruces and staging models and property(yml) files by analyzing information from the data warehouse and creating the necessary files (sql and yml).
+dbt-coves generates dbt sources, staging models and property(yml) files by analyzing information from the data warehouse and creating the necessary files (sql and yml).
 
 Finally, dbt-coves includes functionality to bootstrap a dbt project and to extract and load configurations from Airbyte.
 
@@ -39,7 +39,7 @@ Finally, dbt-coves includes functionality to bootstrap a dbt project and to extr
 | source model (sql) generation     | ✅ Tested | 🕥 In progress |
 | model properties (yml) generation | ✅ Tested | 🕥 In progress |
 
-NOTE: Other database adapters may work, we have just not tested them. Feed free to try them and let us know if you test them we can update the table above.
+NOTE: Other database adapters may work, although we have not tested them. Feel free to try them and let us know so we can update the table above.
 
 ### Here\'s the tool in action
 
