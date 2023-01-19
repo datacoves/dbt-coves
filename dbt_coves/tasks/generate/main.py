@@ -30,7 +30,8 @@ class GenerateTask(BaseConfiguredTask):
         gen_subparser = sub_parsers.add_parser(
             "generate",
             parents=[base_subparser],
-            help="Generates sources, models and properties(yml) files for sources and dbt models",
+            help="""Generates dbt source and staging files, model property files and extracts
+             metadata for tables (used as input for sources and properties)""",
         )
         gen_subparser.set_defaults(cls=cls, which="generate")
         sub_parsers = gen_subparser.add_subparsers(title="dbt-coves generate commands", dest="task")

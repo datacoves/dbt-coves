@@ -58,17 +58,17 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "-s",
             "--select",
             type=str,
-            help="Filter model(s) to generate property file(s)",
+            help="dbt graph selector used to look for models e.g. my_model+",
         )
         subparser.add_argument(
             "--exclude",
             type=str,
-            help="Filter model(s) to exclude from property file(s) generation",
+            help="dbt graph exclude filter",
         )
         subparser.add_argument(
             "--selector",
             type=str,
-            help="Specify dbt selector for more complex model filtering",
+            help="dbt selector definition e.g. my_selector.yml",
         )
         cls.arg_parser = base_subparser
 

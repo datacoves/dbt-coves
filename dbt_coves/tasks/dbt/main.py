@@ -38,14 +38,14 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         ext_subparser.add_argument(
             "--virtualenv",
             type=str,
-            help="""Virtual environment variable or path. i.e.:
-            AIRFLOW__VIRTUALENV_PATH or /opt/user/virtualenvs/airflow""",
+            help="""Path to virtual environment where dbt commands
+            will be executed. i.e.: /opt/user/virtualenvs/airflow""",
         )
         ext_subparser.add_argument(
             "command",
             type=str,
             nargs="+",
-            help='dbt command to run, i.e. "run -s model_name"',
+            help="dbt command to run, i.e. 'run -s model_name'",
         )
 
         return ext_subparser

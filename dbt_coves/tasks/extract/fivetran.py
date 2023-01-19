@@ -30,17 +30,18 @@ class ExtractFivetranTask(BaseExtractTask):
         subparser.add_argument(
             "--path",
             type=str,
-            help="Where json files will be generated, i.e. " "'fivetran'",
+            help="""Path where configuration json files will be created,
+            i.e. '/var/data/fivetran_extract/'""",
         )
         subparser.add_argument(
             "--api-key",
             type=str,
-            help="Fivetran's API Key's secret file path",
+            help="Fivetran's API Key's secret",
         )
         subparser.add_argument(
             "--api-secret",
             type=str,
-            help="Fivetran's API Secret's secret file path",
+            help="Fivetran's API Secret's secret",
         )
         subparser.add_argument(
             "--credentials", type=str, help="Path to Fivetran credentials YAML file"

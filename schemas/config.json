@@ -295,7 +295,7 @@
           "properties": {
             "path": {
               "title": "Path",
-              "description": "Where json files will be generated",
+              "description": "Path where json files will be loaded from",
               "type": "string",
               "minLength": 1
             },
@@ -366,13 +366,13 @@
             },
             "path": {
               "title": "Path",
-              "description": "Where json files will be generated",
+              "description": "Path where json files will be loaded from",
               "type": "string",
               "minLength": 1
             },
             "secrets_path": {
               "title": "Secrets Path",
-              "description": "",
+              "description": "Secret files location for Fivetran configuration",
               "type": "string",
               "minLength": 1
             }
