@@ -236,21 +236,21 @@ class LoadFivetranTask(BaseLoadTask):
                 return dest_data
         return {}
 
-    def _load_fivetran_local_secrets(self, obj):
+    def _load_fivetran_local_secrets(self, fivetran_object):
         """
         Identify secret files' key:values and replace Fivetran object ones
         """
         for secret in self.local_secrets:
             for fivetran_obj_name, secret_data in secret.items():
-                for destination_data in obj.values():
+                for destination_data in fivetran_object.values():
                     object_details = destination_data["details"]
                     if fivetran_obj_name == object_details["id"]:
                         for k, v in secret_data.items():
                             self._replace_dict_key(object_details, k, v)
 
-    def _load_fivetran_datacoves_secrets(self, object):
+    def _load_fivetran_datacoves_secrets(self, fivetran_object):
         for secret in self.secret_manager_data:
-            for destination_data in object.values():
+            for destination_data in fivetran_object.values():
                 object_details = destination_data["details"]
                 if object_details["id"] == secret.get("slug", ""):
                     for k, v in secret.get("value", {}).items():

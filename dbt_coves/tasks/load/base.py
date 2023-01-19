@@ -30,7 +30,7 @@ class BaseLoadTask(NonDbtBaseTask):
         return jsons
 
     def _load_secret_data(self) -> dict:
-        # Contact the manager and retrieve Service Credentials
+        # Contact the manager and retrieve Secrets
         secrets_url = os.getenv("DBT_COVES_SECRETS_URL") or self.get_config_value("secrets_url")
         secrets_token = os.getenv("DBT_COVES_SECRETS_TOKEN") or self.get_config_value(
             "secrets_token"
@@ -40,6 +40,7 @@ class BaseLoadTask(NonDbtBaseTask):
                 "[b]secrets_url[/b] and [b]secrets_token[/b] must be provided"
                 "when using a Secrets Manager"
             )
+        payload = {}
         if self.secrets_manager.lower() == "datacoves":
             secrets_project = self.get_config_value("secrets_project")
             if not secrets_project:
@@ -50,9 +51,9 @@ class BaseLoadTask(NonDbtBaseTask):
             secrets_url = f"{secrets_url}/api/v1/secrets/{secrets_project}"
             secrets_tags = self.get_config_value("secrets_tags")
             if secrets_tags:
-                secrets_url += f"?tags={'&'.join(secrets_tags)}"
+                payload = {"tags": set(secrets_tags)}
 
         headers = {"Authorization": f"token {secrets_token}"}
-        response = requests.get(secrets_url, headers=headers, verify=False)
+        response = requests.get(secrets_url, headers=headers, verify=False, params=payload)
         response.raise_for_status()
         return response.json()
