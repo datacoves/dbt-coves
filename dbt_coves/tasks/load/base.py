@@ -50,8 +50,11 @@ class BaseLoadTask(NonDbtBaseTask):
                 )
             secrets_url = f"{secrets_url}/api/v1/secrets/{secrets_project}"
             secrets_tags = self.get_config_value("secrets_tags")
+            secrets_key = self.get_config_value("secrets_key")
             if secrets_tags:
-                payload = {"tags": set(secrets_tags)}
+                payload["tags"] = set(secrets_tags)
+            if secrets_key:
+                payload["key"] = secrets_key
 
         headers = {"Authorization": f"token {secrets_token}"}
         response = requests.get(secrets_url, headers=headers, verify=False, params=payload)

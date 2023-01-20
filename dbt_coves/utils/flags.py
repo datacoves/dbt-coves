@@ -81,6 +81,7 @@ class DbtCovesFlags:
                 "secrets_token": None,
                 "secrets_project": None,
                 "secrets_tags": None,
+                "secrets_key": None,
             },
             "fivetran": {
                 "path": None,
@@ -88,6 +89,12 @@ class DbtCovesFlags:
                 "api_secret": None,
                 "secrets_path": None,
                 "credentials": None,
+                "secrets_manager": None,
+                "secrets_url": None,
+                "secrets_token": None,
+                "secrets_project": None,
+                "secrets_tags": None,
+                "secrets_key": None,
             },
         }
         self.init = {
@@ -216,6 +223,8 @@ class DbtCovesFlags:
                     self.load["airbyte"]["secrets_tags"] = [
                         tag.strip() for tag in self.args.secrets_tags.split(",")
                     ]
+                if self.args.secrets_key:
+                    self.load["airbyte"]["secrets_key"] = self.args.secrets_key
 
             if self.args.cls.__name__ == "LoadFivetranTask":
                 if self.args.path:
@@ -240,6 +249,8 @@ class DbtCovesFlags:
                     self.load["fivetran"]["secrets_tags"] = [
                         tag.strip() for tag in self.args.secrets_tags.split(",")
                     ]
+                if self.args.secrets_key:
+                    self.load["fivetran"]["secrets_key"] = self.args.secrets_key
 
             if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
