@@ -35,7 +35,7 @@ class SetupSSHTask(NonDbtBaseTask):
         )
         subparser.add_argument(
             "--open-ssl-public-key",
-            help="Generate and output OpenSSL key alongside Git OpenSSH one",
+            help="Determines whether an Open SSL key will also be generated",
             action="store_true",
             default=False,
         )

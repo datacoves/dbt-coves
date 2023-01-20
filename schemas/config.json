@@ -1,0 +1,456 @@
+{
+  "title": "dbt-coves-config",
+  "description": "Configuration for dbt-coves",
+  "type": "object",
+  "required": [],
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "properties": {
+    "generate": {
+      "title": "Generate",
+      "description": "Generates dbt source and staging files, model property files and extracts metadata for tables (used as input for sources and properties)",
+      "type": "object",
+      "properties": {
+        "sources": {
+          "title": "Sources",
+          "description": "Parameters for the generate sources command",
+          "type": "object",
+          "properties": {
+            "database": {
+              "title": "Database",
+              "description": "Default database where the generate sources command will search for tables",
+              "type": "string",
+              "minLength": 1
+            },
+            "schemas": {
+              "type": "array",
+              "title": "Schemas",
+              "description": "Default schemas where the generate sources command will search for tables",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "select-relations": {
+              "type": "array",
+              "title": "Select relations",
+              "description": "List of relations to include when searching source tables",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "exclude-relations": {
+              "type": "array",
+              "title": "Exclude relations",
+              "description": "List of relations to exclude when searching source tables",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "sources_destination": {
+              "title": "Sources destination",
+              "description": "Default location and file name where source yml files will be generated.",
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".+({{schema}}.yml)$"
+            },
+            "models_destination": {
+              "title": "Models destination",
+              "description": "Default location and file name where staging model(sql) files will be generated.",
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".+({{relation}}.sql)$"
+            },
+            "model_props_destination": {
+              "title": "Model properties destination",
+              "description": "Default location and file name where staging property(yml) files will be generated.",
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".+({{relation}}.yml)$"
+            },
+            "update_strategy": {
+              "title": "Update strategy",
+              "description": "Action to perform when a generated file already exists. Options: update, recreate, fail, ask",
+              "type": "string",
+              "enum": ["update", "recreate", "fail", "ask"]
+            },
+            "templates_folder": {
+              "title": "Templates folder",
+              "description": "Folder where dbt-coves will look for jinja templates (source_props.yml, staging_model_props.yml, staging_model.sql) that override default dbt-coves file generation templates.",
+              "type": "string",
+              "minLength": 1
+            },
+            "metadata": {
+              "title": "Metadata",
+              "description": "Default file to find metadata file used to fill in field descriptions",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": [],
+          "dependencies": {
+            "select": ["database", "schemas"],
+            "exclude": ["database", "schemas"],
+            "schemas": ["database"]
+          }
+        },
+        "properties": {
+          "title": "Properties",
+          "description": "Generate properties parameters",
+          "type": "object",
+          "properties": {
+            "templates_folder": {
+              "title": "Templates folder",
+              "description": "Folder where dbt-coves will look for jinja templates (model_props.yml) that override default dbt-coves file generation template.",
+              "type": "string",
+              "minLength": 1
+            },
+            "metadata": {
+              "title": "Metadata",
+              "description": "Default file path for metadata csv source file (optional)",
+              "type": "string",
+              "minLength": 1
+            },
+            "update-strategy": {
+              "title": "Update strategy",
+              "description": "Action to perform when a generated file already exists. Options: update, recreate, fail, ask",
+              "type": "string",
+              "enum": ["update", "recreate", "fail", "ask"]
+            },
+            "destination": {
+              "title": "Destination",
+              "description": "Default location and file name where model yml files will be generated. You can specify a specific path by declaring it explicitly, i.e.: \"models/staging/{{model_file_name}}.yml\" or \"{{model_folder_path}}/{{model_file_name}}.yml\"",
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".+({{model_file_name}}.yml)$"
+            },
+            "select": {
+              "title": "Select",
+              "description": "dbt graph selector used to look for models e.g. my_model+",
+              "type": "string",
+              "minLength": 1
+            },
+            "exclude": {
+              "title": "Exclude",
+              "description": "dbt graph exclude filter",
+              "type": "string",
+              "minLength": 1
+            },
+            "selector": {
+              "title": "Selector",
+              "description": "dbt selector definition e.g. my_selector.yml",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": []
+        },
+        "metadata": {
+          "title": "Metadata",
+          "description": "Generate metadata parameters",
+          "type": "object",
+          "properties": {
+            "database": {
+              "title": "Database",
+              "description": "Default database where generate metadata will look for relations.",
+              "type": "string",
+              "minLength": 1
+            },
+            "schemas": {
+              "title": "Schemas",
+              "description": "Default schemas where generate metadata will look for relations. (array)",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "select-relations": {
+              "title": "Select relations",
+              "description": "Default relations to filter when generating metadata file (not recommended as a config option)",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              },
+              "minItems": 1
+            },
+            "exclude-relations": {
+              "title": "Exclude relations",
+              "description": "List of relations to exclude when generating metadata file",
+              "type": "array",
+              "items": {
+                "type": "string",
+                "minLength": 1
+              }
+            },
+            "destination": {
+              "title": "Destination",
+              "description": "Default destination file path and name for the generated metadata file",
+              "type": "string",
+              "minLength": 1,
+              "pattern": ".+(.csv)$"
+            }
+          },
+          "required": [],
+          "dependencies": {
+            "relations": ["database", "schemas"],
+            "schemas": ["database"]
+          }
+        }
+      },
+      "required": [],
+      "oneOf": [
+        {
+          "required": ["sources"]
+        },
+        {
+          "required": ["properties"]
+        },
+        {
+          "required": ["metadata"]
+        }
+      ]
+    },
+    "extract": {
+      "title": "Extract",
+      "description": "Extract configuration data from Airbyte or Fivetran",
+      "type": "object",
+      "properties": {
+        "airbyte": {
+          "title": "Extract Airbyte config",
+          "description": "Extract data from Airbyte",
+          "type": "object",
+          "properties": {
+            "path": {
+              "title": "Path",
+              "description": "Path where configuration json files will be created",
+              "type": "string",
+              "minLength": 1
+            },
+            "host": {
+              "title": "Host",
+              "description": "Airbyte's API hostname",
+              "type": "string",
+              "minLength": 1
+            },
+            "port": {
+              "title": "Port",
+              "description": "Airbyte's API port",
+              "type": "number",
+              "minLength": 1
+            }
+          },
+          "required": ["host", "port", "path"]
+        },
+        "fivetran": {
+          "title": "Extract Fivetran config",
+          "description": "Extract data from Fivetran",
+          "type": "object",
+          "properties": {
+            "api_key": {
+              "title": "API Key",
+              "description": "Fivetran's API Key",
+              "type": "string",
+              "minLength": 1
+            },
+            "api_secret": {
+              "title": "API Secret",
+              "description": "Fivetran's API Secret",
+              "type": "string",
+              "minLength": 1
+            },
+            "credentials": {
+              "title": "Credentials",
+              "description": "Path to Fivetran credentials YAML file",
+              "type": "string",
+              "minLength": 1
+            },
+            "path": {
+              "title": "Path",
+              "description": "Path where configuration json files will be created",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": []
+        }
+      },
+      "required": []
+    },
+    "load": {
+      "title": "Load",
+      "description": "Load data",
+      "type": "object",
+      "properties": {
+        "airbyte": {
+          "title": "Airbyte config",
+          "description": "Load data from Airbyte",
+          "type": "object",
+          "properties": {
+            "path": {
+              "title": "Path",
+              "description": "Path where json files will be loaded from",
+              "type": "string",
+              "minLength": 1
+            },
+            "host": {
+              "title": "Host",
+              "description": "Airbyte's API hostname",
+              "type": "string",
+              "minLength": 1
+            },
+            "port": {
+              "title": "Port",
+              "description": "Airbyte's API port",
+              "type": "number",
+              "minLength": 1
+            },
+            "secrets_manager": {
+              "title": "Secrets manager",
+              "description": "Secret credentials provider (secrets_path OR secrets_manager should be used, can't load secrets locally and remotely at the same time)",
+              "type": "string",
+              "minLength": 1
+            },
+            "secrets_url": {
+              "title": "Secrets url",
+              "description": "Secret credentials provider url",
+              "type": "string",
+              "minLength": 1
+            },
+            "secrets_token": {
+              "title": "Secrets Token",
+              "description": "Secret credentials provider, i.e. 'datacoves'",
+              "type": "string",
+              "minLength": 1
+            },
+            "secrets_path": {
+              "title": "Secrets path",
+              "description": "Secret files location for Airbyte configuration",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": ["path", "host", "port"],
+          "dependencies": {
+            "secrets_manager": ["secrets_url", "secrets_token"]
+          }
+        },
+        "fivetran": {
+          "title": "Load Fivetran config",
+          "description": "Load data from Fivetran",
+          "type": "object",
+          "properties": {
+            "api_key": {
+              "title": "API Key",
+              "description": "Fivetran's API Key",
+              "type": "string",
+              "minLength": 1
+            },
+            "api_secret": {
+              "title": "API Secret",
+              "description": "Fivetran's API Secret",
+              "type": "string",
+              "minLength": 1
+            },
+            "credentials": {
+              "title": "Credentials",
+              "description": "Path to Fivetran credentials YAML file",
+              "type": "string",
+              "minLength": 1
+            },
+            "path": {
+              "title": "Path",
+              "description": "Path where json files will be loaded from",
+              "type": "string",
+              "minLength": 1
+            },
+            "secrets_path": {
+              "title": "Secrets Path",
+              "description": "Secret files location for Fivetran configuration",
+              "type": "string",
+              "minLength": 1
+            }
+          },
+          "required": []
+        }
+      },
+      "required": []
+    },
+    "setup": {
+      "title": "Setup",
+      "description": "Default parameters for the setup command",
+      "type": "object",
+      "properties": {
+        "all": {
+          "title": "All setup",
+          "description": "Default for setup all command",
+          "type": "object",
+          "properties": {
+            "open_ssl_public_key": {
+              "title": "Open SSL public key",
+              "description": "Determines whether an Open SSL key will also be generated",
+              "type": "boolean"
+            }
+          },
+          "required": []
+        },
+        "ssh": {
+          "title": "SSH setup",
+          "description": "SSH key defaults",
+          "type": "object",
+          "properties": {
+            "open_ssl_public_key": {
+              "title": "Open SSL public key",
+              "description": "Determines whether an Open SSL key will also be generated",
+              "type": "boolean"
+            }
+          },
+          "required": []
+        },
+        "git": {
+          "title": "Git setup",
+          "description": "Set up Git repository of dbt project",
+          "type": "object",
+          "properties": {
+            "no_prompt": {
+              "title": "No prompt",
+              "description": "Configure Git without user intervention",
+              "type": "boolean"
+            }
+          },
+          "required": []
+        }
+      },
+      "required": []
+    },
+    "dbt": {
+      "title": "dbt",
+      "description": "dbt commands configuration",
+      "type": "object",
+      "properties": {
+        "command": {
+          "title": "Command",
+          "description": "Default dbt command to run, i.e. 'run -s model_name'",
+          "type": "string"
+        },
+        "project_dir": {
+          "title": "Project Dir",
+          "description": "Path to the dbt project i.e.: /opt/user/dbt_project",
+          "type": "string"
+        },
+        "virtualenv": {
+          "title": "Virtualenv",
+          "description": "Path to virtual environment where dbt commands will be executed. i.e.: /opt/user/virtualenvs/airflow",
+          "type": "string"
+        }
+      },
+      "required": []
+    }
+  }
+}

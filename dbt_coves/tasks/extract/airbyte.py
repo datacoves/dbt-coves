@@ -35,7 +35,8 @@ class ExtractAirbyteTask(BaseExtractTask):
         subparser.add_argument(
             "--path",
             type=str,
-            help="Where json files will be generated, i.e. " "'airbyte'",
+            help="""Path where configuration json files will be created,
+            i.e. '/var/data/airbyte_extract/'""",
         )
         subparser.add_argument(
             "--host",

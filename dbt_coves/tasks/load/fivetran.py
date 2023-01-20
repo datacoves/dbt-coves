@@ -39,7 +39,8 @@ class LoadFivetranTask(BaseLoadTask):
         subparser.add_argument(
             "--path",
             type=str,
-            help="Where json files will be loaded from, i.e. " "'/var/data'",
+            help="""Path where json files will be loaded from,
+            i.e. '/var/data/fivetran_extract/'""",
         )
         subparser.add_argument(
             "--api-key",
