@@ -7,4 +7,4 @@ sources:
 {%- endif %}
     tables:
       - name: {{ relation.name.lower() }}
-        description: "" # Multi-word descriptions must be double-quoted
+        description: ""
