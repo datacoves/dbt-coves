@@ -25,6 +25,13 @@ class DbtCovesDumper(yaml.Dumper):
         return super().increase_indent(flow=flow, indentless=False)
 
 
+def spaced_string_presenter(dumper, data):
+    if isinstance(data, str):
+        if any(c.isspace() for c in data):
+            return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
+    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="")
+
+
 def save_yaml(path: Path, data: Dict[str, Any]) -> None:
     """Saves a YAML content.
 
@@ -33,4 +40,5 @@ def save_yaml(path: Path, data: Dict[str, Any]) -> None:
         data (dict[str, Any]): Data to save in the file.
     """
     with open(path, "w") as outfile:
+        yaml.add_representer(str, spaced_string_presenter)
         yaml.dump(data, outfile, sort_keys=False, Dumper=DbtCovesDumper)
