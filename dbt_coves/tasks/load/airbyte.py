@@ -1,10 +1,8 @@
-import glob
 import json
 import os
 import pathlib
 from os import path
 
-import requests
 from rich.console import Console
 
 from dbt_coves.utils.airbyte_api import AirbyteApiCaller, AirbyteApiCallerException
@@ -48,6 +46,11 @@ class LoadAirbyteTask(BaseLoadTask):
             help="Airbyte's API port, i.e. '8001'",
         )
         subparser.add_argument(
+            "--secrets-path",
+            type=str,
+            help="Secret files location for Airbyte configuration, i.e. './secrets'",
+        )
+        subparser.add_argument(
             "--secrets-manager",
             type=str,
             help="Secret credentials provider, i.e. 'datacoves'",
@@ -56,29 +59,11 @@ class LoadAirbyteTask(BaseLoadTask):
         subparser.add_argument(
             "--secrets-token", type=str, help="Secret credentials provider token"
         )
-        subparser.add_argument(
-            "--secrets-path",
-            type=str,
-            help="Secret files location for Airbyte configuration, i.e. './secrets'",
-        )
+        subparser.add_argument("--secrets-project", type=str, help="Secret credentials project")
+        subparser.add_argument("--secrets-tags", type=str, help="Secret credentials tags")
+        subparser.add_argument("--secrets-key", type=str, help="Secret credentials key")
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
-
-    def _load_secret_data(self) -> dict:
-        # Contact the manager and retrieve Service Credentials
-        secrets_url = os.getenv("DBT_COVES_SECRETS_URL") or self.get_config_value("secrets_url")
-        secrets_token = os.getenv("DBT_COVES_SECRETS_TOKEN") or self.get_config_value(
-            "secrets_token"
-        )
-        if not (secrets_url and secrets_token):
-            raise AirbyteLoaderException(
-                "[b]secrets_url[/b] and [b]secrets_token[/b] must be provided"
-                "when using a Secrets Manager"
-            )
-        headers = {"Authorization": f"Token {secrets_token}"}
-        response = requests.get(secrets_url, headers=headers)
-        if response and response.status_code >= 200 and response.status_code < 300:
-            return response.json()
 
     def run(self):
         self.loading_results = {
@@ -137,42 +122,20 @@ class LoadAirbyteTask(BaseLoadTask):
         for connection in extracted_connections:
             self._create_or_update_connection(connection)
 
-        console.print(
-            f"""Load results:\n
-Sources:
-Created: {self.loading_results['sources']['created']}
-Updated: {self.loading_results['sources']['updated']}
-Destinations:
-Created: {self.loading_results['destinations']['created']}
-Updated: {self.loading_results['destinations']['updated']}
-Connections:
-Created: {self.loading_results['connections']['created']}
-Updated: {self.loading_results['connections']['updated']}
-"""
-        )
+        self._print_load_results()
         return 0
 
-    def dbt_packages_exist(self, dbt_project_path):
-        return glob.glob(f"{str(dbt_project_path)}/dbt_packages")
-
-    def _remove_sources_prefix(self, sources_list):
-        return [source.lower().replace("_airbyte_raw_", "") for source in sources_list]
-
-    def _get_conn_json_for_source(self, table_name):
-        for json_file in self._retrieve_all_jsons_from_path(self.connections_load_destination):
-            for stream in json_file["syncCatalog"]["streams"]:
-                if stream["config"]["aliasName"].lower() == table_name:
-                    return json_file
-
-    def _get_src_json_by_source_name(self, source_name):
-        for json_file in self._retrieve_all_jsons_from_path(self.sources_load_destination):
-            if json_file["name"].lower() == source_name:
-                return json_file
-
-    def _get_dest_json_by_destination_name(self, destination_name):
-        for json_file in self._retrieve_all_jsons_from_path(self.destinations_load_destination):
-            if json_file["name"].lower() == destination_name:
-                return json_file
+    def _print_load_results(self):
+        """
+        Inform the user successful loading results
+        """
+        console.print("[green][b]Load successful :heavy_check_mark:[/b][/green]")
+        for obj_type, result_dict in self.loading_results.items():
+            for action, results in result_dict.items():
+                if len(results) > 0:
+                    console.print(
+                        f"[green]{obj_type.capitalize()} {action}:[/green] {', '.join(results)}"
+                    )
 
     def _get_secret_value_for_field(self, secret_data, field, secret_target_name):
         for k, v in secret_data.items():
@@ -218,7 +181,7 @@ Updated: {self.loading_results['connections']['updated']}
 
     def _get_target_secret(self, secret_target_name):
         for secret in self.secrets_data:
-            if secret["target"].lower() == secret_target_name:
+            if secret["slug"].lower() == secret_target_name:
                 return secret
         return None
 
@@ -254,7 +217,7 @@ Updated: {self.loading_results['connections']['updated']}
                             "Specified manager didn't provide secret information"
                             f"for[red]{secret_target_name}[/red]"
                         )
-                    secret_data = target_secret_data["connection"]
+                    secret_data = target_secret_data["value"]
                 elif self.secrets_path:
                     wildcard_keys = [
                         str(k)
@@ -530,28 +493,6 @@ Updated: {self.loading_results['connections']['updated']}
             # Connection creation
             conn_name = self._create_connection(connection_json, source_id, destination_id)
             self.loading_results["connections"]["created"].append(conn_name)
-
-    # def _create_or_update_connection(
-    #     self, exported_json_data, table_name, source_id, destination_id
-    # ):
-    #     """
-    #     Decide whether creating or updating an existing connection\n
-    #     if exported_data -> stream_name exists in Airbyte Sources, it's for modifying
-    #     """
-    #     connection_id = self._get_connection_id_by_table_name(table_name)
-    #     if connection_id:
-    #         # Connection update
-    #         self._delete_connection(connection_id)
-    #         conn_name = self._create_connection(
-    #             exported_json_data, source_id, destination_id
-    #         )
-    #         self._add_update_result("connections", conn_name)
-    #     else:
-    #         # Connection creation
-    #         conn_name = self._create_connection(
-    #             exported_json_data, source_id, destination_id
-    #         )
-    #         self.loading_results["connections"]["created"].append(conn_name)
 
     def _add_update_result(self, obj_type, obj_name):
         if (obj_name not in self.loading_results[obj_type]["updated"]) and (
