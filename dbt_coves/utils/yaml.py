@@ -2,7 +2,11 @@
 from pathlib import Path
 from typing import Any, Dict
 
-import yaml
+from ruamel.yaml import YAML
+
+yaml = YAML()
+yaml.default_flow_style = False
+yaml.indent(mapping=2, sequence=4, offset=2)
 
 
 def open_yaml(path: Path) -> Dict[str, Any]:
@@ -15,21 +19,8 @@ def open_yaml(path: Path) -> Dict[str, Any]:
         Dict[str, Any]: A python dict containing the content from the yaml file.
     """
     if path.is_file():
-        with open(path, "r") as stream:
-            return yaml.load(stream, Loader=yaml.Loader)
+        return yaml.load(path)
     raise FileNotFoundError(f"File {path.resolve()} was not found.")
-
-
-class DbtCovesDumper(yaml.Dumper):
-    def increase_indent(self, flow=False, *args, **kwargs):
-        return super().increase_indent(flow=flow, indentless=False)
-
-
-def spaced_string_presenter(dumper, data):
-    if isinstance(data, str):
-        if any(c.isspace() for c in data):
-            return dumper.represent_scalar("tag:yaml.org,2002:str", data, style='"')
-    return dumper.represent_scalar("tag:yaml.org,2002:str", data, style="")
 
 
 def save_yaml(path: Path, data: Dict[str, Any]) -> None:
@@ -40,5 +31,4 @@ def save_yaml(path: Path, data: Dict[str, Any]) -> None:
         data (dict[str, Any]): Data to save in the file.
     """
     with open(path, "w") as outfile:
-        yaml.add_representer(str, spaced_string_presenter)
-        yaml.dump(data, outfile, sort_keys=False, Dumper=DbtCovesDumper)
+        yaml.dump(data, outfile)

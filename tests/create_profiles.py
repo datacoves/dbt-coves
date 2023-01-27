@@ -5,9 +5,11 @@ import os
 import pathlib
 from glob import glob
 
-import yaml
 from dotenv import load_dotenv
 from jinja2 import Template
+from ruamel.yaml import YAML
+
+yaml = YAML()
 
 
 # Jinja functions
@@ -63,7 +65,7 @@ case_folders = glob(f"{path_dir}/*", recursive=True)
 
 for folder in case_folders:
     with open(f"{folder}/settings.yml", "r") as f:
-        settings = yaml.load(f, Loader=yaml.FullLoader)
+        settings = yaml.load(f)
     fields = {"profile": settings["profile"]}
     with open(os.path.join(folder, "dbt_project.yml"), "w") as file:
         file.write(template.render(fields))
