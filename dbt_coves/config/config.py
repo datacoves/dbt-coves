@@ -65,10 +65,13 @@ class LoadAirbyteModel(BaseModel):
     path: Optional[str] = ""
     host: Optional[str] = ""
     port: Optional[str] = ""
+    secrets_path: Optional[str] = ""
     secrets_manager: Optional[str] = ""
     secrets_url: Optional[str] = ""
     secrets_token: Optional[str] = ""
-    secrets_path: Optional[str] = ""
+    secrets_project: Optional[str] = ""
+    secrets_tags: Optional[List[str]] = []
+    secrets_key: Optional[str] = ""
 
 
 class LoadFivetranModel(BaseModel):
@@ -77,6 +80,12 @@ class LoadFivetranModel(BaseModel):
     api_secret: Optional[str] = ""
     secrets_path: Optional[str] = ""
     credentials: Optional[str] = ""
+    secrets_manager: Optional[str] = ""
+    secrets_url: Optional[str] = ""
+    secrets_token: Optional[str] = ""
+    secrets_project: Optional[str] = ""
+    secrets_tags: Optional[List[str]] = []
+    secrets_key: Optional[str] = ""
 
 
 class ExtractModel(BaseModel):
@@ -154,10 +163,13 @@ class DbtCovesConfig:
         "load.airbyte.path",
         "load.airbyte.host",
         "load.airbyte.port",
+        "load.airbyte.secrets_path",
         "load.airbyte.secrets_manager",
         "load.airbyte.secrets_url",
         "load.airbyte.secrets_token",
-        "load.airbyte.secrets_path",
+        "load.airbyte.secrets_project",
+        "load.airbyte.secrets_tags",
+        "load.airbyte.secrets_key",
         "setup.all.open_ssl_public_key",
         "setup.ssh.open_ssl_public_key",
         "setup.git.no_prompt",
@@ -173,6 +185,12 @@ class DbtCovesConfig:
         "load.fivetran.api_secret",
         "load.fivetran.secrets_path",
         "load.fivetran.credentials",
+        "load.fivetran.secrets_manager",
+        "load.fivetran.secrets_url",
+        "load.fivetran.secrets_token",
+        "load.fivetran.secrets_project",
+        "load.fivetran.secrets_tags",
+        "load.fivetran.secrets_key",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:
