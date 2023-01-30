@@ -459,7 +459,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         return source_a
 
     def raise_duplicate_relations(self, relations):
-        relation_names = [rel.name.lower() for rel in relations]
+        relation_names = [f"{rel.schema.lower()}.{rel.name.lower()}" for rel in relations]
         duplicates = {rel for rel in relation_names if relation_names.count(rel) > 1}
         if duplicates:
             raise BaseGeneratorException(
