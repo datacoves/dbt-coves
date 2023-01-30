@@ -1,4 +1,3 @@
-import glob
 from pathlib import Path
 
 from rich.console import Console
@@ -27,6 +26,6 @@ def print_row(
 
 
 def file_exists(root_path, file_name):
-    for file in glob.glob(f"{str(root_path)}/**/{file_name}"):
-        return Path(file)
+    for path in Path(root_path).rglob(file_name):
+        return path
     return False
