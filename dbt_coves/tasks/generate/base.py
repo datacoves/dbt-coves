@@ -3,8 +3,8 @@ import fnmatch
 from pathlib import Path
 
 import questionary
-import yaml
 from rich.console import Console
+from ruamel.yaml import YAML
 from slugify import slugify
 
 from dbt_coves.tasks.base import BaseConfiguredTask
@@ -12,6 +12,7 @@ from dbt_coves.utils.jinja import get_render_output, render_template_file
 from dbt_coves.utils.yaml import open_yaml, save_yaml
 
 console = Console()
+yaml = YAML()
 
 
 class BaseGenerateTask(BaseConfiguredTask):
@@ -96,6 +97,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 rel_wildcard_selectors.append(rel_name.replace("*", ".*"))
 
         listed_relations = []
+
         for schema in filtered_schemas:
             listed_relations += self.adapter.list_relations(self.db, schema)
 
@@ -239,7 +241,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         templates_folder,
         resource_type,
     ):
-        new_yml = yaml.safe_load(
+        new_yml = yaml.load(
             get_render_output(
                 template,
                 context,
@@ -371,7 +373,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         resource_type,
         action,
     ):
-        new_yml = yaml.safe_load(
+        new_yml = yaml.load(
             get_render_output(
                 template,
                 context,

@@ -119,7 +119,7 @@ line-length = 100
 target-version=['py37', 'py38', 'py39', 'py310', 'py311']
 
 [tool.isort]
-known_third_party=["dbt", "dotenv", "google", "jinja2", "pretty_errors", "pydantic", "pyfiglet", "pytest", "questionary", "redshift_connector", "requests", "rich", "ruamel", "slugify", "snowflake", "yaml"]
+known_third_party=["dbt", "dotenv", "google", "jinja2", "pretty_errors", "pydantic", "pyfiglet", "pytest", "questionary", "redshift_connector", "requests", "rich", "ruamel", "slugify", "snowflake"]
 line_length=100
 multi_line_output=3
 include_trailing_comma=true
