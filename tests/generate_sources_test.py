@@ -5,6 +5,7 @@ import os
 import pathlib
 import shutil
 import subprocess
+import textwrap
 from glob import glob
 
 import pytest
@@ -14,18 +15,26 @@ import redshift_connector
 
 # Snowflake
 import snowflake.connector
-import yaml
 from dotenv import load_dotenv
 
 # Bigquery
 from google.cloud import bigquery
 from google.oauth2 import service_account
 from jinja2 import Template
+from ruamel.yaml import YAML
+from ruamel.yaml.scalarstring import FoldedScalarString
 
 # Load env vars
 load_dotenv()
-
+yaml = YAML()
+yaml.default_flow_style = False
+yaml.indent(mapping=2, sequence=4, offset=2)
 # Functions
+
+
+# Convert Python string to ruamel.yaml Literal Scalar String
+def LS(s):
+    return FoldedScalarString(textwrap.dedent(s))
 
 
 # Convert SQL to Jinja2 Template and replace function
@@ -36,13 +45,13 @@ def source(schema, table):
 # Get adapter from dbt profile
 def get_adapter(project_dir):
     with open(pathlib.Path(project_dir, "dbt_project.yml"), "r") as f:
-        dbt_project = yaml.load(f, Loader=yaml.FullLoader)
+        dbt_project = yaml.load(f)
     dbt_project = dbt_project["profile"]
 
     home_dir = os.path.expanduser("~")
     dbt_profiles_path = pathlib.Path(home_dir, ".dbt", "profiles.yml")
     with open(dbt_profiles_path, "r") as f:
-        dbt_profiles = yaml.load(f, Loader=yaml.FullLoader)
+        dbt_profiles = yaml.load(f)
     adapter = dbt_profiles[dbt_project]["outputs"]["dev"]["type"]
 
     return adapter
@@ -102,7 +111,7 @@ def get_cases(path_dir):
             for resource in case_resources:
                 if resource == f"{folder}/settings.yml":
                     with open(resource, "r") as f:
-                        settings = yaml.load(f, Loader=yaml.FullLoader)
+                        settings = yaml.load(f)
                     case_dict_input["settings"] = settings
                 if resource == f"{folder}/input":
                     input_files = glob(f"{resource}/*", recursive=True)
@@ -122,6 +131,11 @@ def get_cases(path_dir):
                             case_dict_expected["source_model"] = file
                         if file == f"{folder}/expected/table_model.yml":
                             case_dict_expected["table_model"] = file
+                        if file == f"{folder}/expected/updated_source_model.yml":
+                            case_dict_expected["updated_source_model"] = file
+                        if file == f"{folder}/expected/updated_table_model.yml":
+                            case_dict_expected["updated_table_model"] = file
+
                 if resource == f"{folder}/dbt_project.yml" and os.path.isfile(resource):
                     case_dict_input["dbt_project_dir"] = os.path.dirname(resource)
                     case_dict_input["adapter"] = get_adapter(os.path.dirname(resource))
@@ -337,7 +351,7 @@ def test_generate_sources(input):
     # Execute CLI command and interact with it
     process = subprocess.run(
         args=command,
-        input="\n\x1B[B\x1B[B\x1B[B\n",
+        input="\x1B[A\n\x1B[B\x1B[B\x1B[B\n",
         encoding="utf-8",
         cwd=pathlib.Path(__file__).parent.resolve(),
     )
@@ -493,6 +507,174 @@ def test_check_models(input, expected):
         table_model_output = [line.replace("''", '""') for line in file_1.readlines()]
 
     with open(pathlib.Path(expected["table_model"]), "r") as file_2:
+        table_model_expected = [line.replace("''", '""') for line in file_2.readlines()]
+
+    diff_files = set(table_model_output).symmetric_difference(set(table_model_expected))
+
+    assert len(list(diff_files)) == 0
+
+
+# Modify generated sources with uncommon descriptions
+modify_sources_cases = []
+for case in cases_list:
+    id = case["id"]
+    modify_sources_cases.append(
+        pytest.param(
+            case["input"],
+            id=case["id"],
+            marks=pytest.mark.dependency(
+                name=f"test_modify_models[{id}]",
+                depends=[f"test_generate_data[{id}]", f"test_generate_sources[{id}]"],
+            ),
+        )
+    )
+
+
+@pytest.mark.parametrize("input", modify_sources_cases)
+def test_update_models(input):
+    # Source
+    source_path = pathlib.Path(
+        input["output_dir"],
+        "models",
+        "staging",
+        input["settings"]["schema"].lower(),
+        "sources.yml",
+    )
+    source_yml = yaml.load(source_path)
+    source_yml.get("sources")[0].get("tables")[0][
+        "description"
+    ] = "**[Read more](https://www.google.com/)**"
+    yaml.dump(source_yml, source_path)
+
+    # Model
+    model_path = pathlib.Path(
+        input["output_dir"],
+        "models",
+        "staging",
+        input["settings"]["schema"].lower(),
+        input["settings"]["table"].lower() + ".yml",
+    )
+    model_yml = yaml.load(model_path)
+    multiline_description = "Lorem ipsum dolor sit amet, consectetur adipiscing elit.\n"
+    model_yml.get("models")[0]["description"] = LS(multiline_description)
+    yaml.dump(model_yml, model_path)
+
+
+# Re-run generate sources with `--update-strategy update``
+cases_list_update_sources = []
+for case in cases_list:
+    id = case["id"]
+    cases_list_update_sources.append(
+        pytest.param(
+            case["input"],
+            id=case["id"],
+            marks=pytest.mark.dependency(
+                name=f"test_update_sources[{id}]",
+                depends=[f"test_modify_models[{id}]"],
+            ),
+        )
+    )
+
+
+@pytest.mark.parametrize("input", cases_list_update_sources)
+def test_update_sources(input):
+    # Generate sources command
+    command = [
+        "python",
+        "../dbt_coves/core/main.py",
+        "generate",
+        "sources",
+        "--metadata",
+        input["metadata_file"],
+        "--database",
+        input["settings"]["database"],
+        "--schemas",
+        input["settings"]["schema"],
+        "--select",
+        input["settings"]["table"],
+        "--project-dir",
+        input["dbt_project_dir"],
+        "--update-strategy",
+        "update",
+        "--models-destination",
+        pathlib.Path(
+            input["output_dir"],
+            "models/staging/{{schema}}/{{relation}}.sql",
+        ),
+        "--model-props-destination",
+        pathlib.Path(
+            input["output_dir"],
+            "models/staging/{{schema}}/{{relation}}.yml",
+        ),
+        "--sources-destination",
+        pathlib.Path(input["output_dir"], "models/staging/{{schema}}/sources.yml"),
+        "--verbose",
+    ]
+    # Execute CLI command and interact with it
+    process = subprocess.run(
+        args=command,
+        input="\n\x1B[A\n\x1B[A\n",
+        encoding="utf-8",
+        cwd=pathlib.Path(__file__).parent.resolve(),
+    )
+    assert process.returncode == 0
+    assert os.path.isdir(pathlib.Path(input["output_dir"], "models")) == True
+
+
+# Assert descriptions are still the same
+check_descriptions_cases = []
+for case in cases_list:
+    id = case["id"]
+    check_descriptions_cases.append(
+        pytest.param(
+            case["input"],
+            case["expected"],
+            id=case["id"],
+            marks=pytest.mark.dependency(
+                name=f"test_check_descriptions[{id}]",
+                depends=[f"test_update_sources[{id}]"],
+            ),
+        )
+    )
+
+
+@pytest.mark.parametrize("input, expected", check_descriptions_cases)
+def test_check_descriptions(input, expected):
+    # output_dirs are simetrically equal to newest expectations
+    # Source model
+    with open(
+        pathlib.Path(
+            input["output_dir"],
+            "models",
+            "staging",
+            input["settings"]["schema"].lower(),
+            "sources.yml",
+        ),
+        "r",
+    ) as file_1:
+        source_model_output = [line.replace("'", '"') for line in file_1.readlines()]
+
+    with open(pathlib.Path(expected["updated_source_model"]), "r") as file_2:
+        source_model_expected = [line.replace("'", '"') for line in file_2.readlines()]
+
+    diff_files = set(source_model_output).symmetric_difference(set(source_model_expected))
+
+    assert len(list(diff_files)) == 0
+
+    # Table model
+    with open(
+        pathlib.Path(
+            input["output_dir"],
+            "models",
+            "staging",
+            input["settings"]["schema"].lower(),
+            input["settings"]["table"].lower() + ".yml",
+        ),
+        "r",
+    ) as file_1:
+        table_model_output = [line.replace("''", '""') for line in file_1.readlines()]
+
+    with open(pathlib.Path(expected["updated_table_model"]), "r") as file_2:
         table_model_expected = [line.replace("''", '""') for line in file_2.readlines()]
 
     diff_files = set(table_model_output).symmetric_difference(set(table_model_expected))
