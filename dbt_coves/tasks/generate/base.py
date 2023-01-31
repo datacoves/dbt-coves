@@ -15,6 +15,10 @@ console = Console()
 yaml = YAML()
 
 
+class BaseGeneratorException(Exception):
+    pass
+
+
 class BaseGenerateTask(BaseConfiguredTask):
     """
     Provides common functionality for all "Generate" sub tasks.
@@ -453,3 +457,12 @@ class BaseGenerateTask(BaseConfiguredTask):
             source_a["schema"] = source_b.get("schema")
         self.update_source_tables(source_a.get("tables"), source_b.get("tables"))
         return source_a
+
+    def raise_duplicate_relations(self, relations):
+        relation_names = [f"{rel.schema.lower()}.{rel.name.lower()}" for rel in relations]
+        duplicates = {rel for rel in relation_names if relation_names.count(rel) > 1}
+        if duplicates:
+            raise BaseGeneratorException(
+                "Can't select multiple relations with the exact same name: "
+                f"[red]{', '.join(duplicates)}[/red]"
+            )

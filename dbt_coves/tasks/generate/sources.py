@@ -339,6 +339,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             if relations:
                 selected_relations = self.select_relations(relations)
                 if selected_relations:
+                    self.raise_duplicate_relations(selected_relations)
                     self.generate(selected_relations)
                 else:
                     console.print("No relations selected for sources generation")
