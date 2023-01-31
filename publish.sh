@@ -14,12 +14,11 @@ elif
     [ $1 = 'major' ] ||
         [ $1 = 'minor' ] ||
         [ $1 = 'patch' ] ||
-        [ $1 = 'release' ] ||
         [ $1 = 'build' ]
 then
     TYPE=$1
 else
-    die "version type required: (major, minor, patch, release, build), $1 provided"
+    die "version type required: (major, minor, patch, build), $1 provided"
 
 fi
 
