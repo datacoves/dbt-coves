@@ -13,6 +13,9 @@ from dbt_coves.utils.yaml import open_yaml, save_yaml
 
 console = Console()
 yaml = YAML()
+yaml.default_flow_style = False
+yaml.indent(mapping=2, sequence=4, offset=2)
+yaml.preserve_quotes = True
 
 
 class BaseGeneratorException(Exception):

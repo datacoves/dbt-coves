@@ -29,6 +29,7 @@ load_dotenv()
 yaml = YAML()
 yaml.default_flow_style = False
 yaml.indent(mapping=2, sequence=4, offset=2)
+yaml.preserve_quotes = True
 # Functions
 
 
