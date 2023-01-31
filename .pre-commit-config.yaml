@@ -41,7 +41,7 @@ repos:
   #           "types-python-slugify==7.0.0.0",
   #         ]
   - repo: https://github.com/PyCQA/isort
-    rev: "5.8.0"
+    rev: "5.12.0"
     hooks:
       - id: isort
         name: Sort import with isort
