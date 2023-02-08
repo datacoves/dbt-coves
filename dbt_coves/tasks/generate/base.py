@@ -110,14 +110,14 @@ class BaseGenerateTask(BaseConfiguredTask):
 
         for rel in listed_relations:
             for selector in rel_wildcard_selectors:
-                if fnmatch.fnmatch(rel.name, selector):
+                if fnmatch.fnmatch(rel.name.lower(), selector.lower()):
                     rel_name_selectors.append(rel.name)
                     break
 
         excluded = []
         for rel in listed_relations:
             for selector in rel_excludes:
-                if fnmatch.fnmatch(rel.name, selector):
+                if fnmatch.fnmatch(rel.name.lower(), selector.lower()):
                     excluded.append(rel.name)
                     break
 
@@ -128,7 +128,7 @@ class BaseGenerateTask(BaseConfiguredTask):
         intersected_rels = []
         for rel in listed_relations:
             for selector in rel_name_selectors:
-                if fnmatch.fnmatch(rel.name, selector):
+                if fnmatch.fnmatch(rel.name.lower(), selector.lower()):
                     intersected_rels.append(rel)
                     break
 
