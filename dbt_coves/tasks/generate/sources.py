@@ -83,6 +83,12 @@ class GenerateSourcesTask(BaseGenerateTask):
             type=str,
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
         )
+        subparser.add_argument(
+            "--no-prompt",
+            help="Silently generate source dbt models",
+            action="store_true",
+            default=False,
+        )
         cls.arg_parser = base_subparser
         subparser.set_defaults(cls=cls, which="sources")
         return subparser
@@ -95,18 +101,23 @@ class GenerateSourcesTask(BaseGenerateTask):
         return self.coves_config.integrated["generate"]["sources"][key]
 
     def select_relations(self, rels):
-        selected_rels = questionary.checkbox(
-            "Which sources would you like to generate?",
-            choices=[Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels],
-        ).ask()
+        if self.no_prompt:
+            return rels
+        else:
+            selected_rels = questionary.checkbox(
+                "Which sources would you like to generate?",
+                choices=[
+                    Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
+                ],
+            ).ask()
 
-        return selected_rels
+            return selected_rels
 
     def generate(self, rels):
         models_destination = self.get_config_value("models_destination")
         options = {
-            "override_all": None,
-            "flatten_all": None,
+            "override_all": "Yes" if self.no_prompt else None,
+            "flatten_all": "Yes" if self.no_prompt else None,
             "model_prop_update_all": False,
             "model_prop_recreate_all": False,
             "source_prop_update_all": False,
@@ -324,6 +335,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                     data[col][item].update(metadata_info)
 
     def run(self):
+        self.no_prompt = self.get_config_value("no_prompt")
         config_database = self.get_config_value("database")
         self.db = config_database or self.config.credentials.database
 

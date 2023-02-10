@@ -65,7 +65,7 @@ class BaseGenerateTask(BaseConfiguredTask):
 
         for schema in schemas:
             for selector in schema_name_selectors:
-                if fnmatch.fnmatch(schema, selector):
+                if fnmatch.fnmatch(schema.lower(), selector.lower()):
                     filtered_schemas.append(schema)
                     break
 
@@ -76,7 +76,6 @@ class BaseGenerateTask(BaseConfiguredTask):
             console.print(
                 f"{schema_nlg} [u]{', '.join(schema_name_selectors)}[/u] not found in Database.\n"
             )
-
             filtered_schemas = self.select_schemas(schemas)
             if not filtered_schemas:
                 console.print("No schemas selected")
@@ -85,12 +84,15 @@ class BaseGenerateTask(BaseConfiguredTask):
         return filtered_schemas
 
     def select_schemas(self, schemas):
-        selected_schemas = questionary.checkbox(
-            "Which schemas would you like to inspect?",
-            choices=schemas,
-        ).ask()
+        if self.no_prompt:
+            return schemas
+        else:
+            selected_schemas = questionary.checkbox(
+                "Which schemas would you like to inspect?",
+                choices=schemas,
+            ).ask()
 
-        return selected_schemas
+            return selected_schemas
 
     def get_relations(self, filtered_schemas):
         rel_name_selectors = [relation for relation in self.get_config_value("select_relations")]
@@ -284,6 +286,13 @@ class BaseGenerateTask(BaseConfiguredTask):
         context["model"] = rel.name
         strategy_key_update_all = f"{resource_type}_prop_update_all"
         strategy_key_recreate_all = f"{resource_type}_prop_recreate_all"
+
+        if self.no_prompt:
+            if update_strategy == "ask" or update_strategy == "update":
+                options[strategy_key_update_all] = True
+            if update_strategy == "recreate":
+                options[strategy_key_recreate_all] = True
+
         if yml_path.exists():
             object_in_yml = False
             current_yml = open_yaml(yml_path)
@@ -462,10 +471,11 @@ class BaseGenerateTask(BaseConfiguredTask):
         return source_a
 
     def raise_duplicate_relations(self, relations):
-        relation_names = [f"{rel.schema.lower()}.{rel.name.lower()}" for rel in relations]
-        duplicates = {rel for rel in relation_names if relation_names.count(rel) > 1}
-        if duplicates:
-            raise BaseGeneratorException(
-                "Can't select multiple relations with the exact same name: "
-                f"[red]{', '.join(duplicates)}[/red]"
-            )
+        if not self.no_prompt:
+            relation_names = [f"{rel.schema.lower()}.{rel.name.lower()}" for rel in relations]
+            duplicates = {rel for rel in relation_names if relation_names.count(rel) > 1}
+            if duplicates:
+                raise BaseGeneratorException(
+                    "Can't select multiple relations with the exact same name: "
+                    f"[red]{', '.join(duplicates)}[/red]"
+                )

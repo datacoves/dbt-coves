@@ -19,6 +19,7 @@ class GeneratePropertiesModel(BaseModel):
     select: Optional[str] = ""
     exclude: Optional[str] = ""
     selector: Optional[str] = ""
+    no_prompt: Optional[bool] = False
 
 
 class GenerateSourcesModel(BaseModel):
@@ -32,6 +33,7 @@ class GenerateSourcesModel(BaseModel):
     update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
+    no_prompt: Optional[bool] = False
 
 
 class GenerateMetadataModel(BaseModel):
@@ -40,12 +42,14 @@ class GenerateMetadataModel(BaseModel):
     select_relations: Optional[List[str]] = []
     exclude_relations: Optional[List[str]] = []
     destination: Optional[str] = "metadata.csv"
+    no_prompt: Optional[bool] = False
 
 
 class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
     properties: Optional[GeneratePropertiesModel] = GeneratePropertiesModel()
     metadata: Optional[GenerateMetadataModel] = GenerateMetadataModel()
+    no_prompt: Optional[bool] = False
 
 
 class ExtractAirbyteModel(BaseModel):
@@ -142,6 +146,7 @@ class DbtCovesConfig:
         "generate.properties.select",
         "generate.properties.exclude",
         "generate.properties.selector",
+        "generate.properties.no_prompt",
         "generate.sources.select_relations",
         "generate.sources.exclude_relations",
         "generate.sources.database",
@@ -152,11 +157,13 @@ class DbtCovesConfig:
         "generate.sources.update_strategy",
         "generate.sources.templates_folder",
         "generate.sources.metadata",
+        "generate.sources.no_prompt",
         "generate.metadata.database",
         "generate.metadata.schemas",
         "generate.metadata.select_relations",
         "generate.metadata.exclude_relations",
         "generate.metadata.destination",
+        "generate.metadata.no_prompt",
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",

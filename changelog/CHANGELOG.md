@@ -1,3 +1,8 @@
+## dbt-coves [1.3.0-a.28] - 2023-02-10
+
+- Added `--no-prompt` flag to `dbt-coves generate` subcommands (generates resources without any prompt to the user)
+- Made `--select-relations`, `--exclude-relations` and `--schemas` case insensitive. For example, now `--schemas raw` and `--schemas RAW`, or `--select-relations "TEST_*"` and `--select-relations "test_*"` are the same
+
 ## dbt-coves [1.3.0-a.18] - 2022-01-11
 
 ### Features

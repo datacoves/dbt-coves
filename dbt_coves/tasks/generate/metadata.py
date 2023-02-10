@@ -60,6 +60,12 @@ class GenerateMetadataTask(BaseGenerateTask):
         subparser.add_argument(
             "--destination", type=str, help="Generated metadata destination path"
         )
+        subparser.add_argument(
+            "--no-prompt",
+            help="Silently generate metadata",
+            action="store_true",
+            default=False,
+        )
 
         cls.arg_parser = base_subparser
         subparser.set_defaults(cls=cls, which="metadata")
@@ -74,12 +80,17 @@ class GenerateMetadataTask(BaseGenerateTask):
         return self.coves_config.integrated["generate"]["metadata"][key]
 
     def select_relations(self, rels):
-        selected_rels = questionary.checkbox(
-            "Which metadata files would you like to generate?",
-            choices=[Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels],
-        ).ask()
+        if self.no_prompt:
+            return rels
+        else:
+            selected_rels = questionary.checkbox(
+                "Which metadata files would you like to generate?",
+                choices=[
+                    Choice(f"[{rel.schema}] {rel.name}", checked=True, value=rel) for rel in rels
+                ],
+            ).ask()
 
-        return selected_rels
+            return selected_rels
 
     def render_path_template(self, destination_path, relation):
         template_context = {
@@ -213,14 +224,18 @@ class GenerateMetadataTask(BaseGenerateTask):
                     and not options["recreate_files"]
                 ):
                     console.print(f"[yellow]{csv_path.absolute()}[/yellow] exists.")
-                    append = questionary.select(
-                        f"How would you like to append {rel.name.lower()} columns' metadata?",
-                        choices=[
-                            "Recreate file",
-                            "Add missing columns",
-                            "Cancel",
-                        ],
-                    ).ask()
+                    append = (
+                        "Add missing columns"
+                        if self.no_prompt
+                        else questionary.select(
+                            f"How would you like to append {rel.name.lower()} columns' metadata?",
+                            choices=[
+                                "Recreate file",
+                                "Add missing columns",
+                                "Cancel",
+                            ],
+                        ).ask()
+                    )
                     if append == "Add missing columns":
                         action = "append"
                         options["append_all"] = True
@@ -240,6 +255,7 @@ class GenerateMetadataTask(BaseGenerateTask):
             self.metadata_files_processed.add(csv_path)
 
     def run(self):
+        self.no_prompt = self.get_config_value("no_prompt")
         config_database = self.get_config_value("database")
         self.db = config_database or self.config.credentials.database
 

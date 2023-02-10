@@ -70,6 +70,12 @@ class GeneratePropertiesTask(BaseGenerateTask):
             type=str,
             help="dbt selector definition e.g. my_selector.yml",
         )
+        subparser.add_argument(
+            "--no-prompt",
+            help="Silently generate dbt models property files",
+            action="store_true",
+            default=False,
+        )
         cls.arg_parser = base_subparser
 
         subparser.set_defaults(cls=cls, which="properties")
@@ -137,14 +143,17 @@ class GeneratePropertiesTask(BaseGenerateTask):
         return self.coves_config.integrated["generate"]["properties"].get(key)
 
     def select_properties(self, models):
-        selected_properties = questionary.checkbox(
-            "Which properties would you like to generate?",
-            choices=[Choice(model, checked=True, value=model) for model in models],
-        ).ask()
+        if self.no_prompt:
+            return models
+        else:
+            selected_properties = questionary.checkbox(
+                "Which properties would you like to generate?",
+                choices=[Choice(model, checked=True, value=model) for model in models],
+            ).ask()
 
-        return selected_properties
+            return selected_properties
 
-    def select_models(self, manifest, dbt_models):
+    def select_models(self, dbt_models):
         dbt_models_manifest_naming = [
             f"{model['resource_type']}.{model['package_name']}.{model['name']}"
             for model in dbt_models
@@ -233,6 +242,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
         )
 
     def run(self):
+        self.no_prompt = self.get_config_value("no_prompt")
         self.get_metadata()
         with self.adapter.connection_named("master"):
             dbt_models = self.list_from_dbt_ls("json")

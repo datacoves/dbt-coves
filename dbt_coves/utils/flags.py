@@ -39,6 +39,7 @@ class DbtCovesFlags:
                 "update_strategy": None,
                 "templates_folder": None,
                 "metadata": None,
+                "no_prompt": False,
             },
             "properties": {
                 "templates_folder": None,
@@ -48,6 +49,7 @@ class DbtCovesFlags:
                 "select": None,
                 "exclude": None,
                 "selector": None,
+                "no_prompt": False,
             },
             "metadata": {
                 "database": None,
@@ -55,6 +57,7 @@ class DbtCovesFlags:
                 "select_relations": [],
                 "exclude_relations": [],
                 "destination": None,
+                "no_prompt": False,
             },
         }
         self.extract = {
@@ -163,6 +166,8 @@ class DbtCovesFlags:
                     self.generate["sources"][
                         "exclude_relations"
                     ] = self.args.exclude_relations.split(",")
+                if self.args.no_prompt:
+                    self.generate["sources"]["no_prompt"] = True
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
                     self.generate["properties"]["templates_folder"] = self.args.templates_folder
@@ -178,6 +183,8 @@ class DbtCovesFlags:
                     self.generate["properties"]["exclude"] = self.args.exclude
                 if self.args.selector:
                     self.generate["properties"]["selector"] = self.args.selector
+                if self.args.no_prompt:
+                    self.generate["properties"]["no_prompt"] = True
             if self.args.cls.__name__ == "GenerateMetadataTask":
                 if self.args.database:
                     self.generate["metadata"]["database"] = self.args.database
@@ -195,6 +202,8 @@ class DbtCovesFlags:
                     ]
                 if self.args.destination:
                     self.generate["metadata"]["destination"] = self.args.destination
+                if self.args.no_prompt:
+                    self.generate["metadata"]["no_prompt"] = True
 
             if self.args.cls.__name__ == "InitTask":
                 if self.args.template:
