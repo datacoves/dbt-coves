@@ -62,7 +62,7 @@ class GenerateMetadataTask(BaseGenerateTask):
         )
         subparser.add_argument(
             "--no-prompt",
-            help="Silently generate metadata files",
+            help="Silently generate metadata",
             action="store_true",
             default=False,
         )

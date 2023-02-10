@@ -114,6 +114,8 @@ dbt-coves generate sources --database raw
 
 Supports Jinja templates to adjust how the resources are generated. See below for examples.
 
+Every `dbt-coves generate <resource>` supports `--no-prompt` flag, which will silently generate all sources/models/properties/metadata without asking anything to the user.
+
 ### Source Generation Arguments
 
 dbt-coves can be used to create the initial staging models. It will do the following:
@@ -136,8 +138,8 @@ dbt-coves generate sources -h
 ```
 
 ```console
---schema
-# Schema to inspect
+--schemas
+# Schema(s) to inspect. Accepts wildcards (must be enclosed in quotes if used)
 ```
 
 ```console
@@ -178,6 +180,11 @@ dbt-coves generate sources -h
 ```console
 --metadata
 # Path to csv file containing metadata, i.e. 'metadata.csv'
+```
+
+```console
+--no-prompt
+# Silently generate source dbt models
 ```
 
 ### Properties Generation Arguments
@@ -221,6 +228,11 @@ You can use dbt-coves to generate and update the properties(yml) file for a give
 # Path to csv file containing metadata, i.e. 'metadata.csv'
 ```
 
+```console
+--no-prompt
+# Silently generate dbt models property files
+```
+
 Note: `--select (or -s)`, `--exclude` and `--selector` work exactly as `dbt ls` selectors do. For usage details, visit [dbt list docs](https://docs.getdbt.com/reference/commands/list)
 
 ### Metadata Generation Arguments
@@ -237,7 +249,7 @@ Usage of these metadata files can be found in [metadata](https://github.com/data
 
 ```console
 --schemas
-# Comma separated list of schemas where raw data resides
+# Schema(s) to inspect. Accepts wildcards (must be enclosed in quotes if used)
 ```
 
 ```console
@@ -255,6 +267,11 @@ Usage of these metadata files can be found in [metadata](https://github.com/data
 # Where csv file(s) will be generated, default: 'metadata.csv'
 # Supports using the Jinja tags `{{relation}}` and `{{schema}}`
 # if creating one csv per relation/table in schema, i.e: "metadata/{{relation}}.csv"
+```
+
+```console
+--no-prompt
+# Silently generate metadata
 ```
 
 ### Metadata
