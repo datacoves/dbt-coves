@@ -6,6 +6,7 @@ from dbt_coves.tasks.setup.git import SetupGitTask
 from .all import SetupAllTask
 from .dbt import SetupDbtTask
 from .ssh import SetupSSHTask
+from .sqlfluff import SetupSqlfluffTask
 
 console = Console()
 
@@ -32,5 +33,6 @@ class SetupTask(NonDbtBaseTask):
         SetupGitTask.register_parser(sub_parsers, base_subparser)
         SetupDbtTask.register_parser(sub_parsers, base_subparser)
         SetupSSHTask.register_parser(sub_parsers, base_subparser)
+        SetupSqlfluffTask.register_parser(sub_parsers, base_subparser)
         cls.arg_parser = ext_subparser
         return ext_subparser

@@ -1,0 +1,136 @@
+[sqlfluff]
+verbose = 0
+nocolor = False
+
+# Comma separated list of file extensions to lint.
+# NB: This config will only apply in the root folder.
+sql_file_exts = .sql,.sql.j2,.dml,.ddl
+
+### OPINIONATED DEFAULTS ADJUST AS NECESSARY
+
+dialect = {{adapter}}
+templater = dbt
+
+recurse = 0
+output_line_length = 80
+runaway_limit = 10
+ignore = parsing,templating
+ignore_templated_areas = True
+
+# Suggested core rules as defined by the SQLFluff team
+# L001 - L006
+# L008 - L010
+# L012 - L026
+# L028
+# L030
+# L033
+# L038 - L041
+# L045 - L050
+# L052
+# L054
+
+# Uncomment and adjust as needed
+# rules = L001, L002, L003, L004, L005, L006, L007, L008, L009, L010, L011, L012, L013, L014, L015, L016, L017, L018,
+L019, L020, L021, L022, L023, L024, L025, L026, L027, L028, L029, L030, L032, L033, L036, L037, L038, L039, L040, L041,
+L042, L043, L044, L046, L047, L048, L049, L050, L051, L053, L054, L055, L058, L060, L061, L063, L064, L065
+
+# Excluded rules
+exclude_rules = L031, L034, L035, L051, L052, L054, L056, L057, L059, L062, L045
+
+[sqlfluff:templater:dbt]
+project_dir = ./
+
+# Some rules can be configured directly from the config common to other rules.
+[sqlfluff:rules]
+tab_space_size = 4
+max_line_length = 140
+indent_unit = space
+layout:type:comma:line_position = {{comma_style}}
+allow_scalar = True
+single_table_references = unqualified
+unquoted_identifiers_policy = all
+
+[sqlfluff:indentation]
+indented_joins = False
+indented_ctes = true
+template_blocks_indent = True
+
+[sqlfluff:templater]
+unwrap_wrapped_queries = True
+
+# Some rules have their own specific config.
+[sqlfluff:rules:L003]
+indent_unit = space
+tab_space_size = 4
+hanging_indents: false
+
+[sqlfluff:rules:L007] # Operator before/after new line
+layout:type:binary_operator:line_position = leading
+
+[sqlfluff:rules:L010] # Keywords
+capitalisation_policy = lower
+
+[sqlfluff:rules:L011]
+aliasing = explicit
+
+[sqlfluff:rules:L012]
+aliasing = explicit
+
+[sqlfluff:rules:L013]
+allow_scalar = True
+
+[sqlfluff:rules:L014]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:L016]
+ignore_comment_clauses = True
+ignore_comment_lines = True
+indent_unit = space
+max_line_length = 200
+tab_space_size = 4
+
+[sqlfluff:rules:L019]
+ayout:type:comma:line_position = trailing
+
+[sqlfluff:rules:L026]
+force_enable = True
+
+[sqlfluff:rules:L028]
+force_enable = True
+single_table_references = unqualified
+
+[sqlfluff:rules:L029] # Keyword identifiers
+unquoted_identifiers_policy = none
+
+[sqlfluff:rules:L030] # Function names
+capitalisation_policy = lower
+
+[sqlfluff:rules:L038]
+select_clause_trailing_comma = forbid
+
+[sqlfluff:rules:L040] # Null & Boolean Literals
+capitalisation_policy = lower
+
+[sqlfluff:rules:L042]
+# By default, allow subqueries in from clauses, but not join clauses.
+
+forbid_subquery_in = both
+
+[sqlfluff:rules:L047] # Consistent syntax to count all rows
+prefer_count_0 = False
+prefer_count_1 = False
+
+[sqlfluff:rules:L051]
+fully_qualify_join_types = both
+
+[sqlfluff:rules:L054]
+group_by_and_order_by_style = explicit
+
+[sqlfluff:rules:L063]
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:L064]
+preferred_quoted_literal_style = single_quotes
+
+[sqlfluff:rules:L066]
+min_alias_length = 3
