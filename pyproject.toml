@@ -58,7 +58,7 @@ ipdb = "^0.13.9"
 sphinx-argparse = "^0.4.0"
 sphinxcontrib-restbuilder = "^0.3"
 types-PyYAML = "^5.4.1"
-types-python-slugify = "^8.0.0.0"
+types-python-slugify = "^8.0.0.1"
 types-requests = "^2.28.11.5"
 flake8 = "^5.0.0"
 
