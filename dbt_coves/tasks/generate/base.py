@@ -238,7 +238,11 @@ class BaseGenerateTask(BaseConfiguredTask):
                     new_col["name"] = col.name
                     new_col["id"] = slugify(col.name, separator="_")
             if not new_col:
-                new_col = self.get_default_metadata_item(col.name, type=col.dtype)
+                if "BigQuery" in self.adapter.__class__.__name__:
+                    col_type = col.data_type
+                else:
+                    col_type = col.dtype
+                new_col = self.get_default_metadata_item(col.name, type=col_type)
             metadata_cols.append(new_col)
         return metadata_cols
 
