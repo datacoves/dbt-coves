@@ -1,5 +1,0 @@
-dbt-core~=1.1
-dbt-postgres~=1.1
-dbt-bigquery~=1.1
-dbt-snowflake~=1.1
-redshift-connector
