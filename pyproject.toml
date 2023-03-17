@@ -50,8 +50,6 @@ towncrier = "^22.12.0"
 pytest-mock = "^3.6.1"
 pytest-sugar = "^0.9.4"
 pytest-datafiles = "^2.0"
-tox-poetry-installer = "^0.10.0"
-tox = "^3.23.1"
 asciinema = "^2.0.2"
 pytest-dictsdiff = "^0.5.8"
 black = "^23.1a1"
@@ -73,7 +71,8 @@ python-dotenv = "^0.21.1"
 pandas = "^1.3.0"
 snowflake-connector-python = {extras = ["pandas"], version = "^2.7.12"}
 google-cloud-bigquery = ">2.34,<4"
-
+tox-poetry-installer = "^0.10.0"
+tox = "^3.23.1"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]
