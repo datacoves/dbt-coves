@@ -33,11 +33,11 @@ Finally, dbt-coves includes functionality to bootstrap a dbt project and to extr
 
 ## Supported adapters
 
-| Feature                           | Snowflake | Redshift       |
-| --------------------------------- | --------- | -------------- |
-| dbt project setup                 | ✅ Tested | 🕥 In progress |
-| source model (sql) generation     | ✅ Tested | 🕥 In progress |
-| model properties (yml) generation | ✅ Tested | 🕥 In progress |
+| Feature                           | Snowflake | Redshift  | BigQuery  |
+| --------------------------------- | --------- | --------- | --------- |
+| dbt project setup                 | ✅ Tested | ✅ Tested | ✅ Tested |
+| source model (sql) generation     | ✅ Tested | ✅ Tested | ✅ Tested |
+| model properties (yml) generation | ✅ Tested | ✅ Tested | ✅ Tested |
 
 NOTE: Other database adapters may work, although we have not tested them. Feel free to try them and let us know so we can update the table above.
 
