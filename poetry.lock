@@ -564,26 +564,22 @@ pyarrow = ">=3.0.0"
 
 [[package]]
 name = "dbt-bigquery"
-version = "1.4.1"
+version = "1.4.3"
 description = "The Bigquery adapter plugin for dbt"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "dbt-bigquery-1.4.1.tar.gz", hash = "sha256:dd8de3951c2e93a36fbb4b1cb6132a45050d8fac723efe47165b2fb18f8a0a21"},
-    {file = "dbt_bigquery-1.4.1-py3-none-any.whl", hash = "sha256:68063b1c7141552a63c1377225e4f57d2837265d4c780724fe53dc3aeb4a056b"},
+    {file = "dbt-bigquery-1.4.3.tar.gz", hash = "sha256:af85c41cdf7efd71eee9a460f5b51d8c59ca903efbd2c6974d1e159c3e871489"},
+    {file = "dbt_bigquery-1.4.3-py3-none-any.whl", hash = "sha256:7f6a7bf40492e68c2782410cf8e118321c4f3844c577d2e7c3c0b79acb307add"},
 ]
 
 [package.dependencies]
-agate = ">=1.6.3,<1.7"
+agate = ">=1.6.3,<1.7.0"
 dbt-core = ">=1.4.0,<1.5.0"
-google-api-core = ">=2.0,<3.0"
 google-cloud-bigquery = ">=3.0,<4.0"
-google-cloud-core = ">=2.0,<3.0"
 google-cloud-dataproc = ">=5.0,<6.0"
 google-cloud-storage = ">=2.4,<3.0"
-googleapis-common-protos = ">=1.6,<2.0"
-protobuf = ">=3.13.0,<4"
 
 [[package]]
 name = "dbt-core"
@@ -1549,14 +1545,14 @@ files = [
 ]
 
 [package.extras]
-all = ["Jinja2", "brotli", "cython", "execnet (>=1.0.9)", "pytest (>4.0)", "pytest-cov (>=2.6)", "pyzmq", "redis", "sqlalchemy"]
+all = ["Jinja2", "brotli", "cython", "execnet (>=1.0.9)", "mock", "pytest", "pytest-cov (<2.6)", "pyzmq", "redis", "sqlalchemy"]
 compression = ["brotli"]
-dev = ["cython", "pytest (>4.0)", "pytest-cov (>=2.6)"]
+dev = ["cython", "mock", "pytest", "pytest-cov (<2.6)"]
 execnet = ["execnet (>=1.0.9)"]
 jinja = ["Jinja2"]
 redis = ["redis"]
 sqlalchemy = ["sqlalchemy"]
-test = ["pytest (>4.0)", "pytest-cov (>=2.6)"]
+test = ["mock", "pytest", "pytest-cov (<2.6)"]
 zmq = ["pyzmq"]
 
 [[package]]
@@ -3232,6 +3228,8 @@ files = [
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:045e0626baf1c52e5527bd5db361bc83180faaba2ff586e763d3d5982a876a9e"},
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-macosx_12_6_arm64.whl", hash = "sha256:721bc4ba4525f53f6a611ec0967bdcee61b31df5a56801281027a3a6d1c2daf5"},
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:41d0f1fa4c6830176eef5b276af04c89320ea616655d01327d5ce65e50575c94"},
+    {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-win32.whl", hash = "sha256:f6d3d39611ac2e4f62c3128a9eed45f19a6608670c5a2f4f07f24e8de3441d38"},
+    {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-win_amd64.whl", hash = "sha256:da538167284de58a52109a9b89b8f6a53ff8437dd6dc26d33b57bf6699153122"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:4b3a93bb9bc662fc1f99c5c3ea8e623d8b23ad22f861eb6fce9377ac07ad6072"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-macosx_12_0_arm64.whl", hash = "sha256:a234a20ae07e8469da311e182e70ef6b199d0fbeb6c6cc2901204dd87fb867e8"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-manylinux2014_aarch64.whl", hash = "sha256:15910ef4f3e537eea7fe45f8a5d19997479940d9196f357152a09031c5be59f3"},
@@ -3933,4 +3931,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "1db3ec8b7f364c99ad7adc352ad945d3f91af98b6bc4ede36a56122caa9dfaaf"
+content-hash = "54ef0c91ba16530f13b5cc28dd5a32f6f3e26348d1daa1a47a0182d7a0725c2c"
