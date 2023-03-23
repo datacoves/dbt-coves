@@ -45,7 +45,7 @@ db-dtypes = "^1.0.5"
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
 pytest-cov = "^4.0.0"
-mypy = "^0.991"
+mypy = "^1.1"
 towncrier = "^22.12.0"
 pytest-mock = "^3.6.1"
 pytest-sugar = "^0.9.4"
