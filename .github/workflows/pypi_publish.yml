@@ -13,14 +13,12 @@ on:
       bumpType:
         description: Bump type
         required: true
-        default: build
+        default: patch
         type: choice
         options:
           - major
           - minor
           - patch
-          - release
-          - build
 
 jobs:
   publish:
