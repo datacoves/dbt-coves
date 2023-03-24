@@ -31,6 +31,10 @@ Finally, dbt-coves includes functionality to bootstrap a dbt project and to extr
 | \< 1.0  | ❌ Not supported |
 | >= 1.0  | ✅ Tested        |
 
+From `dbt-coves` 1.4.0 onwards, our major and minor versions match those of [dbt-core](https://github.com/dbt-labs/dbt-core).
+This means we release a new major/minor version once it's dbt-core equivalent is tested.
+Patch suffix (1.4.X) is exclusive to our continuous development and does not reflect a version match with dbt
+
 ## Supported adapters
 
 | Feature                           | Snowflake | Redshift  | BigQuery  |
