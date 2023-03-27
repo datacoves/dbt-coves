@@ -25,7 +25,7 @@ repository = "https://github.com/datacoves/dbt-coves"
 [tool.poetry.dependencies]
 python = ">=3.7.2,<3.11"
 luddite = "^1.0.1"
-packaging = ">=20.8,<22.0"
+packaging = ">=20.8,<24.0"
 pretty-errors = "^1.2.19"
 pydantic = "^1.8"
 PyYAML = ">=5.4.1"
