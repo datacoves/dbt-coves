@@ -21,15 +21,15 @@ final as (
 {%- elif adapter_name == 'BigQueryAdapter' %}
 {%- for key, cols in nested.items() %}
   {%- for col in cols %}
-        cast({{ key }}.{{ col }} as {{ cols[col]["type"].lower().replace("varchar", "string") }}) as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
+        {{ key }}.{{ col }}{% if not loop.last or columns %},{% endif %}
   {%- endfor %}
 {%- endfor %}
 {%- for col in columns %}
-        cast({{ col['name'] }} as {{ col["type"].lower().replace("varchar", "string") }}) as {{ col['id'] }}{% if not loop.last %},{% endif %}
+        {{ col['name'] }}{% if not loop.last %},{% endif %}
 {%- endfor %}
 {%- endif %}
 
-    from raw_source
+    from source
 
 )
 
