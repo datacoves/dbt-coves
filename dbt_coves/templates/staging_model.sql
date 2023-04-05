@@ -1,7 +1,8 @@
-with raw_source as (
+with 
 
-    select *
-    from {% raw %}{{{% endraw %} source('{{ relation.schema }}', '{{ relation.name }}') {% raw %}}}{% endraw %}
+source as (
+
+    select * from {% raw %}{{{% endraw %} source('{{ relation.schema }}', '{{ relation.name }}') {% raw %}}}{% endraw %}
 
 ),
 
