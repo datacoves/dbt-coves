@@ -4,6 +4,7 @@ import pathlib
 from os import path
 
 from rich.console import Console
+from slugify import slugify
 
 from dbt_coves.utils.airbyte_api import AirbyteApiCaller, AirbyteApiCallerException
 
@@ -192,7 +193,7 @@ class LoadAirbyteTask(BaseLoadTask):
         """
         try:
             connection_configuration = exported_json_data["connectionConfiguration"]
-            secret_target_name = exported_json_data["name"].lower()
+            secret_target_name = slugify(exported_json_data["name"].lower())
             # Regex: any string that contains only wildcards: from beginning to end
             wildcard_pattern = "**********"
 
@@ -224,7 +225,7 @@ class LoadAirbyteTask(BaseLoadTask):
                         for k, v in connection_configuration.items()
                         if wildcard_pattern == str(v)
                     ]
-                    secret_target_name = exported_json_data["name"].lower()
+                    secret_target_name = slugify(exported_json_data["name"].lower())
                     # Get the secret file for that name
                     secret_file = os.path.join(
                         self.secrets_path,
