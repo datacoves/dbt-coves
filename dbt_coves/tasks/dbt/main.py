@@ -53,7 +53,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
     def run(self) -> int:
         project_dir = self.get_config_value("project_dir")
         if not project_dir:
-            project_dir = os.environ.get("DBT_PROJECT_DIR", os.environ.get("DBT_HOME"))
+            project_dir = os.environ.get("DBT_PROJECT_DIR", os.environ.get("DATACOVES__DBT_HOME"))
         if not project_dir:
             console.print("[red]No dbt project specified[/red].")
             return -1
