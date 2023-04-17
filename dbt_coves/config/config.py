@@ -183,6 +183,7 @@ class DbtCovesConfig:
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",
+        "dbt.cleanup",
         "extract.fivetran.path",
         "extract.fivetran.api_key",
         "extract.fivetran.api_secret",

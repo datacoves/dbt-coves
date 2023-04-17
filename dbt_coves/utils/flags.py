@@ -109,7 +109,7 @@ class DbtCovesFlags:
             "ssh": {"open_ssl_public_key": False},
             "git": {"no_prompt": False},
         }
-        self.dbt = {"command": None, "project_dir": None, "virtualenv": None}
+        self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
@@ -296,3 +296,5 @@ class DbtCovesFlags:
                     self.dbt["project_dir"] = self.args.project_dir
                 if self.args.virtualenv:
                     self.dbt["virtualenv"] = self.args.virtualenv
+                if self.args.cleanup:
+                    self.dbt["cleanup"] = self.args.cleanup

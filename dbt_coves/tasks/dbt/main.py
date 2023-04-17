@@ -30,8 +30,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             "dbt",
             parents=[base_subparser],
             # help="Run dbt on an isolated environment",
-            help="""Use this command to run dbt commands on special environments
-            such as Airflow, or CI workers.""",
+            help="""Use this command to run dbt commands on special environments 
+            such as Airflow, or CI workers. When a read-write copy needs to be 
+            created, its path can be found in DBT_COVES__CLONE_PATH.""",
         )
         ext_subparser.set_defaults(cls=cls, which="dbt")
         cls.arg_parser = ext_subparser
@@ -40,6 +41,12 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             type=str,
             help="""Path to virtual environment where dbt commands
             will be executed. i.e.: /opt/user/virtualenvs/airflow""",
+        )
+        ext_subparser.add_argument(
+            "--cleanup",
+            action="store_true",
+            default=False,
+            help="If a read-write clone is created, remove it after completion",
         )
         ext_subparser.add_argument(
             "command",
@@ -60,15 +67,21 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         command = self.get_config_value("command")
         if self.is_readonly(project_dir):
-            tmp_dir = tempfile.NamedTemporaryFile().name
-            console.print(
-                f"Readonly project detected. Copying it to temp directory [b]{tmp_dir}[/b]"
-            )
-            subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=False)
+            tmp_dir = os.environ.get("DBT_COVES__CLONE_PATH")
+            if not tmp_dir or not os.path.exists(tmp_dir):
+                tmp_dir = tempfile.NamedTemporaryFile().name
+                console.print(
+                    f"Readonly project detected. Copying it to temp directory [b]{tmp_dir}[/b]."
+                )
+                subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=False)
             try:
                 self.run_dbt(command, cwd=tmp_dir)
             finally:
-                shutil.rmtree(tmp_dir, ignore_errors=True)
+                if self.get_config_value("cleanup"):
+                    console.print("Removing cloned read-write copy.")
+                    shutil.rmtree(tmp_dir, ignore_errors=True)
+                else:
+                    os.environ["DBT_COVES__CLONE_PATH"] = tmp_dir
         else:
             self.run_dbt(command, cwd=project_dir)
 

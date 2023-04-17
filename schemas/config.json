@@ -448,6 +448,11 @@
           "title": "Virtualenv",
           "description": "Path to virtual environment where dbt commands will be executed. i.e.: /opt/user/virtualenvs/airflow",
           "type": "string"
+        },
+        "cleanup": {
+          "title": "Clean up",
+          "description": "If a read-write clone is created, remove it after completion",
+          "type": "string"
         }
       },
       "required": []
