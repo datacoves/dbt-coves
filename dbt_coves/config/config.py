@@ -124,6 +124,7 @@ class RunDbtModel(BaseModel):
     command: Optional[str] = ""
     project_dir: Optional[str] = ""
     virtualenv: Optional[str] = ""
+    cleanup: Optional[bool] = False
 
 
 class ConfigModel(BaseModel):

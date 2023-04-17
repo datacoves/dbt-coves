@@ -68,8 +68,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         command = self.get_config_value("command")
         if self.is_readonly(project_dir):
             tmp_dir = os.environ.get("DBT_COVES__CLONE_PATH")
-            if not tmp_dir or not os.path.exists(tmp_dir):
+            if not tmp_dir:
                 tmp_dir = tempfile.NamedTemporaryFile().name
+            if not os.path.exists(tmp_dir):
                 console.print(
                     f"Readonly project detected. Copying it to temp directory [b]{tmp_dir}[/b]."
                 )
