@@ -863,14 +863,14 @@ requests = ["requests (>=2.20.0,<3.0.0dev)"]
 
 [[package]]
 name = "google-cloud-bigquery"
-version = "3.7.0"
+version = "3.10.0"
 description = "Google BigQuery API client library"
 category = "dev"
 optional = false
 python-versions = ">=3.7"
 files = [
-    {file = "google-cloud-bigquery-3.7.0.tar.gz", hash = "sha256:cf9f543fad3aaf4871c53f56b718e1ef94a9a778b17f16890015f6fc25c328ec"},
-    {file = "google_cloud_bigquery-3.7.0-py2.py3-none-any.whl", hash = "sha256:d273e6a4fddd24317055c4f7a727b78edb165e714e646d8276df0761fa7023d0"},
+    {file = "google-cloud-bigquery-3.10.0.tar.gz", hash = "sha256:4b02def076e2db8cec66f65fb627d13904a9fc3cf4fee315ede43dcb7038a8df"},
+    {file = "google_cloud_bigquery-3.10.0-py2.py3-none-any.whl", hash = "sha256:848a3cbce0ba7d4f1e9551400a7c99aa0eab72290d5a1bbbe69f18a24a10bd3a"},
 ]
 
 [package.dependencies]
@@ -885,11 +885,11 @@ python-dateutil = ">=2.7.2,<3.0dev"
 requests = ">=2.21.0,<3.0.0dev"
 
 [package.extras]
-all = ["Shapely (>=1.8.4,<2.0dev)", "db-dtypes (>=0.3.0,<2.0.0dev)", "geopandas (>=0.9.0,<1.0dev)", "google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.47.0,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "ipython (>=7.0.1,!=8.1.0)", "ipywidgets (>=7.7.0,<8.0.1)", "opentelemetry-api (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)", "pandas (>=1.1.0)", "pyarrow (>=3.0.0)", "tqdm (>=4.7.4,<5.0.0dev)"]
-bqstorage = ["google-cloud-bigquery-storage (>=2.0.0,<3.0.0dev)", "grpcio (>=1.47.0,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "pyarrow (>=3.0.0)"]
+all = ["Shapely (>=1.8.4,<2.0dev)", "db-dtypes (>=0.3.0,<2.0.0dev)", "geopandas (>=0.9.0,<1.0dev)", "google-cloud-bigquery-storage (>=2.6.0,<3.0.0dev)", "grpcio (>=1.47.0,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "ipykernel (>=6.0.0)", "ipython (>=7.23.1,!=8.1.0)", "ipywidgets (>=7.7.0)", "opentelemetry-api (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)", "pandas (>=1.1.0)", "pyarrow (>=3.0.0)", "tqdm (>=4.7.4,<5.0.0dev)"]
+bqstorage = ["google-cloud-bigquery-storage (>=2.6.0,<3.0.0dev)", "grpcio (>=1.47.0,<2.0dev)", "grpcio (>=1.49.1,<2.0dev)", "pyarrow (>=3.0.0)"]
 geopandas = ["Shapely (>=1.8.4,<2.0dev)", "geopandas (>=0.9.0,<1.0dev)"]
-ipython = ["ipython (>=7.0.1,!=8.1.0)"]
-ipywidgets = ["ipywidgets (>=7.7.0,<8.0.1)"]
+ipython = ["ipykernel (>=6.0.0)", "ipython (>=7.23.1,!=8.1.0)"]
+ipywidgets = ["ipykernel (>=6.0.0)", "ipywidgets (>=7.7.0)"]
 opentelemetry = ["opentelemetry-api (>=1.1.0)", "opentelemetry-instrumentation (>=0.20b0)", "opentelemetry-sdk (>=1.1.0)"]
 pandas = ["db-dtypes (>=0.3.0,<2.0.0dev)", "pandas (>=1.1.0)", "pyarrow (>=3.0.0)"]
 tqdm = ["tqdm (>=4.7.4,<5.0.0dev)"]
@@ -1545,14 +1545,14 @@ files = [
 ]
 
 [package.extras]
-all = ["Jinja2", "brotli", "cython", "execnet (>=1.0.9)", "pytest (>4.0)", "pytest-cov (>=2.6)", "pyzmq", "redis", "sqlalchemy"]
+all = ["Jinja2", "brotli", "cython", "execnet (>=1.0.9)", "mock", "pytest", "pytest-cov (<2.6)", "pyzmq", "redis", "sqlalchemy"]
 compression = ["brotli"]
-dev = ["cython", "pytest (>4.0)", "pytest-cov (>=2.6)"]
+dev = ["cython", "mock", "pytest", "pytest-cov (<2.6)"]
 execnet = ["execnet (>=1.0.9)"]
 jinja = ["Jinja2"]
 redis = ["redis"]
 sqlalchemy = ["sqlalchemy"]
-test = ["pytest (>4.0)", "pytest-cov (>=2.6)"]
+test = ["mock", "pytest", "pytest-cov (<2.6)"]
 zmq = ["pyzmq"]
 
 [[package]]
@@ -3230,6 +3230,8 @@ files = [
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:045e0626baf1c52e5527bd5db361bc83180faaba2ff586e763d3d5982a876a9e"},
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-macosx_12_6_arm64.whl", hash = "sha256:721bc4ba4525f53f6a611ec0967bdcee61b31df5a56801281027a3a6d1c2daf5"},
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:41d0f1fa4c6830176eef5b276af04c89320ea616655d01327d5ce65e50575c94"},
+    {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-win32.whl", hash = "sha256:f6d3d39611ac2e4f62c3128a9eed45f19a6608670c5a2f4f07f24e8de3441d38"},
+    {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-win_amd64.whl", hash = "sha256:da538167284de58a52109a9b89b8f6a53ff8437dd6dc26d33b57bf6699153122"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:4b3a93bb9bc662fc1f99c5c3ea8e623d8b23ad22f861eb6fce9377ac07ad6072"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-macosx_12_0_arm64.whl", hash = "sha256:a234a20ae07e8469da311e182e70ef6b199d0fbeb6c6cc2901204dd87fb867e8"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-manylinux2014_aarch64.whl", hash = "sha256:15910ef4f3e537eea7fe45f8a5d19997479940d9196f357152a09031c5be59f3"},
