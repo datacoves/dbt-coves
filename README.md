@@ -4,7 +4,7 @@
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/datacoves-dark.png">
-  <img alt="Datacoves" src="datacoves-light.png" width="150">
+  <img alt="Datacoves" src="images/datacoves-light.png" width="150">
 </picture>
 
 The turnkey analytics stack, find out more at [Datacoves.com](https://datacoves.com/).
