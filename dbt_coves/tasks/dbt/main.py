@@ -30,8 +30,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             "dbt",
             parents=[base_subparser],
             # help="Run dbt on an isolated environment",
-            help="""Use this command to run dbt commands on special environments 
-            such as Airflow, or CI workers. When a read-write copy needs to be 
+            help="""Use this command to run dbt commands on special environments
+            such as Airflow, or CI workers. When a read-write copy needs to be
             created, its path can be found in DBT_COVES__CLONE_PATH.""",
         )
         ext_subparser.set_defaults(cls=cls, which="dbt")
