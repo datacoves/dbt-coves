@@ -7,7 +7,7 @@
   <img alt="Datacoves" src="images/datacoves-light.png" width="150">
 </picture>
 
-The turnkey analytics stack, find out more at [Datacoves.com](https://datacoves.com/).
+Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com](https://datacoves.com/product).
 
 ## What is dbt-coves?
 
