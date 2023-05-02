@@ -13,6 +13,7 @@ from .base import BaseExtractTask
 # from dbt_coves.utils import airbyte_api
 
 console = Console()
+NON_EXTRACT_KEYS = ["icon"]
 
 
 class AirbyteExtractorException(Exception):
@@ -230,10 +231,18 @@ class ExtractAirbyteTask(BaseExtractTask):
             f"Airbyte extract error: there is no Airbyte Source for id [red]{source_id}[/red]"
         )
 
-    def _save_json(self, path, object):
+    def _remove_unnecessary_fields(self, json_object):
+        json_copy = json_object.copy()
+        for k in json_copy.keys():
+            if k in NON_EXTRACT_KEYS:
+                del json_object[k]
+        return json_object
+
+    def _save_json(self, path, json_object):
+        json_object = self._remove_unnecessary_fields(json_object)
         try:
             with open(path, "w") as json_file:
-                json.dump(object, json_file, indent=4)
+                json.dump(json_object, json_file, indent=4)
         except OSError as e:
             raise AirbyteExtractorException(f"Couldn't write {path}: {e}")
 
