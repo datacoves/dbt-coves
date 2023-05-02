@@ -423,13 +423,11 @@ class LoadAirbyteTask(BaseLoadTask):
                 self.airbyte_api_caller.airbyte_endpoint_create_connections,
                 exported_json_data,
             )
-            self.airbyte_api_caller.airbyte_connections_list.append(response)
-            if "connectionId" in response:
+            if response:
+                self.airbyte_api_caller.airbyte_connections_list.append(response)
                 return connection_name
-            else:
-                raise AirbyteApiCallerException("Could not create Airbyte connection")
-        except AirbyteApiCallerException:
-            raise AirbyteApiCallerException("Could not create Airbyte connection")
+        except AirbyteApiCallerException as ex:
+            raise AirbyteApiCallerException(f"Could not create Airbyte connection: {ex}")
 
     def _delete_connection(self, connection_id):
         try:

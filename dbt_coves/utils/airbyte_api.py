@@ -2,7 +2,6 @@ import json
 from typing import Dict
 
 import requests
-from requests.exceptions import RequestException
 
 
 class AirbyteApiCallerException(Exception):
@@ -14,17 +13,14 @@ class AirbyteApiCaller:
         """
         Generic `api caller` for contacting Airbyte
         """
-        try:
-            response = requests.post(endpoint, json=body)
-            if response.status_code >= 200 and response.status_code < 300:
-                return json.loads(response.text) if response.text else None
-            else:
-                raise RequestException(
-                    f"Unexpected status code from airbyte in endpoint {endpoint}:"
-                    f"{response.status_code}: {json.loads(response.text)['message']}"
-                )
-        except RequestException as e:
-            raise AirbyteApiCallerException(f"Airbyte API error in endpoint {endpoint}: " + str(e))
+        response = requests.post(endpoint, json=body)
+        if response.status_code >= 200 and response.status_code < 300:
+            return json.loads(response.text) if response.text else None
+        else:
+            raise AirbyteApiCallerException(
+                f"Unexpected status code from airbyte in endpoint {endpoint}:"
+                f"{response.status_code}: {json.loads(response.text)['message']}"
+            )
 
     def __init__(self, api_host, api_port):
         airbyte_host = api_host
