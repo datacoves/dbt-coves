@@ -13,7 +13,7 @@ from .base import BaseExtractTask
 # from dbt_coves.utils import airbyte_api
 
 console = Console()
-NON_EXTRACT_KEYS = ["icon"]
+NON_EXTRACT_KEYS = ["icon", "breakingChange"]
 
 
 class AirbyteExtractorException(Exception):
