@@ -232,7 +232,8 @@ class ExtractAirbyteTask(BaseExtractTask):
         )
 
     def _remove_unnecessary_fields(self, json_object):
-        for k in json_object.keys():
+        json_copy = json_object.copy()
+        for k in json_copy.keys():
             if k in NON_EXTRACT_KEYS:
                 del json_object[k]
         return json_object
