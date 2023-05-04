@@ -35,8 +35,6 @@ def file_exists(root_path, file_name):
 
 
 def get_git_root(path=None):
-    if not path:
-        path = os.getcwd()
     try:
         git_repo = git.Repo(path, search_parent_directories=True)
         git_root = git_repo.git.rev_parse("--show-toplevel")
