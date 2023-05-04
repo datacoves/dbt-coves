@@ -1,0 +1,7 @@
+target/
+dbt_modules/
+dbt_packages/
+templates/
+macros/
+models_bq/
+models_rs

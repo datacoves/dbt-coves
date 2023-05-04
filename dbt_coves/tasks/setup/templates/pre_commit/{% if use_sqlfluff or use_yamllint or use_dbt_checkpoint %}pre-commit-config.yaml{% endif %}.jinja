@@ -1,0 +1,51 @@
+files: ^{{ dbt_project_dir }}/models/
+
+repos:
+{% if use_dbt_checkpoint %}  - repo: https://github.com/dbt-checkpoint/dbt-checkpoint
+    rev: v1.0.0
+
+    hooks:
+      - id: dbt-docs-generate
+        args: ["--cmd-flags", "++project+dir", "{{ dbt_project_dir }}", "++no+compile"]
+      - id: check-source-table-has-description
+        files: ^{{ dbt_project_dir }}/models/
+
+      - id: check-script-semicolon
+      - id: check-script-has-no-table-name
+      - id: check-script-ref-and-source
+        args: ["--manifest", "{{ dbt_project_dir }}/target/manifest.json"]
+      - id: check-model-has-description
+        args: ["--manifest", "{{ dbt_project_dir }}/target/manifest.json"]
+      - id: check-model-has-properties-file
+        args: ["--manifest", "{{ dbt_project_dir }}/target/manifest.json"]
+
+      # This does not work with deferral because dbt docs generate does not include models that dont exist in current db
+      - id: check-model-has-all-columns
+        args:
+          [
+            "--manifest",
+            "{{ dbt_project_dir }}/target/manifest.json",
+            "--catalog",
+            "{{ dbt_project_dir }}/target/catalog.json",
+          ]{% endif %}
+
+{% if use_sqlfluff %}  - repo: https://github.com/sqlfluff/sqlfluff
+    # this is the version of sqlfluff, needs to be updated when using a new sqlfluff version (pip show sqlfluff)
+    rev: 2.0.3
+    hooks:
+      - id: sqlfluff-lint
+        language: python
+        # Need these two dependencies.
+        #   sqlfluff-templater-dbt should match the version of sqlfluff above in rev (pip show sqlfluff-templater-dbt)
+        #   dbt-snowflake needs to match the version in {{ dbt_project_dir }} tab of Datacoves (pip show dbt-snowflake)
+        additional_dependencies:
+          ["sqlfluff-templater-dbt==2.0.3", "dbt-snowflake==1.3.1"]
+        args: [--config, {{ dbt_project_dir }}/.sqlfluff]{% endif %}
+
+{% if use_yamllint %}  - repo: https://github.com/adrienverge/yamllint.git
+    rev: v1.17.0
+    hooks:
+      - id: yamllint
+        args: [-c=.yamllint]
+        exclude: ^{{ dbt_project_dir }}/.dbt_coves/templates
+{% endif %}

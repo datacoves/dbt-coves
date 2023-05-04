@@ -1,0 +1,89 @@
+[sqlfluff]
+
+# Supported dialects https://docs.sqlfluff.com/en/stable/dialects.html
+# Or run 'sqlfluff dialects'
+dialect = {{adapter}}
+
+# One of [raw|jinja|python|placeholder]
+templater = dbt
+
+# Comma separated list of rules to exclude, or None
+exclude_rules = AM05, RF05, ST06
+
+# Ignore linting errors found within sections of code coming directly from
+# templated code (e.g. from within Jinja curly braces. Note that it does not
+# ignore errors from literal code found within template loops.
+ignore_templated_areas = True
+
+# CPU processes to use while linting.
+# If positive, just implies number of processes.
+# If negative or zero, implies number_of_cpus - specified_number.
+# e.g. -1 means use all processors but one. 0 means all cpus.
+processes = -1
+
+# Max line length is set by default to be in line with the dbt style guide.
+# https://github.com/dbt-labs/corp/blob/main/dbt_style_guide.md
+# Set to zero or negative to disable checks.
+max_line_length = 140
+
+[sqlfluff:templater:dbt]
+project_dir = ./
+
+[sqlfluff:rules:aliasing.table]
+# Aliasing preference for tables
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.column]
+# Aliasing preference for columns
+aliasing = explicit
+
+[sqlfluff:rules:aliasing.length]
+min_alias_length = 3
+
+[sqlfluff:rules:aliasing.forbid]
+# Avoid table aliases in from clauses and join conditions.
+# Disabled by default for all dialects unless explicitly enabled.
+# We suggest instead using aliasing.length (AL06) in most cases.
+force_enable = False
+
+[sqlfluff:rules:ambiguous.join]
+# Fully qualify JOIN clause
+fully_qualify_join_types = outer
+
+[sqlfluff:rules:ambiguous.column_references]
+# GROUP BY/ORDER BY column references
+group_by_and_order_by_style = consistent
+
+[sqlfluff:rules:capitalisation.keywords]
+# Keywords
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.identifiers]
+# Unquoted identifiers
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.functions]
+# Function names
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.literals]
+# Null & Boolean Literals
+capitalisation_policy = lower
+
+[sqlfluff:rules:capitalisation.types]
+# Data Types
+extended_capitalisation_policy = lower
+
+[sqlfluff:rules:references.consistent]
+# References must be consistently used
+# Disabled for some dialects (e.g. bigquery)
+single_table_references = unqualified
+
+[sqlfluff:rules:references.keywords]
+# Comma separated list of words to ignore for this rule
+# cases seems like a strange one to exclude, bug with "case"?
+ignore_words = cases, date, desc, queries, role, storage, url, value, warehouse_name, warehouse_size, warehouse_type
+
+[sqlfluff:rules:structure.subquery]
+# By default, allow subqueries in from clauses, but not join clauses
+forbid_subquery_in = both

@@ -1,0 +1,45 @@
+# This is a minimum working example of how
+# copier can be used to better manage dbt-coves
+# files. It can be extended well beyond this.
+dbt_project_dir:
+  type: str
+  help: Enter your dbt project directory
+
+use_dbt_checkpoint:
+  type: bool
+  default: false
+  help: Do you want to use dbt-checkpoint?
+
+use_sqlfluff:
+  type: bool
+  default: false
+  help: Do you want to use Sqlfluff?
+
+use_yamllint:
+  type: bool
+  default: false
+  help: Do you want to use Yamllint?
+
+adapter:
+  type: str
+  choices:
+    - snowflake
+    - bigquery
+    - redshift
+    - postgres
+    - spark
+    - sqlite
+    - duckdb
+  help: What dbt adapter are you using?
+  when: "{{use_sqlfluff}}"
+
+comma_style:
+  type: str
+  choices:
+    - leading
+    - trailing
+  help: Where should commas be placed?
+  default: trailing
+  when: "{{use_sqlfluff}}"
+
+_answers_file: ".dbt-coves"
