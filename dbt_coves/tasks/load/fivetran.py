@@ -127,6 +127,7 @@ class LoadFivetranTask(BaseLoadTask):
             )
 
         self.local_secrets = []
+        self.secret_manager_data = {}
 
         if secrets_path:
             self.secrets_path = Path(secrets_path)
@@ -225,11 +226,21 @@ class LoadFivetranTask(BaseLoadTask):
         self.load_results["connectors"]["created"].add(connector_schema)
         return created_connector
 
-    def _update_target_connector_schema_config(self, connector, schemas):
+    def _update_target_connector_schema_config(self, connector, extracted_schemas):
         connector_id = connector["id"]
         connector_schemas = self.fivetran_api._get_connector_schemas(connector_id)
         if connector_schemas:
-            self.fivetran_api.update_connector_schema_config(connector_id, schemas)
+            self.fivetran_api.update_connector_schema_config(connector_id, extracted_schemas)
+            for extracted_schema in extracted_schemas.values():
+                schema_name_in_destination = extracted_schema["name_in_destination"]
+                for table_config in extracted_schema.get("tables", {}).values():
+                    table_name_in_destination = table_config["name_in_destination"]
+                    self.fivetran_api.update_connector_table_config(
+                        connector_id,
+                        schema_name_in_destination,
+                        table_name_in_destination,
+                        table_config,
+                    )
 
     def _get_existent_destination(self, target_group_id):
         for dest_data in self.fivetran_api.fivetran_data.values():
