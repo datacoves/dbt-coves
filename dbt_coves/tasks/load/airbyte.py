@@ -6,7 +6,7 @@ from os import path
 from rich.console import Console
 from slugify import slugify
 
-from dbt_coves.utils.airbyte_api import AirbyteApiCaller, AirbyteApiCallerException
+from dbt_coves.utils.api_caller import AirbyteApiCaller, AirbyteApiCallerException
 
 from .base import BaseLoadTask
 
@@ -269,8 +269,9 @@ class LoadAirbyteTask(BaseLoadTask):
             exported_json_data.pop("sourceName")
         )
         try:
+            self._test_object_connection(exported_json_data, "sources")
             response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.airbyte_endpoint_create_sources,
+                self.airbyte_api_caller.api_endpoints["CREATE_OBJECTS"].format(obj="sources"),
                 exported_json_data,
             )
             self.airbyte_api_caller.airbyte_sources_list.append(response)
@@ -280,6 +281,15 @@ class LoadAirbyteTask(BaseLoadTask):
         except AirbyteApiCallerException as e:
             raise AirbyteLoaderException(f"Could not create Airbyte Source: {e}")
 
+    def _test_object_connection(self, data, obj_type):
+        conn_status = self.airbyte_api_caller.api_call(
+            self.airbyte_api_caller.api_endpoints["TEST_OBJECTS"].format(obj=obj_type), data
+        )
+        if conn_status.get("status", "").lower() != "succeeded":
+            raise AirbyteLoaderException(
+                f"Connection test for {obj_type[:-1]} {data['name']} failed"
+            )
+
     def _update_source(self, exported_json_data, source_id):
         exported_json_data["sourceId"] = source_id
         exported_json_data.pop("sourceName")
@@ -287,8 +297,9 @@ class LoadAirbyteTask(BaseLoadTask):
 
         exported_json_data = self._get_secrets(exported_json_data, "sources")
         try:
+            self._test_object_connection(exported_json_data, "sources")
             response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.airbyte_endpoint_update_sources,
+                self.airbyte_api_caller.api_endpoints["UPDATE_OBJECTS"].format(obj="sources"),
                 exported_json_data,
             )
             self._add_update_result("sources", exported_json_data["name"])
@@ -369,8 +380,9 @@ class LoadAirbyteTask(BaseLoadTask):
             exported_data.pop("destinationName")
         )
         try:
+            self._test_object_connection(exported_data, "destinations")
             response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.airbyte_endpoint_create_destinations,
+                self.airbyte_api_caller.api_endpoints["CREATE_OBJECTS"].format(obj="destinations"),
                 exported_data,
             )
             self.airbyte_api_caller.airbyte_destinations_list.append(response)
@@ -387,8 +399,9 @@ class LoadAirbyteTask(BaseLoadTask):
         exported_json_data = self._get_secrets(exported_json_data, "destinations")
 
         try:
+            self._test_object_connection(exported_json_data, "destinations")
             response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.airbyte_endpoint_update_destinations,
+                self.airbyte_api_caller.api_endpoints["UPDATE_OBJECTS"].format(obj="destinations"),
                 exported_json_data,
             )
             self._add_update_result("destinations", exported_json_data["name"])
@@ -420,7 +433,7 @@ class LoadAirbyteTask(BaseLoadTask):
 
         try:
             response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.airbyte_endpoint_create_connections,
+                self.airbyte_api_caller.api_endpoints["CREATE_OBJECTS"].format(obj="connections"),
                 exported_json_data,
             )
             if response:
@@ -433,7 +446,7 @@ class LoadAirbyteTask(BaseLoadTask):
         try:
             conn_delete_req_body = {"connectionId": connection_id}
             self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.airbyte_endpoint_delete_connection,
+                self.airbyte_api_caller.api_endpoints["DELETE_OBJECTS"].format(obj="connections"),
                 conn_delete_req_body,
             )
         except AirbyteApiCallerException:

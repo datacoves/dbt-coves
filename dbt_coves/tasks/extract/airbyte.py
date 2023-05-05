@@ -122,7 +122,9 @@ class ExtractAirbyteTask(BaseExtractTask):
             "workspaceId": self.airbyte_api.airbyte_workspace_id,
         }
         return self.airbyte_api.api_call(
-            self.airbyte_api.airbyte_endpoint_get_destination_definition,
+            self.airbyte_api.api_endpoints["GET_OBJECTS"].format(
+                obj="destination_definition_specifications"
+            ),
             req_body,
         )
 
@@ -170,7 +172,10 @@ class ExtractAirbyteTask(BaseExtractTask):
             "workspaceId": self.airbyte_api.airbyte_workspace_id,
         }
         return self.airbyte_api.api_call(
-            self.airbyte_api.airbyte_endpoint_get_source_definition, req_body
+            self.airbyte_api.api_endpoints["GET_OBJECTS"].format(
+                obj="source_definition_specifications"
+            ),
+            req_body,
         )
 
     def _hide_configuration_secret_fields(self, connection_configuration, airbyte_secret_fields):
