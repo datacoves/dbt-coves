@@ -1,5 +1,8 @@
+import os
 from pathlib import Path
 
+import git
+from git.exc import InvalidGitRepositoryError
 from rich.console import Console
 from rich.table import Table
 
@@ -29,3 +32,22 @@ def file_exists(root_path, file_name):
     for path in Path(root_path).rglob(file_name):
         return path
     return False
+
+
+def get_git_root(path=None):
+    try:
+        git_repo = git.Repo(path, search_parent_directories=True)
+        git_root = git_repo.git.rev_parse("--show-toplevel")
+        return git_root
+    except InvalidGitRepositoryError:
+        raise Exception(f"{path or 'current path'} doesn't belong to a git repository")
+
+
+def get_dbt_projects(path=None):
+    if not path:
+        path = os.getcwd()
+    dbt_project_dirs = []
+    for file in Path(path).rglob("dbt_project.yml"):
+        if "dbt_packages" not in str(file):
+            dbt_project_dirs.append(str(file.relative_to(path).parent))
+    return dbt_project_dirs
