@@ -71,7 +71,7 @@ redshift-connector = "^2.0.910"
 pytest-dependency = "^0.5.1"
 python-dotenv = "^0.21.1"
 pandas = "^1.3.0"
-snowflake-connector-python = {extras = ["pandas"], version = "^2.7.12"}
+snowflake-connector-python = {extras = ["pandas"], version = ">=2.7.12,<4.0.0"}
 google-cloud-bigquery = ">2.34,<4"
 tox-poetry-installer = "^0.10.0"
 tox = "^3.23.1"
