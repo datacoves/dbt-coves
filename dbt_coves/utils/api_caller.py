@@ -51,11 +51,11 @@ class FivetranApiCallerException(Exception):
 
 
 class AirbyteApiCaller:
-    def api_call(self, endpoint: str, body: Dict[str, str] = None):
+    def api_call(self, endpoint: str, body: Dict[str, str] = None, timeout=None):
         """
         Generic `api caller` for contacting Airbyte
         """
-        response = requests.post(endpoint, json=body)
+        response = requests.post(endpoint, json=body, timeout=timeout)
         if response.status_code >= 200 and response.status_code < 300:
             return json.loads(response.text) if response.text else None
         else:
