@@ -477,9 +477,6 @@ class LoadAirbyteTask(BaseLoadTask):
     def _delete_connection(self, connection_id):
         try:
             conn_delete_req_body = {"connectionId": connection_id}
-            import ipdb
-
-            ipdb.set_trace()
             self.airbyte_api.api_call(
                 self.airbyte_api.api_endpoints["DELETE_OBJECT"].format(obj="connections"),
                 conn_delete_req_body,
