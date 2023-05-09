@@ -76,7 +76,8 @@ class AirbyteApiCaller:
             "CREATE_OBJECT": airbyte_api_base_endpoint + "{obj}/create",
             "UPDATE_OBJECT": airbyte_api_base_endpoint + "{obj}/update",
             "DELETE_OBJECT": airbyte_api_base_endpoint + "{obj}/delete",
-            "TEST_OBJECT": airbyte_api_base_endpoint + "{obj}/check_connection_for_update",
+            "TEST_UPDATE": airbyte_api_base_endpoint + "{obj}/check_connection_for_update",
+            "TEST_CONNECTION": airbyte_api_base_endpoint + "{obj}/check_connection",
         }
         try:
             self.airbyte_workspace_id = self.api_call(

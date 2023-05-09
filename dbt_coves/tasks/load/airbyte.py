@@ -4,6 +4,7 @@ import pathlib
 from copy import copy
 from os import path
 
+import questionary
 from rich.console import Console
 from slugify import slugify
 
@@ -256,52 +257,72 @@ class LoadAirbyteTask(BaseLoadTask):
                 f"[bold red]{exported_json_data['name']}[/bold red]: {e}"
             )
 
-    def _create_source(self, exported_json_data):
-        exported_json_data.pop("connectorVersion")
-        # Grab password from secret
-        exported_json_data = self._get_secrets(exported_json_data, "sources")
-        exported_json_data["workspaceId"] = self.airbyte_api.airbyte_workspace_id
-        exported_json_data["sourceDefinitionId"] = self._get_source_definition_id_by_name(
-            exported_json_data.pop("sourceName")
-        )
-        try:
-            response = self.airbyte_api.api_call(
-                self.airbyte_api.api_endpoints["CREATE_OBJECT"].format(obj="sources"),
-                exported_json_data,
-            )
-            self.airbyte_api.airbyte_sources_list.append(response)
-            self.loading_results["sources"]["created"].append(exported_json_data["name"])
-            return response["sourceId"]
-
-        except AirbyteApiCallerException as e:
-            raise AirbyteLoaderException(f"Could not create Airbyte Source: {e}")
-
-    def _test_object_connection(self, data, obj_type):
-        conn_status = self.airbyte_api.api_call(
-            self.airbyte_api.api_endpoints["TEST_OBJECT"].format(obj=obj_type), data, timeout=20
-        )
+    def _update_source_or_destination(self, exported_data, object_type):
+        update = True
+        conn_status = self._test_update_connection(exported_data, object_type)
         if conn_status.get("status", "").lower() != "succeeded":
-            raise AirbyteLoaderException(
-                f"Connection test for {obj_type[:-1]} {data['name']} failed"
+            console.print(
+                f"Connection test for {exported_data['name']} failed:\n {conn_status['message']}"
             )
-
-    def _update_source(self, exported_json_data, source_id):
-        exported_json_data["sourceId"] = source_id
-        exported_json_data.pop("sourceName")
-        exported_json_data.pop("connectorVersion")
-
-        exported_json_data = self._get_secrets(exported_json_data, "sources")
-        try:
-            # Disable tests temporarily as requests are not completing
-            # self._test_object_connection(exported_json_data, "sources")
+            update = questionary.confirm("Would you like to continue updating it?").ask()
+        if update:
             response = self.airbyte_api.api_call(
-                self.airbyte_api.api_endpoints["UPDATE_OBJECT"].format(obj="sources"),
-                exported_json_data,
+                self.airbyte_api.api_endpoints["UPDATE_OBJECT"].format(obj=object_type),
+                exported_data,
             )
-            self._add_update_result("sources", exported_json_data["name"])
-            return response["sourceId"]
-        except KeyError:
-            raise AirbyteLoaderException("Could not update source")
+
+            self._add_update_result(object_type, exported_data["name"])
+            return response.get("sourceId", response["destinationId"])
+
+    def _create_source_or_destination(self, exported_data, object_type):
+        create = True
+        response = self.airbyte_api.api_call(
+            self.airbyte_api.api_endpoints["CREATE_OBJECT"].format(obj=object_type),
+            exported_data,
+        )
+        new_object_body = {}
+        if object_type == "sources":
+            new_object_body = {"sourceId": response["sourceId"]}
+        elif object_type == "destinations":
+            new_object_body = {"destinationId": response["destinationId"]}
+
+        conn_status = self._test_created_object(new_object_body, object_type)
+        if conn_status.get("status", "").lower() != "succeeded":
+            console.print(
+                f"Connection test for {exported_data['name']} failed:\n {conn_status['message']}"
+            )
+            create = questionary.confirm("Would you like to continue creating it?").ask()
+        if create:
+            self.airbyte_api.airbyte_destinations_list.append(response)
+            self.loading_results[object_type]["created"].append(exported_data["name"])
+            return response[next(iter(new_object_body))]
+        else:
+            self.airbyte_api.api_call(
+                self.airbyte_api.api_endpoints["DELETE_OBJECT"].format(obj=object_type),
+                new_object_body,
+            )
+
+    def _create_source(self, exported_data):
+        exported_data.pop("connectorVersion")
+        exported_data = self._get_secrets(exported_data, "sources")
+        exported_data["workspaceId"] = self.airbyte_api.airbyte_workspace_id
+        exported_data["sourceDefinitionId"] = self._get_source_definition_id_by_name(
+            exported_data.pop("sourceName")
+        )
+        self._create_source_or_destination(exported_data, "sources")
+
+    def _test_update_connection(self, data, obj_type):
+        return self.airbyte_api.api_call(
+            self.airbyte_api.api_endpoints["TEST_UPDATE"].format(obj=obj_type), data, timeout=30
+        )
+
+    def _update_source(self, exported_data, source_id):
+        exported_data["sourceId"] = source_id
+        exported_data.pop("sourceName")
+        exported_data.pop("connectorVersion")
+
+        exported_data = self._get_secrets(exported_data, "sources")
+        self._update_source_or_destination(exported_data, "sources")
 
     def _sources_are_equivalent(self, exported_source, current_source):
         current_source_copy = copy(current_source)
@@ -384,6 +405,13 @@ class LoadAirbyteTask(BaseLoadTask):
             "Please review Airbyte's configuration"
         )
 
+    def _test_created_object(self, test_body, obj_type):
+        return self.airbyte_api.api_call(
+            self.airbyte_api.api_endpoints["TEST_CONNECTION"].format(obj=obj_type),
+            test_body,
+            timeout=30,
+        )
+
     def _create_destination(self, exported_data):
         exported_data.pop("connectorVersion")
         exported_data = self._get_secrets(exported_data, "destinations")
@@ -391,37 +419,15 @@ class LoadAirbyteTask(BaseLoadTask):
         exported_data["destinationDefinitionId"] = self._get_destination_definition_id_by_name(
             exported_data.pop("destinationName")
         )
-        try:
-            response = self.airbyte_api.api_call(
-                self.airbyte_api.api_endpoints["CREATE_OBJECT"].format(obj="destinations"),
-                exported_data,
-            )
-            self.airbyte_api.airbyte_destinations_list.append(response)
-            self.loading_results["destinations"]["created"].append(exported_data["name"])
-            return response["destinationId"]
-        except AirbyteApiCallerException:
-            raise AirbyteApiCallerException("Could not create Airbyte destination")
+        self._create_source_or_destination(exported_data, "destinations")
 
-    def _update_destination(self, exported_json_data, destination_id):
-        exported_json_data.pop("destinationName")
-        exported_json_data["destinationId"] = destination_id
-        exported_json_data.pop("connectorVersion")
+    def _update_destination(self, exported_data, destination_id):
+        exported_data.pop("destinationName")
+        exported_data["destinationId"] = destination_id
+        exported_data.pop("connectorVersion")
 
-        exported_json_data = self._get_secrets(exported_json_data, "destinations")
-
-        try:
-            exported_copy = copy(exported_json_data)
-            exported_copy["destinationId"] = destination_id
-            # Disable tests temporarily as requests are not completing
-            # self._test_object_connection(exported_copy, "destinations")
-            response = self.airbyte_api.api_call(
-                self.airbyte_api.api_endpoints["UPDATE_OBJECT"].format(obj="destinations"),
-                exported_json_data,
-            )
-            self._add_update_result("destinations", exported_json_data["name"])
-            return response["destinationId"]
-        except KeyError:
-            raise AirbyteLoaderException("Could not update destination")
+        exported_data = self._get_secrets(exported_data, "destinations")
+        self._update_source_or_destination(exported_data, "destinations")
 
     def _destinations_are_equivalent(self, exported_destination, current_destination):
         current_destination_copy = copy(current_destination)
