@@ -1,8 +1,10 @@
 import json
 import os
 import pathlib
+from copy import copy
 from os import path
 
+import questionary
 from rich.console import Console
 from slugify import slugify
 
@@ -104,7 +106,7 @@ class LoadAirbyteTask(BaseLoadTask):
         self.destinations_load_destination = os.path.abspath(path / "destinations")
         self.sources_load_destination = os.path.abspath(path / "sources")
 
-        self.airbyte_api_caller = AirbyteApiCaller(self.airbyte_host, self.airbyte_port)
+        self.airbyte_api = AirbyteApiCaller(self.airbyte_host, self.airbyte_port)
 
         console.print(f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n")
 
@@ -220,11 +222,6 @@ class LoadAirbyteTask(BaseLoadTask):
                         )
                     secret_data = target_secret_data["value"]
                 elif self.secrets_path:
-                    wildcard_keys = [
-                        str(k)
-                        for k, v in connection_configuration.items()
-                        if wildcard_pattern == str(v)
-                    ]
                     secret_target_name = slugify(exported_json_data["name"].lower())
                     # Get the secret file for that name
                     secret_file = os.path.join(
@@ -238,9 +235,9 @@ class LoadAirbyteTask(BaseLoadTask):
                     else:
                         raise AirbyteLoaderException(
                             f"Secret file for {secret_target_name} not found\n"
-                            f"Please create secret for [bold red]{secret_target_name}[/bold red]"
-                            "with the following keys:"
-                            f"[bold red]{', '.join(k for k in wildcard_keys)}[/bold red]"
+                            f"Please create secret for [bold red]{secret_target_name}[/bold red] "
+                            "with the following keys: "
+                            f"[bold red]{', '.join(k for k in hidden_fields)}[/bold red]"
                         )
                 else:
                     raise AirbyteLoaderException(
@@ -256,56 +253,86 @@ class LoadAirbyteTask(BaseLoadTask):
             return exported_json_data
         except AirbyteLoaderException as e:
             raise AirbyteLoaderException(
-                f"There was an error loading secret data for {airbyte_object_type}"
+                f"There was an error loading secret data for {airbyte_object_type} "
                 f"[bold red]{exported_json_data['name']}[/bold red]: {e}"
             )
 
-    def _create_source(self, exported_json_data):
-        exported_json_data.pop("connectorVersion")
-        # Grab password from secret
-        exported_json_data = self._get_secrets(exported_json_data, "sources")
-        exported_json_data["workspaceId"] = self.airbyte_api_caller.airbyte_workspace_id
-        exported_json_data["sourceDefinitionId"] = self._get_source_definition_id_by_name(
-            exported_json_data.pop("sourceName")
-        )
-        try:
-            self._test_object_connection(exported_json_data, "sources")
-            response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.api_endpoints["CREATE_OBJECTS"].format(obj="sources"),
-                exported_json_data,
-            )
-            self.airbyte_api_caller.airbyte_sources_list.append(response)
-            self.loading_results["sources"]["created"].append(exported_json_data["name"])
-            return response["sourceId"]
-
-        except AirbyteApiCallerException as e:
-            raise AirbyteLoaderException(f"Could not create Airbyte Source: {e}")
-
-    def _test_object_connection(self, data, obj_type):
-        conn_status = self.airbyte_api_caller.api_call(
-            self.airbyte_api_caller.api_endpoints["TEST_OBJECTS"].format(obj=obj_type), data
-        )
+    def _update_source_or_destination(self, exported_data, object_type):
+        update = True
+        conn_status = self._test_update_connection(exported_data, object_type)
         if conn_status.get("status", "").lower() != "succeeded":
-            raise AirbyteLoaderException(
-                f"Connection test for {obj_type[:-1]} {data['name']} failed"
+            console.print(
+                f"Connection test for {exported_data['name']} failed:\n {conn_status['message']}"
+            )
+            update = questionary.confirm("Would you like to continue updating it?").ask()
+        if update:
+            response = self.airbyte_api.api_call(
+                self.airbyte_api.api_endpoints["UPDATE_OBJECT"].format(obj=object_type),
+                exported_data,
             )
 
-    def _update_source(self, exported_json_data, source_id):
-        exported_json_data["sourceId"] = source_id
-        exported_json_data.pop("sourceName")
-        exported_json_data.pop("connectorVersion")
+            self._add_update_result(object_type, exported_data["name"])
+            return response.get("sourceId", response["destinationId"])
 
-        exported_json_data = self._get_secrets(exported_json_data, "sources")
-        try:
-            self._test_object_connection(exported_json_data, "sources")
-            response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.api_endpoints["UPDATE_OBJECTS"].format(obj="sources"),
-                exported_json_data,
+    def _create_source_or_destination(self, exported_data, object_type):
+        create = True
+        response = self.airbyte_api.api_call(
+            self.airbyte_api.api_endpoints["CREATE_OBJECT"].format(obj=object_type),
+            exported_data,
+        )
+        new_object_body = {}
+        if object_type == "sources":
+            new_object_body = {"sourceId": response["sourceId"]}
+        elif object_type == "destinations":
+            new_object_body = {"destinationId": response["destinationId"]}
+
+        conn_status = self._test_created_object(new_object_body, object_type)
+        if conn_status.get("status", "").lower() != "succeeded":
+            console.print(
+                f"Connection test for {exported_data['name']} failed:\n {conn_status['message']}"
             )
-            self._add_update_result("sources", exported_json_data["name"])
-            return response["sourceId"]
-        except KeyError:
-            raise AirbyteLoaderException("Could not update source")
+            create = questionary.confirm("Would you like to continue creating it?").ask()
+        if create:
+            self.airbyte_api.airbyte_destinations_list.append(response)
+            self.loading_results[object_type]["created"].append(exported_data["name"])
+            return response[next(iter(new_object_body))]
+        else:
+            self.airbyte_api.api_call(
+                self.airbyte_api.api_endpoints["DELETE_OBJECT"].format(obj=object_type),
+                new_object_body,
+            )
+
+    def _create_source(self, exported_data):
+        exported_data.pop("connectorVersion")
+        exported_data = self._get_secrets(exported_data, "sources")
+        exported_data["workspaceId"] = self.airbyte_api.airbyte_workspace_id
+        exported_data["sourceDefinitionId"] = self._get_source_definition_id_by_name(
+            exported_data.pop("sourceName")
+        )
+        self._create_source_or_destination(exported_data, "sources")
+
+    def _test_update_connection(self, data, obj_type):
+        return self.airbyte_api.api_call(
+            self.airbyte_api.api_endpoints["TEST_UPDATE"].format(obj=obj_type), data, timeout=30
+        )
+
+    def _update_source(self, exported_data, source_id):
+        exported_data["sourceId"] = source_id
+        exported_data.pop("sourceName")
+        exported_data.pop("connectorVersion")
+
+        exported_data = self._get_secrets(exported_data, "sources")
+        self._update_source_or_destination(exported_data, "sources")
+
+    def _sources_are_equivalent(self, exported_source, current_source):
+        current_source_copy = copy(current_source)
+        exported_source_copy = copy(exported_source)
+        exported_source_copy.pop("connectorVersion")
+        current_source_copy.pop("icon")
+        current_source_copy.pop("sourceId")
+        current_source_copy.pop("sourceDefinitionId")
+        current_source_copy.pop("workspaceId")
+        return current_source_copy == exported_source_copy
 
     def _create_or_update_source(self, exported_json_data):
         """
@@ -314,9 +341,15 @@ class LoadAirbyteTask(BaseLoadTask):
         """
         self._connector_versions_mismatch(exported_json_data, "source")
 
-        for src in self.airbyte_api_caller.airbyte_sources_list:
+        for src in self.airbyte_api.airbyte_sources_list:
             if exported_json_data["name"] == src["name"]:
-                return self._update_source(exported_json_data, src["sourceId"])
+                if self._sources_are_equivalent(exported_json_data, src):
+                    console.print(
+                        f"Source [green]{src['name']}[/green] already up to date. Skipping"
+                    )
+                    return
+                else:
+                    return self._update_source(exported_json_data, src["sourceId"])
 
         return self._create_source(exported_json_data)
 
@@ -325,7 +358,7 @@ class LoadAirbyteTask(BaseLoadTask):
         Get destination definition ID by it's name
         (File, Postgres, Snowflake, BigQuery, MariaDB, etc)
         """
-        for definition in self.airbyte_api_caller.destination_definitions:
+        for definition in self.airbyte_api.destination_definitions:
             if definition["name"] == destination_type_name:
                 return definition["destinationDefinitionId"]
         raise AirbyteLoaderException(
@@ -338,7 +371,7 @@ class LoadAirbyteTask(BaseLoadTask):
         Get destination definition ID by it's name
         (File, Postgres, Snowflake, BigQuery, MariaDB, etc)
         """
-        for definition in self.airbyte_api_caller.destination_definitions:
+        for definition in self.airbyte_api.destination_definitions:
             if definition["name"] == destination_type_name:
                 return definition
         raise AirbyteLoaderException(
@@ -351,7 +384,7 @@ class LoadAirbyteTask(BaseLoadTask):
         Get destination definition ID by it's name
         (File, Postgres, Snowflake, BigQuery, MariaDB, etc)
         """
-        for definition in self.airbyte_api_caller.source_definitions:
+        for definition in self.airbyte_api.source_definitions:
             if definition["name"] == source_type_name:
                 return definition["sourceDefinitionId"]
         raise AirbyteLoaderException(
@@ -364,7 +397,7 @@ class LoadAirbyteTask(BaseLoadTask):
         Get destination definition ID by it's name
         (File, Postgres, Snowflake, BigQuery, MariaDB, etc)
         """
-        for definition in self.airbyte_api_caller.source_definitions:
+        for definition in self.airbyte_api.source_definitions:
             if definition["name"] == source_type_name:
                 return definition
         raise AirbyteLoaderException(
@@ -372,42 +405,39 @@ class LoadAirbyteTask(BaseLoadTask):
             "Please review Airbyte's configuration"
         )
 
+    def _test_created_object(self, test_body, obj_type):
+        return self.airbyte_api.api_call(
+            self.airbyte_api.api_endpoints["TEST_CONNECTION"].format(obj=obj_type),
+            test_body,
+            timeout=30,
+        )
+
     def _create_destination(self, exported_data):
         exported_data.pop("connectorVersion")
         exported_data = self._get_secrets(exported_data, "destinations")
-        exported_data["workspaceId"] = self.airbyte_api_caller.airbyte_workspace_id
+        exported_data["workspaceId"] = self.airbyte_api.airbyte_workspace_id
         exported_data["destinationDefinitionId"] = self._get_destination_definition_id_by_name(
             exported_data.pop("destinationName")
         )
-        try:
-            self._test_object_connection(exported_data, "destinations")
-            response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.api_endpoints["CREATE_OBJECTS"].format(obj="destinations"),
-                exported_data,
-            )
-            self.airbyte_api_caller.airbyte_destinations_list.append(response)
-            self.loading_results["destinations"]["created"].append(exported_data["name"])
-            return response["destinationId"]
-        except AirbyteApiCallerException:
-            raise AirbyteApiCallerException("Could not create Airbyte destination")
+        self._create_source_or_destination(exported_data, "destinations")
 
-    def _update_destination(self, exported_json_data, destination_id):
-        exported_json_data.pop("destinationName")
-        exported_json_data["destinationId"] = destination_id
-        exported_json_data.pop("connectorVersion")
+    def _update_destination(self, exported_data, destination_id):
+        exported_data.pop("destinationName")
+        exported_data["destinationId"] = destination_id
+        exported_data.pop("connectorVersion")
 
-        exported_json_data = self._get_secrets(exported_json_data, "destinations")
+        exported_data = self._get_secrets(exported_data, "destinations")
+        self._update_source_or_destination(exported_data, "destinations")
 
-        try:
-            self._test_object_connection(exported_json_data, "destinations")
-            response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.api_endpoints["UPDATE_OBJECTS"].format(obj="destinations"),
-                exported_json_data,
-            )
-            self._add_update_result("destinations", exported_json_data["name"])
-            return response["destinationId"]
-        except KeyError:
-            raise AirbyteLoaderException("Could not update destination")
+    def _destinations_are_equivalent(self, exported_destination, current_destination):
+        current_destination_copy = copy(current_destination)
+        exported_destination_copy = copy(exported_destination)
+        exported_destination_copy.pop("connectorVersion")
+        current_destination_copy.pop("destinationDefinitionId")
+        current_destination_copy.pop("destinationId")
+        current_destination_copy.pop("workspaceId")
+        current_destination_copy.pop("icon")
+        return current_destination_copy == exported_destination_copy
 
     def _create_or_update_destination(self, exported_json_data):
         """
@@ -416,9 +446,17 @@ class LoadAirbyteTask(BaseLoadTask):
         """
         self._connector_versions_mismatch(exported_json_data, "destination")
 
-        for destination in self.airbyte_api_caller.airbyte_destinations_list:
+        for destination in self.airbyte_api.airbyte_destinations_list:
             if exported_json_data["name"] == destination["name"]:
-                return self._update_destination(exported_json_data, destination["destinationId"])
+                if self._destinations_are_equivalent(exported_json_data, destination):
+                    console.print(
+                        f"Destination [green]{destination['name']}[/green] already up to date. Skipping"
+                    )
+                    return
+                else:
+                    return self._update_destination(
+                        exported_json_data, destination["destinationId"]
+                    )
 
         return self._create_destination(exported_json_data)
 
@@ -432,12 +470,12 @@ class LoadAirbyteTask(BaseLoadTask):
         exported_json_data.pop("destinationName")
 
         try:
-            response = self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.api_endpoints["CREATE_OBJECTS"].format(obj="connections"),
+            response = self.airbyte_api.api_call(
+                self.airbyte_api.api_endpoints["CREATE_OBJECT"].format(obj="connections"),
                 exported_json_data,
             )
             if response:
-                self.airbyte_api_caller.airbyte_connections_list.append(response)
+                self.airbyte_api.airbyte_connections_list.append(response)
                 return connection_name
         except AirbyteApiCallerException as ex:
             raise AirbyteApiCallerException(f"Could not create Airbyte connection: {ex}")
@@ -445,8 +483,8 @@ class LoadAirbyteTask(BaseLoadTask):
     def _delete_connection(self, connection_id):
         try:
             conn_delete_req_body = {"connectionId": connection_id}
-            self.airbyte_api_caller.api_call(
-                self.airbyte_api_caller.api_endpoints["DELETE_OBJECTS"].format(obj="connections"),
+            self.airbyte_api.api_call(
+                self.airbyte_api.api_endpoints["DELETE_OBJECT"].format(obj="connections"),
                 conn_delete_req_body,
             )
         except AirbyteApiCallerException:
@@ -456,30 +494,40 @@ class LoadAirbyteTask(BaseLoadTask):
         """
         Given a table name, returns the corresponding airbyte connection
         """
-        for conn in self.airbyte_api_caller.airbyte_connections_list:
+        for conn in self.airbyte_api.airbyte_connections_list:
             for stream in conn["syncCatalog"]["streams"]:
                 if stream["stream"]["name"].lower() == table_name:
                     return conn["connectionId"]
         return False
 
     def _get_source_id_by_name(self, source_name):
-        for source in self.airbyte_api_caller.airbyte_sources_list:
+        for source in self.airbyte_api.airbyte_sources_list:
             if source["name"].lower() == source_name:
                 return source["sourceId"]
 
     def _get_destination_id_by_name(self, destination_name):
-        for destination in self.airbyte_api_caller.airbyte_destinations_list:
+        for destination in self.airbyte_api.airbyte_destinations_list:
             if destination["name"].lower() == destination_name:
                 return destination["destinationId"]
 
     def _get_connection_id_by_endpoints(self, source_id, destination_id):
-        for connection in self.airbyte_api_caller.airbyte_connections_list:
+        for connection in self.airbyte_api.airbyte_connections_list:
             if (
                 connection["sourceId"] == source_id
                 and connection["destinationId"] == destination_id
             ):
-                return connection["connectionId"]
-        pass
+                return connection
+
+    def _connection_already_updated(self, extracted_connection, current_connection):
+        extracted_copy = copy(extracted_connection)
+        current_copy = copy(current_connection)
+        extracted_copy.pop("sourceName")
+        extracted_copy.pop("destinationName")
+        current_copy.pop("connectionId")
+        current_copy.pop("sourceId")
+        current_copy.pop("destinationId")
+        current_copy.pop("breakingChange")
+        return extracted_copy == current_copy
 
     def _create_or_update_connection(self, connection_json):
         """
@@ -495,12 +543,19 @@ class LoadAirbyteTask(BaseLoadTask):
                 f"No existent source-destination pair found for {connection_json['name']}"
             )
             return
-        connection_id = self._get_connection_id_by_endpoints(source_id, destination_id)
-        if connection_id:
+        connection = self._get_connection_id_by_endpoints(source_id, destination_id)
+        if connection:
             # Connection update
-            self._delete_connection(connection_id)
-            conn_name = self._create_connection(connection_json, source_id, destination_id)
-            self._add_update_result("connections", conn_name)
+            if self._connection_already_updated(connection_json, connection):
+                console.print(
+                    f"Connection [green]{connection['name']}[/green] already up to date. Skipping"
+                )
+                return
+            else:
+                connection_id = connection["connectionId"]
+                self._delete_connection(connection_id)
+                conn_name = self._create_connection(connection_json, source_id, destination_id)
+                self._add_update_result("connections", conn_name)
         else:
             # Connection creation
             conn_name = self._create_connection(connection_json, source_id, destination_id)
