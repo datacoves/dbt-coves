@@ -248,6 +248,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         try:
             with open(path, "w") as json_file:
                 json.dump(json_object, json_file, indent=4)
+                json_file.write("\n")
         except OSError as e:
             raise AirbyteExtractorException(f"Couldn't write {path}: {e}")
 

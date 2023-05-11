@@ -272,7 +272,7 @@ class LoadAirbyteTask(BaseLoadTask):
             )
 
             self._add_update_result(object_type, exported_data["name"])
-            return response.get("sourceId", response["destinationId"])
+            return response.get("sourceId", response.get("destinationId"))
 
     def _create_source_or_destination(self, exported_data, object_type):
         create = True
@@ -312,6 +312,7 @@ class LoadAirbyteTask(BaseLoadTask):
         self._create_source_or_destination(exported_data, "sources")
 
     def _test_update_connection(self, data, obj_type):
+        console.print(f"Testing update for [yellow]{data.get('name', 'object')}[/yellow]")
         return self.airbyte_api.api_call(
             self.airbyte_api.api_endpoints["TEST_UPDATE"].format(obj=obj_type), data, timeout=30
         )
@@ -406,6 +407,7 @@ class LoadAirbyteTask(BaseLoadTask):
         )
 
     def _test_created_object(self, test_body, obj_type):
+        console.print("Testing created object")
         return self.airbyte_api.api_call(
             self.airbyte_api.api_endpoints["TEST_CONNECTION"].format(obj=obj_type),
             test_body,
