@@ -2,7 +2,10 @@ from dbt.adapters.factory import get_adapter, register_adapter
 
 try:
     from dbt.flags import set_flags
+
+    SET_FLAGS = True
 except ImportError:
+    SET_FLAGS = False
     pass
 from dbt.task.base import ConfiguredTask
 
@@ -54,7 +57,7 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
 
     @classmethod
     def from_args(cls, args):
-        if set_flags:
+        if SET_FLAGS:
             set_flags(args)
         config = cls.ConfigType.from_args(args)
         try:
