@@ -6,7 +6,6 @@ try:
     SET_FLAGS = True
 except ImportError:
     SET_FLAGS = False
-    pass
 from dbt.task.base import ConfiguredTask
 
 from dbt_coves.core.exceptions import MissingCommand
