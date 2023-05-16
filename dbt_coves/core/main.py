@@ -111,7 +111,7 @@ base_subparser.add_argument(
 
 base_subparser.add_argument(
     "--macro-debugging", action="store_true", default=False, dest="MACRO_DEBUGGING"
-)  # TODO: investigate for help message
+)
 
 base_subparser.add_argument(
     "--version-check",
