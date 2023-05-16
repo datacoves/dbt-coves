@@ -7,10 +7,13 @@ from dbt import tracking, version
 
 try:
     from dbt.flags import PROFILES_DIR
+
+    DBT_15 = False
 except ImportError:
     from dbt.cli.resolvers import default_profiles_dir
 
     PROFILES_DIR = default_profiles_dir()
+    DBT_15 = True
 from rich.console import Console
 
 from dbt_coves import __version__
@@ -94,13 +97,22 @@ base_subparser.add_argument(
     help="Which target to load for the given profile",
 )
 
-base_subparser.add_argument(
-    "--vars",
-    type=str,
-    default={},
-    help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
-    " string, eg. '{my_variable: my_value}'",
-)
+if DBT_15:
+    base_subparser.add_argument(
+        "--vars",
+        type=str,
+        default={},
+        help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
+        " string, eg. '{my_variable: my_value}'",
+    )
+else:
+    base_subparser.add_argument(
+        "--vars",
+        type=str,
+        default="{}",
+        help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
+        " string, eg. '{my_variable: my_value}'",
+    )
 
 base_subparser.add_argument(
     "--threads",
@@ -148,6 +160,30 @@ base_subparser.add_argument(
     dest="LOG_CACHE_EVENTS",
 )
 
+base_subparser.add_argument(
+    "--send-anonymous-usage-stats",
+    action="store_true",
+    default=False,
+    help="Whether dbt is configured to send anonymous usage statistics",
+    dest="SEND_ANONYMOUS_USAGE_STATS",
+)
+
+base_subparser.add_argument(
+    "--partial-parse",
+    action="store_true",
+    default=False,
+    help="Allow for partial parsing by looking for and writing to a pickle file in the target directory. "
+    "This overrides the user configuration file.",
+    dest="PARTIAL_PARSE",
+)
+
+base_subparser.add_argument(
+    "--static-parser",
+    action="store_true",
+    default=False,
+    help="Use the static parser.",
+    dest="STATIC_PARSER",
+)
 
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 
@@ -177,7 +213,6 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
 
     if main_parser.log_level == "debug":
         log_manager.set_debug()
-
     return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
