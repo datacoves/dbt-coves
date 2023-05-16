@@ -111,6 +111,8 @@ class SetupDbtTask(NonDbtBaseTask):
 
             if output.returncode == 0:
                 deps_status = "[green]SUCCESS :heavy_check_mark:[/green]"
+            else:
+                deps_status = "[red]FAIL :cross_mark:[/red]"
             print_row(
                 "dbt deps",
                 deps_status,

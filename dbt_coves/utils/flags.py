@@ -24,8 +24,14 @@ class DbtCovesFlags:
         self.cli_parser = cli_parser
         self.log_level: str = "info"
         self.config_path: Path = Path(str())
-        self.profiles_dir: Optional[Path] = None
+        self.PROFILES_DIR: Optional[Path] = None
         self.project_dir: Optional[Path] = None
+        self.threads: str = None
+        self.MACRO_DEBUGGING: bool = False
+        self.VERSION_CHECK: bool = False
+        self.TARGET_PATH: str = None
+        self.LOG_PATH: str = None
+        self.LOG_CACHE_EVENTS: bool = False
         self.verbose: bool = False
         self.generate = {
             "sources": {
@@ -114,8 +120,8 @@ class DbtCovesFlags:
     def parse_args(self, cli_args: List[str] = list()) -> None:
         self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
 
-        if hasattr(self.args, "profiles_dir"):
-            self.args.profiles_dir = os.path.expanduser(self.args.profiles_dir)
+        if hasattr(self.args, "PROFILES_DIR"):
+            self.args.PROFILES_DIR = os.path.expanduser(self.args.PROFILES_DIR)
 
         if getattr(self.args, "project_dir", None) is not None:
             expanded_user = os.path.expanduser(self.args.project_dir)
@@ -129,12 +135,24 @@ class DbtCovesFlags:
                     self.log_level = self.args.log_level
                 if self.args.verbose:
                     self.verbose = self.args.verbose
-                if self.args.profiles_dir:
-                    self.profiles_dir = self.args.profiles_dir
+                if self.args.PROFILES_DIR:
+                    self.PROFILES_DIR = self.args.PROFILES_DIR
                 if self.args.project_dir:
                     self.project_dir = self.args.project_dir
                 if self.args.config_path:
                     self.config_path = Path(self.args.config_path).expanduser()
+                if self.args.threads:
+                    self.threads = self.args.threads
+                if self.args.MACRO_DEBUGGING:
+                    self.MACRO_DEBUGGING = self.args.MACRO_DEBUGGING
+                if self.args.VERSION_CHECK:
+                    self.VERSION_CHECK = self.args.VERSION_CHECK
+                if self.args.TARGET_PATH:
+                    self.TARGET_PATH = self.args.TARGET_PATH
+                if self.args.LOG_PATH:
+                    self.LOG_PATH = self.args.LOG_PATH
+                if self.args.LOG_CACHE_EVENTS:
+                    self.LOG_CACHE_EVENTS = self.args.LOG_CACHE_EVENTS
 
             # generate sources
             if self.args.cls.__name__ == "GenerateSourcesTask":
