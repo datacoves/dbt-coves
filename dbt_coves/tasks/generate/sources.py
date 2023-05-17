@@ -346,7 +346,6 @@ class GenerateSourcesTask(BaseGenerateTask):
             filtered_schemas = self.get_schemas()
             if not filtered_schemas:
                 return 0
-
             relations = self.get_relations(filtered_schemas)
             if relations:
                 selected_relations = self.select_relations(relations)

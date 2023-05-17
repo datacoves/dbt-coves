@@ -4,7 +4,16 @@ from typing import List
 
 import pyfiglet
 from dbt import tracking, version
-from dbt.flags import PROFILES_DIR
+
+try:
+    from dbt.flags import PROFILES_DIR
+
+    VARS_DEFAULT_IS_STR = False
+except ImportError:
+    from dbt.cli.resolvers import default_profiles_dir
+
+    PROFILES_DIR = default_profiles_dir()
+    VARS_DEFAULT_IS_STR = True
 from rich.console import Console
 
 from dbt_coves import __version__
@@ -70,6 +79,7 @@ base_subparser.add_argument(
     default=PROFILES_DIR,
     type=str,
     help="Which directory to look in for the profiles.yml file.",
+    dest="PROFILES_DIR",
 )
 
 base_subparser.add_argument(
@@ -87,14 +97,93 @@ base_subparser.add_argument(
     help="Which target to load for the given profile",
 )
 
+if VARS_DEFAULT_IS_STR:
+    base_subparser.add_argument(
+        "--vars",
+        type=str,
+        default={},
+        help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
+        " string, eg. '{my_variable: my_value}'",
+    )
+else:
+    base_subparser.add_argument(
+        "--vars",
+        type=str,
+        default="{}",
+        help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
+        " string, eg. '{my_variable: my_value}'",
+    )
+
 base_subparser.add_argument(
-    "--vars",
+    "--threads",
     type=str,
-    default="{}",
-    help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
-    " string, eg. '{my_variable: my_value}'",
+    default=None,
+    help="Specify number of threads to use while executing models. Overrides settings in profiles.yml.",
 )
 
+base_subparser.add_argument(
+    "--macro-debugging", action="store_true", default=False, dest="MACRO_DEBUGGING"
+)
+
+base_subparser.add_argument(
+    "--version-check",
+    action="store_true",
+    default=False,
+    help="If set, ensure the installed dbt version matches the require-dbt-version specified in the "
+    "dbt_project.yml file (if any). Otherwise, allow them to differ.",
+    dest="VERSION_CHECK",
+)
+
+base_subparser.add_argument(
+    "--target-path",
+    type=str,
+    default=None,
+    help="Configure the 'target-path'. Only applies this setting for the current run. "
+    "Overrides the 'DBT_TARGET_PATH' if it is set.",
+    dest="TARGET_PATH",
+)
+
+base_subparser.add_argument(
+    "--log-path",
+    type=str,
+    default=None,
+    help="Configure the 'log-path'. Only applies this setting for the current run. "
+    "Overrides the 'DBT_LOG_PATH' if it is set.",
+    dest="LOG_PATH",
+)
+
+base_subparser.add_argument(
+    "--log-cache-events",
+    action="store_true",
+    default=False,
+    help="Enable verbose logging for relational cache events to help when debugging.",
+    dest="LOG_CACHE_EVENTS",
+)
+
+base_subparser.add_argument(
+    "--send-anonymous-usage-stats",
+    action="store_true",
+    default=False,
+    help="Whether dbt is configured to send anonymous usage statistics",
+    dest="SEND_ANONYMOUS_USAGE_STATS",
+)
+
+base_subparser.add_argument(
+    "--partial-parse",
+    action="store_true",
+    default=False,
+    help="Allow for partial parsing by looking for and writing to a pickle file in the target directory. "
+    "This overrides the user configuration file.",
+    dest="PARTIAL_PARSE",
+)
+
+base_subparser.add_argument(
+    "--static-parser",
+    action="store_true",
+    default=False,
+    help="Use the static parser.",
+    dest="STATIC_PARSER",
+)
 
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 
@@ -124,7 +213,6 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
 
     if main_parser.log_level == "debug":
         log_manager.set_debug()
-
     return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
