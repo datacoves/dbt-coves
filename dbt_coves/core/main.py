@@ -8,12 +8,12 @@ from dbt import tracking, version
 try:
     from dbt.flags import PROFILES_DIR
 
-    DBT_15 = False
+    VARS_DEFAULT_IS_STR = False
 except ImportError:
     from dbt.cli.resolvers import default_profiles_dir
 
     PROFILES_DIR = default_profiles_dir()
-    DBT_15 = True
+    VARS_DEFAULT_IS_STR = True
 from rich.console import Console
 
 from dbt_coves import __version__
@@ -97,7 +97,7 @@ base_subparser.add_argument(
     help="Which target to load for the given profile",
 )
 
-if DBT_15:
+if VARS_DEFAULT_IS_STR:
     base_subparser.add_argument(
         "--vars",
         type=str,
