@@ -445,8 +445,7 @@ dbt-coves dbt --project-dir /opt/user/dbt_project --virtualenv /opt/user/virtual
 
 # Settings
 
-dbt-coves will read settings from `.dbt_coves/config.yml`. A standard settings files could look like
-this:
+dbt-coves will read settings from `.dbt_coves/config.yml`. A standard settings files could look like this:
 
 ```yaml
 generate:
@@ -517,6 +516,16 @@ load:
     secrets_path: /config/workspace/secrets/fivetran # Fivetran secret fields
     credentials: /opt/fivetran_credentials.yml # Fivetran set of key:secret pairs
     # 'api_key' + 'api_secret' are mutually exclusive with 'credentials', use one or the other
+```
+
+## Telemetry
+
+dbt-coves has telemetry built in to help the maintainers from Datacoves understand which commands are being used and which are not to prioritize future development of dbt-coves. We do not track credentials nor details of your dbt execution such as model names. The one detail we do use related to dbt is the anonymous user_id to help us identify distinct users.
+
+By default this is turned on – you can opt out of event tracking at any time by adding the following to your dbt-coves `config.yaml` file:
+
+```yaml
+disable-tracking: true
 ```
 
 ## Override generation templates
