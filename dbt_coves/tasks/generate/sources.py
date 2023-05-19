@@ -8,6 +8,7 @@ from questionary import Choice
 from rich.console import Console
 
 from dbt_coves.utils.jinja import render_template, render_template_file
+from dbt_coves.utils.tracking import trackable
 
 from .base import BaseGenerateTask
 
@@ -334,6 +335,7 @@ class GenerateSourcesTask(BaseGenerateTask):
                 if metadata_info:
                     data[col][item].update(metadata_info)
 
+    @trackable
     def run(self):
         self.no_prompt = self.get_config_value("no_prompt")
         config_database = self.get_config_value("database")

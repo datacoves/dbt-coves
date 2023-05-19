@@ -4,15 +4,16 @@ from pathlib import Path
 from rich.console import Console
 
 from dbt_coves.config.config import DbtCovesConfig
-from dbt_coves.tasks.base import NonDbtBaseTask
+from dbt_coves.tasks.setup.base import BaseSetupTask
 from dbt_coves.utils.shell import run_and_capture_cwd
+from dbt_coves.utils.tracking import trackable
 
 from .utils import file_exists, print_row
 
 console = Console()
 
 
-class SetupDbtTask(NonDbtBaseTask):
+class SetupDbtTask(BaseSetupTask):
     """
     Task that runs ssh key generation, git repo clone and db connection setup
     """
@@ -27,23 +28,21 @@ class SetupDbtTask(NonDbtBaseTask):
         subparser.set_defaults(cls=cls, which="dbt")
         return subparser
 
-    @classmethod
-    def run(cls) -> int:
-        config_folder = cls.get_config_folder(mandatory=False)
-        cls.dbt_init(config_folder)
-        cls.dbt_debug(config_folder)
-        cls.dbt_deps(config_folder)
+    @trackable
+    def run(self) -> int:
+        config_folder = self.get_config_folder(mandatory=False)
+        self.dbt_init(config_folder)
+        self.dbt_debug(config_folder)
+        self.dbt_deps(config_folder)
         return 0
 
-    @classmethod
-    def get_config_folder(cls, mandatory=True):
+    def get_config_folder(self, mandatory=True):
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
         return DbtCovesConfig.get_config_folder(workspace_path=workspace_path, mandatory=mandatory)
 
-    @classmethod
-    def dbt_debug(cls, config_folder=None):
+    def dbt_debug(self, config_folder=None):
         if not config_folder:
-            config_folder = cls.get_config_folder(mandatory=False)
+            config_folder = self.get_config_folder(mandatory=False)
 
         if config_folder:
             dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
@@ -65,10 +64,9 @@ class SetupDbtTask(NonDbtBaseTask):
         if output.returncode > 0:
             raise Exception("dbt debug error. Check logs.")
 
-    @classmethod
-    def dbt_init(cls, config_folder=None):
+    def dbt_init(self, config_folder=None):
         if not config_folder:
-            config_folder = cls.get_config_folder(mandatory=False)
+            config_folder = self.get_config_folder(mandatory=False)
 
         if config_folder:
             dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"
@@ -96,10 +94,9 @@ class SetupDbtTask(NonDbtBaseTask):
         else:
             raise Exception("dbt init error. Check logs.")
 
-    @classmethod
-    def dbt_deps(cls, config_folder=None):
+    def dbt_deps(self, config_folder=None):
         if not config_folder:
-            config_folder = cls.get_config_folder(mandatory=False)
+            config_folder = self.get_config_folder(mandatory=False)
 
         if config_folder:
             dbt_project_yaml_path = Path(config_folder.parent) / "dbt_project.yml"

@@ -7,6 +7,7 @@ from rich import console
 
 import dbt_coves
 from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.utils.tracking import trackable
 
 console = console.Console()
 
@@ -39,6 +40,7 @@ class GenerateTemplatesTask(BaseConfiguredTask):
                 f"Couldn't generate {template_name} template file: {e}"
             )
 
+    @trackable
     def run(self):
         options = {"overwrite_all": False}
         dbtcoves_templates_path = Path(dbt_coves.__file__).parent / "templates"

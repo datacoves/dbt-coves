@@ -7,6 +7,7 @@ from copy import copy
 from rich.console import Console
 
 from dbt_coves.utils.api_caller import AirbyteApiCaller
+from dbt_coves.utils.tracking import trackable
 
 from .base import BaseExtractTask
 
@@ -52,6 +53,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
+    @trackable
     def run(self):
         self.extraction_results = {
             "sources": set(),

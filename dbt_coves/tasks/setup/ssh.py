@@ -8,6 +8,7 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.shell import run_and_capture, shell_run
+from dbt_coves.utils.tracking import trackable
 
 from .utils import print_row
 
@@ -43,7 +44,7 @@ class SetupSSHTask(NonDbtBaseTask):
         cls.arg_parser = base_subparser
         return subparser
 
-    def run(self) -> int:
+    def setup_ssh(self):
         ssh_status = "[red]MISSING[/red]"
         ssh_configured = False
         ssh_keys_dir = "~/.ssh/"
@@ -116,6 +117,10 @@ class SetupSSHTask(NonDbtBaseTask):
                 "You must first configure you SSH key in your Git server"
                 "then rerun 'dbt-coves setup'"
             )
+
+    @trackable
+    def run(self) -> int:
+        return self.setup_ssh()
 
     def generate_ecdsa_keys(self, key_path_abs):
         try:

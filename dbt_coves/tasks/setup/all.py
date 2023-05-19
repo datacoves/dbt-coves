@@ -4,6 +4,7 @@ from pathlib import Path
 from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
+from dbt_coves.utils.tracking import trackable
 
 from .dbt import SetupDbtTask
 from .git import SetupGitTask
@@ -41,6 +42,7 @@ class SetupAllTask(NonDbtBaseTask):
         subparser.set_defaults(cls=cls, which="all")
         return subparser
 
+    @trackable
     def run(self) -> int:
         """
         Env vars that can be set:
@@ -52,15 +54,17 @@ class SetupAllTask(NonDbtBaseTask):
         """
         workspace_path = os.environ.get("WORKSPACE_PATH", Path.cwd())
 
-        SetupSSHTask(self.args, self.coves_config).run()
+        SetupSSHTask(self.args, self.coves_config).setup_ssh()
 
-        SetupGitTask(self.args, self.coves_config).run(workspace_path)
+        setup_git_instance = SetupGitTask(self.args, self.coves_config)
+        setup_git_instance.run_git_config()
+        setup_git_instance.run_git_clone(workspace_path)
 
-        SetupDbtTask.dbt_init()
+        SetupDbtTask(self.args, self.coves_config).dbt_init()
 
-        SetupDbtTask.dbt_debug()
+        SetupDbtTask(self.args, self.coves_config).dbt_debug()
 
-        SetupDbtTask.dbt_deps()
+        SetupDbtTask(self.args, self.coves_config).dbt_deps()
 
         return 0
 

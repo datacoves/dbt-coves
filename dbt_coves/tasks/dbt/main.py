@@ -9,6 +9,7 @@ from rich.console import Console
 from rich.text import Text
 
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
+from dbt_coves.utils.tracking import trackable
 
 console = Console()
 
@@ -57,6 +58,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         return ext_subparser
 
+    @trackable
     def run(self) -> int:
         project_dir = self.get_config_value("project_dir")
         if not project_dir:

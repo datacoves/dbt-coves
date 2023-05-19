@@ -9,6 +9,7 @@ from rich.console import Console
 from slugify import slugify
 
 from dbt_coves.utils.api_caller import AirbyteApiCaller, AirbyteApiCallerException
+from dbt_coves.utils.tracking import trackable
 
 from .base import BaseLoadTask
 
@@ -68,6 +69,7 @@ class LoadAirbyteTask(BaseLoadTask):
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
 
+    @trackable
     def run(self):
         self.loading_results = {
             "sources": {"updated": [], "created": []},
