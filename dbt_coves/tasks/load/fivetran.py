@@ -4,6 +4,7 @@ import questionary
 from rich.console import Console
 
 from dbt_coves.utils.api_caller import FivetranApiCaller
+from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import open_yaml
 
 from .base import BaseLoadTask
@@ -73,6 +74,7 @@ class LoadFivetranTask(BaseLoadTask):
                         f"[green]{', '.join(result)}[/green]"
                     )
 
+    @trackable
     def run(self) -> int:
         self.load_results = {
             "groups": {"created": set()},

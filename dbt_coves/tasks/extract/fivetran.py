@@ -4,6 +4,7 @@ import questionary
 from rich.console import Console
 
 from dbt_coves.utils.api_caller import FivetranApiCaller
+from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import open_yaml
 
 from .base import BaseExtractTask
@@ -52,6 +53,7 @@ class ExtractFivetranTask(BaseExtractTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["extract"]["fivetran"][key]
 
+    @trackable
     def run(self) -> int:
         self.extraction_results = set()
 

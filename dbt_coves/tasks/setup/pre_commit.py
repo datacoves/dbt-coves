@@ -4,6 +4,8 @@ import copier
 import questionary
 from rich.console import Console
 
+from dbt_coves.utils.tracking import trackable
+
 from .main import NonDbtBaseTask
 from .utils import get_dbt_projects, get_git_root
 
@@ -29,13 +31,13 @@ class SetupPrecommitTask(NonDbtBaseTask):
         subparser.set_defaults(cls=cls, which="precommit")
         return subparser
 
-    @classmethod
-    def run(cls) -> int:
-        cls.setup_precommit()
+    @trackable
+    def run(self) -> int:
+        self.setup_precommit()
         return 0
 
     @classmethod
-    def setup_precommit(cls):
+    def setup_precommit(self):
         repo_root = get_git_root()
         dbt_project_paths = get_dbt_projects(repo_root)
         if not dbt_project_paths:

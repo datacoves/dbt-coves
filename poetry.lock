@@ -601,7 +601,7 @@ files = [
 
 [package.dependencies]
 agate = ">=1.6.3,<1.7.0"
-dbt-core = ">=1.5.0,<1.6.0"
+dbt-core = ">=1.1.0,<1.6.0"
 google-cloud-bigquery = ">=3.0,<4.0"
 google-cloud-dataproc = ">=5.0,<6.0"
 google-cloud-storage = ">=2.4,<3.0"
@@ -1929,6 +1929,23 @@ files = [
 [package.dependencies]
 requests = ">=2.2.1,<3.0"
 six = ">=1.9.0,<2.0"
+
+[[package]]
+name = "mixpanel"
+version = "4.10.0"
+description = "Official Mixpanel library for Python"
+category = "main"
+optional = false
+python-versions = ">=2.7, !=3.4.*"
+files = [
+    {file = "mixpanel-4.10.0-py2.py3-none-any.whl", hash = "sha256:bbf6ebe5b79556931e1c6b67b4b9e0a1fab60f81638a35c167fca62e7c05398d"},
+    {file = "mixpanel-4.10.0.tar.gz", hash = "sha256:87733b1fa966bb4edc265a97d10ee71e22174e7a17a9ed6c739468b0eba88d3b"},
+]
+
+[package.dependencies]
+requests = ">=2.4.2"
+six = ">=1.9.0"
+urllib3 = "*"
 
 [[package]]
 name = "more-itertools"
@@ -4020,4 +4037,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "51b97426d46ffa08313462c9214d4a7a4c947264fb2167c670c3e5f55d9c03e2"
+content-hash = "3fc18c5fa791e4f44a9a28e8c7789e15e53caea8af6c7a7d338ac5ebb0a02842"

@@ -5,8 +5,9 @@ from urllib.parse import urlparse
 import questionary
 from rich.console import Console
 
-from dbt_coves.tasks.base import NonDbtBaseTask
+from dbt_coves.tasks.setup.base import BaseSetupTask
 from dbt_coves.utils.shell import run, run_and_capture
+from dbt_coves.utils.tracking import trackable
 
 from .utils import print_row
 
@@ -17,7 +18,7 @@ class SetupGitException(Exception):
     pass
 
 
-class SetupGitTask(NonDbtBaseTask):
+class SetupGitTask(BaseSetupTask):
     """
     Task that runs ssh key generation, git repo clone and db connection setup
     """
@@ -41,12 +42,13 @@ class SetupGitTask(NonDbtBaseTask):
         subparser.set_defaults(cls=cls, which="git")
         return subparser
 
+    @trackable
     def run(self, workspace_path=Path.cwd()) -> int:
-        self._run_git_config()
-        self._run_git_clone(workspace_path)
+        self.run_git_config()
+        self.run_git_clone(workspace_path)
         return 0
 
-    def _run_git_config(self):
+    def run_git_config(self):
         config_status = "[red]MISSING[/red]"
 
         email_output = run_and_capture(["git", "config", "--global", "--get", "user.email"])
@@ -96,7 +98,7 @@ class SetupGitTask(NonDbtBaseTask):
                     return 1
                 console.print("[green]:heavy_check_mark: Git user configured successfully.")
 
-    def _run_git_clone(self, workspace_path):
+    def run_git_clone(self, workspace_path):
         repo_url = ""
         cloned_status = "[red]MISSING[/red]"
         cloned_exists = Path(workspace_path, ".git").exists()

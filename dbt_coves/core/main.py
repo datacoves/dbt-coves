@@ -1,19 +1,11 @@
 import argparse
+import pathlib
 import sys
+import uuid
 from typing import List
 
 import pyfiglet
 from dbt import tracking, version
-
-try:
-    from dbt.flags import PROFILES_DIR
-
-    VARS_DEFAULT_IS_STR = False
-except ImportError:
-    from dbt.cli.resolvers import default_profiles_dir
-
-    PROFILES_DIR = default_profiles_dir()
-    VARS_DEFAULT_IS_STR = True
 from rich.console import Console
 
 from dbt_coves import __version__
@@ -29,6 +21,17 @@ from dbt_coves.ui.traceback import DbtCovesTraceback
 from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.log import log_manager
+from dbt_coves.utils.yaml import open_yaml, save_yaml
+
+try:
+    from dbt.flags import PROFILES_DIR
+
+    VARS_DEFAULT_IS_STR = False
+except ImportError:
+    from dbt.cli.resolvers import default_profiles_dir
+
+    PROFILES_DIR = default_profiles_dir()
+    VARS_DEFAULT_IS_STR = True
 
 console = Console()
 
@@ -185,6 +188,13 @@ base_subparser.add_argument(
     dest="STATIC_PARSER",
 )
 
+base_subparser.add_argument(
+    "--disable-tracking",
+    action="store_true",
+    default=False,
+    help="Disable command usage tracking. We don't store any user information.",
+)
+
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 
 # Register subcommands
@@ -213,6 +223,7 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
 
     if main_parser.log_level == "debug":
         log_manager.set_debug()
+    _gen_get_app_uuid(main_parser.args)
     return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
@@ -250,6 +261,20 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
     if exit_code > 0:
         logger.error("[red]The process did not complete successfully.")
     return exit_code
+
+
+def _gen_get_app_uuid(args):
+    dbt_coves_homepath = pathlib.Path("~/.dbt-coves/").expanduser()
+    dbt_coves_homepath.mkdir(exist_ok=True)
+    uuid_path = dbt_coves_homepath / ".user.yml"
+    try:
+        existent_uuid = open_yaml(uuid_path).get("id")
+        args.uuid = existent_uuid
+    except FileNotFoundError:
+        dbt_coves_uuid = str(uuid.uuid4())
+        dbt_coves_user = {"id": dbt_coves_uuid}
+        save_yaml(uuid_path, dbt_coves_user)
+        args.uuid = dbt_coves_uuid
 
 
 if __name__ == "__main__":

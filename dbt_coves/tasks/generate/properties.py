@@ -8,6 +8,7 @@ from questionary import Choice
 from rich.console import Console
 
 from dbt_coves.utils.jinja import render_template
+from dbt_coves.utils.tracking import trackable
 
 from .base import BaseGenerateTask
 
@@ -241,6 +242,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "model_props.yml",
         )
 
+    @trackable
     def run(self):
         self.no_prompt = self.get_config_value("no_prompt")
         self.get_metadata()
