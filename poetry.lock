@@ -429,14 +429,14 @@ files = [
 
 [[package]]
 name = "copier"
-version = "6.0.0"
+version = "7.0.1"
 description = "A library for rendering project templates."
 category = "main"
 optional = false
 python-versions = ">=3.7,<4.0"
 files = [
-    {file = "copier-6.0.0-py3-none-any.whl", hash = "sha256:4772d31b5f135fbaa7c0d95e37600b644cfc83fba5120bfac53e21129e7388fd"},
-    {file = "copier-6.0.0.tar.gz", hash = "sha256:e85c91e54ee9e9c3cf39f36516f32fc57fe840f702bde7a627a5831890c17232"},
+    {file = "copier-7.0.1-py3-none-any.whl", hash = "sha256:c969890db6f1f69db02239f094458a91e36c22248d2952a03e75ac2460179c98"},
+    {file = "copier-7.0.1.tar.gz", hash = "sha256:3d81916dad27d003674070b365bfcd965eb69d5a97920b226d6db88a6e7193d6"},
 ]
 
 [package.dependencies]
@@ -445,20 +445,17 @@ colorama = ">=0.4.3"
 dunamai = ">=1.7.0"
 importlib-metadata = {version = ">=3.4,<5.0", markers = "python_version < \"3.8\""}
 iteration_utilities = ">=0.11.0"
-Jinja2 = ">=3.1.1"
+jinja2 = ">=3.1.1"
 jinja2-ansible-filters = ">=1.3.1"
 packaging = ">=21.0"
 pathspec = ">=0.9.0"
 plumbum = ">=1.6.9"
-pydantic = ">=1.9.0"
-Pygments = ">=2.7.1"
-PyYAML = ">=5.3.1"
+pydantic = ">=1.10.2"
+pygments = ">=2.7.1"
+pyyaml = ">=5.3.1"
 pyyaml-include = ">=1.2"
 questionary = ">=1.8.1"
 typing-extensions = {version = ">=3.7.4,<5.0.0", markers = "python_version < \"3.8\""}
-
-[package.extras]
-docs = ["mkdocs-material (>=8.2,<9.0.0)", "mkdocstrings (>=0.16.2,<0.19.0)"]
 
 [[package]]
 name = "coverage"
@@ -601,7 +598,7 @@ files = [
 
 [package.dependencies]
 agate = ">=1.6.3,<1.7.0"
-dbt-core = ">=1.1.0,<1.6.0"
+dbt-core = ">=1.5.0,<1.6.0"
 google-cloud-bigquery = ">=3.0,<4.0"
 google-cloud-dataproc = ">=5.0,<6.0"
 google-cloud-storage = ">=2.4,<3.0"
@@ -1646,14 +1643,14 @@ files = [
 ]
 
 [package.extras]
-all = ["Jinja2", "brotli", "cython", "execnet (>=1.0.9)", "pytest (>4.0)", "pytest-cov (>=2.6)", "pyzmq", "redis", "sqlalchemy"]
+all = ["Jinja2", "brotli", "cython", "execnet (>=1.0.9)", "mock", "pytest", "pytest-cov (<2.6)", "pyzmq", "redis", "sqlalchemy"]
 compression = ["brotli"]
-dev = ["cython", "pytest (>4.0)", "pytest-cov (>=2.6)"]
+dev = ["cython", "mock", "pytest", "pytest-cov (<2.6)"]
 execnet = ["execnet (>=1.0.9)"]
 jinja = ["Jinja2"]
 redis = ["redis"]
 sqlalchemy = ["sqlalchemy"]
-test = ["pytest (>4.0)", "pytest-cov (>=2.6)"]
+test = ["mock", "pytest", "pytest-cov (<2.6)"]
 zmq = ["pyzmq"]
 
 [[package]]
@@ -3330,6 +3327,8 @@ files = [
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-macosx_10_9_universal2.whl", hash = "sha256:045e0626baf1c52e5527bd5db361bc83180faaba2ff586e763d3d5982a876a9e"},
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-macosx_12_6_arm64.whl", hash = "sha256:721bc4ba4525f53f6a611ec0967bdcee61b31df5a56801281027a3a6d1c2daf5"},
     {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-manylinux_2_17_x86_64.manylinux2014_x86_64.manylinux_2_24_x86_64.whl", hash = "sha256:41d0f1fa4c6830176eef5b276af04c89320ea616655d01327d5ce65e50575c94"},
+    {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-win32.whl", hash = "sha256:f6d3d39611ac2e4f62c3128a9eed45f19a6608670c5a2f4f07f24e8de3441d38"},
+    {file = "ruamel.yaml.clib-0.2.7-cp311-cp311-win_amd64.whl", hash = "sha256:da538167284de58a52109a9b89b8f6a53ff8437dd6dc26d33b57bf6699153122"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-macosx_10_9_x86_64.whl", hash = "sha256:4b3a93bb9bc662fc1f99c5c3ea8e623d8b23ad22f861eb6fce9377ac07ad6072"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-macosx_12_0_arm64.whl", hash = "sha256:a234a20ae07e8469da311e182e70ef6b199d0fbeb6c6cc2901204dd87fb867e8"},
     {file = "ruamel.yaml.clib-0.2.7-cp36-cp36m-manylinux2014_aarch64.whl", hash = "sha256:15910ef4f3e537eea7fe45f8a5d19997479940d9196f357152a09031c5be59f3"},
@@ -4037,4 +4036,4 @@ testing = ["big-O", "flake8 (<5)", "jaraco.functools", "jaraco.itertools", "more
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.7.2,<3.11"
-content-hash = "3fc18c5fa791e4f44a9a28e8c7789e15e53caea8af6c7a7d338ac5ebb0a02842"
+content-hash = "419d4b4b4e4bd923b4849185717212f771cba096318b44d2ac6c36b187ff8355"
