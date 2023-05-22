@@ -27,6 +27,7 @@ jobs:
     env:
       POETRY_HTTP_BASIC_USERNAME: ${{ secrets.POETRY_HTTP_BASIC_USERNAME }}
       POETRY_HTTP_BASIC_PASSWORD: ${{ secrets.POETRY_HTTP_BASIC_PASSWORD }}
+      GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     steps:
       - name: Checkout branch
@@ -56,3 +57,8 @@ jobs:
         env:
           BUMP_TYPE: ${{ inputs.bumpType }}
         run: "/home/runner/work/dbt-coves/dbt-coves/publish.sh $BUMP_TYPE"
+
+      - name: Github tag and release
+        uses: rymndhng/release-on-push-action
+        with:
+          bump_version_scheme: "${{ env.BUMP_TYPE }}"
