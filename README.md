@@ -63,15 +63,7 @@ dbt-coves <command> -h
 
 ## Environment setup
 
-Setting up your environment can be done in two different ways:
-
-Runs a set of scripts in your local environment to configure your project components: `ssh keys`, `git` and `dbt`
-
-```console
-dbt-coves setup all
-```
-
-You can configure individual components:
+You can configure different components:
 
 Set up `git` repository of dbt-coves project
 
@@ -79,7 +71,7 @@ Set up `git` repository of dbt-coves project
 dbt-coves setup git
 ```
 
-Setup `dbt` within the project (delegates to dbt init)
+Set up `dbt` within the project (delegates to dbt init)
 
 ```console
 dbt-coves setup dbt
@@ -89,6 +81,12 @@ Set up SSH Keys for dbt project. Supports the argument `--open_ssl_public_key` w
 
 ```console
 dbt-coves setup ssh
+```
+
+Set up pre-commit for your dbt project. In this, you can configure different tools that we consider essential for proper dbt usage: `sqlfluff`, `yaml-lint`, and `dbt-checkpoint`
+
+```console
+dbt-coves setup precommit
 ```
 
 ## Models generation

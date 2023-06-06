@@ -24,7 +24,8 @@ def trackable(task, **kwargs):
             task_execution_props = _gen_task_usage_props(task_instance, exit_code)
             mixpanel.track(
                 distinct_id=task_instance.args.uuid,
-                event_name="dbt-coves usage",
+                event_name=f"{task_execution_props['dbt-coves command']}\
+                      {task_execution_props.get('dbt-coves subcommand', '')}",
                 properties=task_execution_props,
             )
         return exit_code

@@ -102,10 +102,6 @@ class LoadModel(BaseModel):
     fivetran: Optional[LoadFivetranModel] = LoadFivetranModel()
 
 
-class SetupAllModel(BaseModel):
-    open_ssl_public_key: Optional[bool] = False
-
-
 class SetupSshModel(BaseModel):
     open_ssl_public_key: Optional[bool] = False
 
@@ -115,7 +111,6 @@ class SetupGitModel(BaseModel):
 
 
 class SetupModel(BaseModel):
-    all: Optional[SetupAllModel] = SetupAllModel()
     ssh: Optional[SetupSshModel] = SetupSshModel()
     git: Optional[SetupGitModel] = SetupGitModel()
 
