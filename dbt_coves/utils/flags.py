@@ -111,7 +111,6 @@ class DbtCovesFlags:
             "current-dir": False,
         }
         self.setup = {
-            "all": {"open_ssl_public_key": False},
             "ssh": {"open_ssl_public_key": False},
             "git": {"no_prompt": False},
         }

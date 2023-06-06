@@ -173,7 +173,6 @@ class DbtCovesConfig:
         "load.airbyte.secrets_project",
         "load.airbyte.secrets_tags",
         "load.airbyte.secrets_key",
-        "setup.all.open_ssl_public_key",
         "setup.ssh.open_ssl_public_key",
         "setup.git.no_prompt",
         "dbt.command",
