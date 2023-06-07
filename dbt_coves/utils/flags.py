@@ -111,7 +111,6 @@ class DbtCovesFlags:
             "current-dir": False,
         }
         self.setup = {
-            "all": {"open_ssl_public_key": False},
             "ssh": {"open_ssl_public_key": False},
             "git": {"no_prompt": False},
         }
@@ -295,9 +294,6 @@ class DbtCovesFlags:
                     self.extract["fivetran"]["api_secret"] = self.args.api_secret
                 if self.args.credentials:
                     self.extract["fivetran"]["credentials"] = self.args.credentials
-            if self.args.cls.__name__ == "SetupAllTask":
-                if self.args.open_ssl_public_key:
-                    self.setup["all"]["open_ssl_public_key"] = self.args.open_ssl_public_key
 
             if self.args.cls.__name__ == "SetupSSHTask":
                 if self.args.open_ssl_public_key:

@@ -387,19 +387,6 @@
       "description": "Default parameters for the setup command",
       "type": "object",
       "properties": {
-        "all": {
-          "title": "All setup",
-          "description": "Default for setup all command",
-          "type": "object",
-          "properties": {
-            "open_ssl_public_key": {
-              "title": "Open SSL public key",
-              "description": "Determines whether an Open SSL key will also be generated",
-              "type": "boolean"
-            }
-          },
-          "required": []
-        },
         "ssh": {
           "title": "SSH setup",
           "description": "SSH key defaults",
@@ -424,6 +411,18 @@
               "type": "boolean"
             }
           },
+          "required": []
+        },
+        "dbt": {
+          "title": "dbt setup",
+          "description": "Set up dbt",
+          "type": "object",
+          "required": []
+        },
+        "precommit": {
+          "title": "pre-commit setup",
+          "description": "Set up pre-commit for your dbt project",
+          "type": "object",
           "required": []
         }
       },

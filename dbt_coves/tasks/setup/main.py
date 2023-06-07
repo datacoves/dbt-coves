@@ -2,7 +2,6 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
 
-from .all import SetupAllTask
 from .dbt import SetupDbtTask
 from .git import SetupGitTask
 from .pre_commit import SetupPrecommitTask
@@ -21,7 +20,6 @@ class SetupTask(NonDbtBaseTask):
     """
 
     tasks = [
-        SetupAllTask,
         SetupGitTask,
         SetupDbtTask,
         SetupSSHTask,
