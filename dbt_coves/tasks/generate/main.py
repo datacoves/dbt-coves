@@ -33,12 +33,6 @@ class GenerateTask(BaseConfiguredTask):
             help="""Generates dbt source and staging files, model property files and extracts
              metadata for tables (used as input for sources and properties)""",
         )
-        gen_subparser.add_argument(
-            "--no-prompt",
-            help="Silently generate dbt-coves resources",
-            action="store_true",
-            default=False,
-        )
         gen_subparser.set_defaults(cls=cls, which="generate")
         sub_parsers = gen_subparser.add_subparsers(title="dbt-coves generate commands", dest="task")
 

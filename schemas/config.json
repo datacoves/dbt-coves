@@ -89,6 +89,26 @@
               "description": "Default file to find metadata file used to fill in field descriptions",
               "type": "string",
               "minLength": 1
+            },
+            "flatten_json_fields": {
+              "title": "Flatten JSON fields",
+              "description": "Flatten JSON fields",
+              "type": "boolean"
+            },
+            "overwrite_staging_models": {
+              "title": "Overwrite staging models",
+              "description": "Overwrite existent staging files",
+              "type": "boolean"
+            },
+            "skip_model_props": {
+              "title": "Skip model props",
+              "description": "Don't create model's property (yml) files",
+              "type": "boolean"
+            },
+            "no_prompt": {
+              "title": "No prompt",
+              "description": "Silently generate source dbt models",
+              "type": "boolean"
             }
           },
           "required": [],
@@ -145,6 +165,11 @@
               "description": "dbt selector definition e.g. my_selector.yml",
               "type": "string",
               "minLength": 1
+            },
+            "no_prompt": {
+              "title": "No prompt",
+              "description": "Silently dbt models property files",
+              "type": "boolean"
             }
           },
           "required": []
@@ -195,6 +220,11 @@
               "type": "string",
               "minLength": 1,
               "pattern": ".+(.csv)$"
+            },
+            "no_prompt": {
+              "title": "No prompt",
+              "description": "Silently generate metadata",
+              "type": "boolean"
             }
           },
           "required": [],
