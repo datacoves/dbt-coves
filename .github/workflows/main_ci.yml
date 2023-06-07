@@ -27,9 +27,6 @@ jobs:
       - name: run Pre-Commit
         uses: pre-commit/action@v3.0.0
 
-      - name: Install Poetry
-        uses: Gr1N/setup-poetry@v7
-
       - name: Cache Poetry virtualenv
         uses: actions/cache@v1
         id: cache
