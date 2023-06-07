@@ -39,7 +39,7 @@ jobs:
           python-version: 3.8
 
       - name: Install Poetry
-        uses: pipx install poetry
+        run: pipx install poetry
 
       - name: Install Dependencies using Poetry
         run: poetry install
