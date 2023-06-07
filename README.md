@@ -178,6 +178,21 @@ dbt-coves generate sources -h
 ```
 
 ```console
+--flatten-json-fields
+# Flag: flatten model JSON fields
+```
+
+```console
+--overwrite-staging-models
+# Flag: overwrite existent staging (SQL) files
+```
+
+```console
+--skip-model-props
+# Flag: don't create model's property (yml) files
+```
+
+```console
 --no-prompt
 # Silently generate source dbt models
 ```

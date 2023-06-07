@@ -34,6 +34,9 @@ class GenerateSourcesModel(BaseModel):
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
     no_prompt: Optional[bool] = False
+    flatten_json_fields: Optional[bool] = False
+    overwrite_staging_models: Optional[bool] = False
+    skip_model_props: Optional[bool] = False
 
 
 class GenerateMetadataModel(BaseModel):
@@ -49,7 +52,6 @@ class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
     properties: Optional[GeneratePropertiesModel] = GeneratePropertiesModel()
     metadata: Optional[GenerateMetadataModel] = GenerateMetadataModel()
-    no_prompt: Optional[bool] = False
 
 
 class ExtractAirbyteModel(BaseModel):
@@ -154,6 +156,9 @@ class DbtCovesConfig:
         "generate.sources.templates_folder",
         "generate.sources.metadata",
         "generate.sources.no_prompt",
+        "generate.sources.flatten_json_fields",
+        "generate.sources.overwrite_staging_models",
+        "generate.sources.skip_model_props",
         "generate.metadata.database",
         "generate.metadata.schemas",
         "generate.metadata.select_relations",

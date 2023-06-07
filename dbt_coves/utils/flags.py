@@ -46,6 +46,9 @@ class DbtCovesFlags:
                 "templates_folder": None,
                 "metadata": None,
                 "no_prompt": False,
+                "flatten_json_fields": False,
+                "overwrite_staging_models": False,
+                "skip_model_props": False,
             },
             "properties": {
                 "templates_folder": None,
@@ -185,6 +188,14 @@ class DbtCovesFlags:
                     ] = self.args.exclude_relations.split(",")
                 if self.args.no_prompt:
                     self.generate["sources"]["no_prompt"] = True
+                if self.args.flatten_json_fields:
+                    self.generate["sources"]["flatten_json_fields"] = True
+                if self.args.overwrite_staging_models:
+                    self.generate["sources"]["overwrite_staging_models"] = True
+                if self.args.skip_model_props:
+                    self.generate["sources"]["skip_model_props"] = True
+
+            # generate properties
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
                     self.generate["properties"]["templates_folder"] = self.args.templates_folder
@@ -202,6 +213,8 @@ class DbtCovesFlags:
                     self.generate["properties"]["selector"] = self.args.selector
                 if self.args.no_prompt:
                     self.generate["properties"]["no_prompt"] = True
+
+            # generate metadata
             if self.args.cls.__name__ == "GenerateMetadataTask":
                 if self.args.database:
                     self.generate["metadata"]["database"] = self.args.database
@@ -222,12 +235,7 @@ class DbtCovesFlags:
                 if self.args.no_prompt:
                     self.generate["metadata"]["no_prompt"] = True
 
-            if self.args.cls.__name__ == "InitTask":
-                if self.args.template:
-                    self.init["template"] = self.args.template
-                if self.args.current_dir:
-                    self.init["current-dir"] = self.args.current_dir
-
+            # load airbyte
             if self.args.cls.__name__ == "LoadAirbyteTask":
                 if self.args.path:
                     self.load["airbyte"]["path"] = self.args.path
@@ -252,6 +260,7 @@ class DbtCovesFlags:
                 if self.args.secrets_key:
                     self.load["airbyte"]["secrets_key"] = self.args.secrets_key
 
+            # load fivetran
             if self.args.cls.__name__ == "LoadFivetranTask":
                 if self.args.path:
                     self.load["fivetran"]["path"] = self.args.path
@@ -278,6 +287,7 @@ class DbtCovesFlags:
                 if self.args.secrets_key:
                     self.load["fivetran"]["secrets_key"] = self.args.secrets_key
 
+            # extract airbyte
             if self.args.cls.__name__ == "ExtractAirbyteTask":
                 if self.args.path:
                     self.extract["airbyte"]["path"] = self.args.path
@@ -285,6 +295,7 @@ class DbtCovesFlags:
                     self.extract["airbyte"]["host"] = self.args.host
                     self.extract["airbyte"]["port"] = self.args.port
 
+            # extract fivetran
             if self.args.cls.__name__ == "ExtractFivetranTask":
                 if self.args.path:
                     self.extract["fivetran"]["path"] = self.args.path
@@ -295,14 +306,17 @@ class DbtCovesFlags:
                 if self.args.credentials:
                     self.extract["fivetran"]["credentials"] = self.args.credentials
 
+            # setup ssh
             if self.args.cls.__name__ == "SetupSSHTask":
                 if self.args.open_ssl_public_key:
                     self.setup["ssh"]["open_ssl_public_key"] = self.args.open_ssl_public_key
 
+            # setup git
             if self.args.cls.__name__ == "SetupGitTask":
                 if self.args.no_prompt:
                     self.setup["git"]["no_prompt"] = self.args.no_prompt
 
+            # run dbt
             if self.args.cls.__name__ == "RunDbtTask":
                 if self.args.command:
                     self.dbt["command"] = self.args.command

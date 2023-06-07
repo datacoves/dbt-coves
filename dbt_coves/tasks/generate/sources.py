@@ -85,6 +85,21 @@ class GenerateSourcesTask(BaseGenerateTask):
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
         )
         subparser.add_argument(
+            "--flatten-json-fields", help="Flatten JSON fields", action="store_true", default=False
+        )
+        subparser.add_argument(
+            "--overwrite-staging-models",
+            help="Overwrite existent staging files",
+            action="store_true",
+            default=False,
+        )
+        subparser.add_argument(
+            "--skip-model-props",
+            help="Don't create model's property (yml) files",
+            action="store_true",
+            default=False,
+        )
+        subparser.add_argument(
             "--no-prompt",
             help="Silently generate source dbt models",
             action="store_true",
@@ -115,15 +130,20 @@ class GenerateSourcesTask(BaseGenerateTask):
             return selected_rels
 
     def generate(self, rels):
+        self.flatten_json = self.get_config_value("flatten_json_fields")
+        self.overwrite_sqls = self.get_config_value("overwrite_staging_models")
         models_destination = self.get_config_value("models_destination")
         options = {
-            "override_all": "Yes" if self.no_prompt else None,
-            "flatten_all": "Yes" if self.no_prompt else None,
+            "override_all": "Yes" if self.overwrite_sqls else None,
+            "flatten_all": "Yes" if self.flatten_json else None,
             "model_prop_update_all": False,
             "model_prop_recreate_all": False,
             "source_prop_update_all": False,
             "source_prop_recreate_all": False,
         }
+        if self.no_prompt:
+            options["override_all"] = options["override_all"] or "No"
+            options["flatten_all"] = options["flatten_all"] or "No"
         for rel in rels:
             model_dest = self.render_path_template(models_destination, rel)
             model_sql = Path(self.config.project_root).joinpath(model_dest)
@@ -247,6 +267,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         return context
 
     def render_templates_with_context(self, context, sql_destination, options):
+        skip_model_props = self.get_config_value("skip_model_props")
         templates_folder = self.get_config_value("templates_folder")
         update_strategy = self.get_config_value("update_strategy")
         model_property_destination = self.get_config_value("model_props_destination")
@@ -263,17 +284,18 @@ class GenerateSourcesTask(BaseGenerateTask):
         console.print(f"Model [green][b]{sql_destination}[/green][/b] created")
 
         # Render model and source YMLs
-        model_yml_dest = self.render_path_template(model_property_destination, rel)
-        model_yml_path = Path(self.config.project_root).joinpath(model_yml_dest)
-        self.render_property_files(
-            context,
-            options,
-            templates_folder,
-            update_strategy,
-            "model",
-            model_yml_path,
-            "staging_model_props.yml",
-        )
+        if not skip_model_props:
+            model_yml_dest = self.render_path_template(model_property_destination, rel)
+            model_yml_path = Path(self.config.project_root).joinpath(model_yml_dest)
+            self.render_property_files(
+                context,
+                options,
+                templates_folder,
+                update_strategy,
+                "model",
+                model_yml_path,
+                "staging_model_props.yml",
+            )
 
         source_yml_dest = self.render_path_template(source_property_destination, rel)
         source_yml_path = Path(self.config.project_root).joinpath(source_yml_dest)
