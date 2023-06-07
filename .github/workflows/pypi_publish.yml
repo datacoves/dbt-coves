@@ -61,4 +61,4 @@ jobs:
       - name: Github tag and release
         uses: rymndhng/release-on-push-action@v0.28.0
         with:
-          bump_version_scheme: "${{ inputs.BUMP_TYPE }}"
+          bump_version_scheme: ${{ inputs.BUMP_TYPE }}
