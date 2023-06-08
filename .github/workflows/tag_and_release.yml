@@ -1,15 +1,16 @@
 name: Github Tag and Release
 
 on:
-  push:
-    branches:
-      - main
+  workflow_run:
+    workflows: ["Publish new PyPi build version"]
+    types:
+      - completed
 
 jobs:
   tag_and_release:
     name: Github tag and release
     runs-on: ubuntu-latest
-    if: contains(github.event.head_commit.message, 'Bump version')
+    if: ${{ github.event.workflow_run.conclusion == 'success' && contains(github.event.workflow_run.head_commit.message, 'Bump version') }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
