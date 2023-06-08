@@ -22,6 +22,7 @@ jobs:
         run: cargo install toml-cli
 
       - name: Extract version
+        id: extract_version
         run: |
           dbtcoves_version=$(toml get pyproject.toml tool.poetry.version)
           echo "::set-output name=dbtcoves_version::$dbtcoves_version"
