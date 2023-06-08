@@ -5,9 +5,9 @@ on:
     branches:
       - main
     paths:
-      - pyproject.toml
-      - .bumpversion.cfg
       - dbt_coves/__init__.py
+    #   - pyproject.toml
+    #   - .bumpversion.cfg
 
 jobs:
   tag_and_release:
