@@ -10,7 +10,7 @@ jobs:
   tag_and_release:
     name: Github tag and release
     runs-on: ubuntu-latest
-    if: ${{ github.event.workflow_run.conclusion == 'success' && contains(github.event.workflow_run.head_commit.message, 'Bump version') }}
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
     env:
       GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
