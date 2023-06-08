@@ -27,8 +27,15 @@ jobs:
           dbtcoves_version=$(toml get pyproject.toml tool.poetry.version)
           echo "::set-output name=dbtcoves_version::$dbtcoves_version"
 
+      - name: Generate tag version
+        id: concat_version
+        run: |
+          previous_output="${{ steps.extract_version.outputs.dbtcoves_version }}"
+          final_version="v${previous_output//\"/}"
+          echo "::set-output name=final_version::${final_version}"
+
       - name: Github tag and release
         uses: avakar/tag-and-release@v1
         with:
-          tag_name: "v${{ steps.extract_version.outputs.dbtcoves_version }}"
-          release_name: "v${{ steps.extract_version.outputs.dbtcoves_version }}"
+          tag_name: ${{ steps.concat_version.outputs.final_version }}
+          release_name: ${{ steps.concat_version.outputs.final_version }}
