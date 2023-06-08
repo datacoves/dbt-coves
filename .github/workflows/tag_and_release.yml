@@ -1,4 +1,4 @@
-name: Publish new PyPi build version
+name: Github Tag and Release
 
 on:
   push:
