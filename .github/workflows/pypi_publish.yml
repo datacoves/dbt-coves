@@ -57,8 +57,3 @@ jobs:
         env:
           BUMP_TYPE: ${{ inputs.bumpType }}
         run: "/home/runner/work/dbt-coves/dbt-coves/publish.sh $BUMP_TYPE"
-
-      - name: Github tag and release
-        uses: rymndhng/release-on-push-action@v0.28.0
-        with:
-          bump_version_scheme: ${{ inputs.bumpType }}
