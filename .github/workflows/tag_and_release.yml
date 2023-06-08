@@ -4,10 +4,6 @@ on:
   push:
     branches:
       - main
-    # paths:
-    #   - dbt_coves/__init__.py
-    #   - pyproject.toml
-    #   - .bumpversion.cfg
 
 jobs:
   tag_and_release:
