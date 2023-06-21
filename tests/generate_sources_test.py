@@ -174,6 +174,7 @@ for case in cases_list:
 
 @pytest.mark.parametrize("input", generate_data_cases)
 def test_generate_data(input):
+    print(list(os.environ.keys()))
     # Check adapter
     if input["adapter"] == "snowflake":
         # Check env vars
