@@ -39,11 +39,39 @@ jobs:
       - name: Install Dependencies using Poetry
         run: poetry install --with test
 
-      - name: Decrypt secrets
-        run: |
-          sudo apt install git-secret
-          gpg --import <(echo "$GPG_PRIVATE_KEY")
-          git secret reveal -f
+      - name: Configure 1Password Service Account
+        uses: 1password/load-secrets-action/configure@v1
+        with:
+          service-account-token: ${{ secrets.ONE_PASSWORD_SERVICE_ACCOUNT }}
+
+      - name: Load secrets
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONE_PASSWORD_SERVICE_ACCOUNT }}
+          # Redshift
+          PROFILE_DBT_COVES_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/dbt_profile
+          HOST_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/host
+          USER_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/user
+          PASSWORD_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/password
+          DATABASE_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/database
+          SCHEMA_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/schema
+          # Snowflake
+          PROFILE_DBT_COVES_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/dbt_profile
+          USER_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/user
+          PASSWORD_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/password
+          ACCOUNT_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/account
+          WAREHOUSE_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/warehouse
+          ROLE_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/role
+          DATABASE_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/database
+          SCHEMA_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/schema
+          # Bigquery
+          PROFILE_DBT_COVES_BIGQUERY: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/dbt_profile
+          SERVICE_ACCOUNT_GCP: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/service_account_gcp
+          PROJECT_BIGQUERY: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/project
+          DATASET_BIGQUERY: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/dataset
 
       - name: Create profiles
         run: |
