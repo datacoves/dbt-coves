@@ -39,11 +39,6 @@ jobs:
       - name: Install Dependencies using Poetry
         run: poetry install --with test
 
-      - name: Configure 1Password Service Account
-        uses: 1password/load-secrets-action/configure@v1
-        with:
-          service-account-token: ${{ secrets.ONE_PASSWORD_SERVICE_ACCOUNT }}
-
       - name: Load secrets
         uses: 1password/load-secrets-action@v1
         with:
