@@ -169,26 +169,3 @@ Once you have the `.env` file ready, just run:
 ```bash
 pytests tests/
 ```
-
-### How to deploy a new dbt-coves version
-
-1. Replace version number everywhere
-2. Run
-
-```
-./publish.sh
-```
-
-### Release new dbt-coves docker image to public repo
-
-Url: https://hub.docker.com/r/datacoves/dbt-coves
-
-```
-./docker/build_and_push.sh <dbt version> <dbt-coves version>
-```
-
-i.e.
-
-```
-./docker/build_and_push.sh 0.21.0 0.21.0a14
-```
