@@ -64,7 +64,7 @@ jobs:
           SCHEMA_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/SCHEMA_SNOWFLAKE
           # Bigquery
           PROFILE_DBT_COVES_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROFILE_DBT_COVES_BIGQUERY
-          SERVICE_ACCOUNT_GCP: op://Engineering - dbt-coves/dbt-coves-tests/BIGQUERY/SERVICE_ACCOUNT_GCP
+          SERVICE_ACCOUNT_GCP: op://Engineering - dbt-coves/dbt-coves-tests/SERVICE_ACCOUNT_GCP
           PROJECT_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROJECT_BIGQUERY
           DATASET_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/DATASET_BIGQUERY
 
