@@ -139,7 +139,32 @@ The whole package is managed using [Poetry](https://python-poetry.org/). It's re
 
 If you're comfortable writing tests for your features, we use the [`pytest`](https://docs.pytest.org/en/stable/) framework. It'll be installed automatically when you set up your poetry environment. If you don't know how to write tests that's fine, we'll work it out with you during the review process 💪🏻
 
-Have a look into the `tests/` folder for how the tests are written and if you want to trigger tests locally you can do so from the root of the repo with
+For our current tests, we must have certain environment variables defined in a `.env` file inside `/tests`:
+
+```
+PROFILE_DBT_COVES_REDSHIFT
+HOST_REDSHIFT
+USER_REDSHIFT
+PASSWORD_REDSHIFT
+DATABASE_REDSHIFT
+SCHEMA_REDSHIFT
+PROFILE_DBT_COVES_SNOWFLAKE
+USER_SNOWFLAKE
+PASSWORD_SNOWFLAKE
+ACCOUNT_SNOWFLAKE
+WAREHOUSE_SNOWFLAKE
+ROLE_SNOWFLAKE
+DATABASE_SNOWFLAKE
+SCHEMA_SNOWFLAKE
+PROFILE_DBT_COVES_BIGQUERY
+PROJECT_BIGQUERY
+DATASET_BIGQUERY
+SERVICE_ACCOUNT_GCP
+```
+
+We recommend using 1Password. In it, an entry named `dbt-coves-tests` with the keys above, installing [1Password CLI](https://developer.1password.com/docs/cli/) and running `tests/generate_onepsw_env_file.py`
+
+Once you have the `.env` file ready, just run:
 
 ```bash
 pytests tests/
