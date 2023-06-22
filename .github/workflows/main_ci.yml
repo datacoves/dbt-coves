@@ -47,26 +47,26 @@ jobs:
         env:
           OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONE_PASSWORD_SERVICE_ACCOUNT }}
           # Redshift
-          PROFILE_DBT_COVES_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/dbt_profile
-          HOST_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/host
-          USER_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/user
-          PASSWORD_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/password
-          DATABASE_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/database
-          SCHEMA_REDSHIFT: op://Engineering - Automation/dbt-coves-tests/REDSHIFT/schema
+          PROFILE_DBT_COVES_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/PROFILE_DBT_COVES_REDSHIFT
+          HOST_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/HOST_REDSHIFT
+          USER_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/USER_REDSHIFT
+          PASSWORD_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/PASSWORD_REDSHIFT
+          DATABASE_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/DATABASE_REDSHIFT
+          SCHEMA_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/SCHEMA_REDSHIFT
           # Snowflake
-          PROFILE_DBT_COVES_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/dbt_profile
-          USER_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/user
-          PASSWORD_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/password
-          ACCOUNT_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/account
-          WAREHOUSE_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/warehouse
-          ROLE_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/role
-          DATABASE_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/database
-          SCHEMA_SNOWFLAKE: op://Engineering - Automation/dbt-coves-tests/SNOWFLAKE/schema
+          PROFILE_DBT_COVES_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/PROFILE_DBT_COVES_SNOWFLAKE
+          USER_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/USER_SNOWFLAKE
+          PASSWORD_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/PASSWORD_SNOWFLAKE
+          ACCOUNT_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/ACCOUNT_SNOWFLAKE
+          WAREHOUSE_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/WAREHOUSE_SNOWFLAKE
+          ROLE_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/ROLE_SNOWFLAKE
+          DATABASE_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/DATABASE_SNOWFLAKE
+          SCHEMA_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/SCHEMA_SNOWFLAKE
           # Bigquery
-          PROFILE_DBT_COVES_BIGQUERY: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/dbt_profile
-          SERVICE_ACCOUNT_GCP: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/service_account_gcp
-          PROJECT_BIGQUERY: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/project
-          DATASET_BIGQUERY: op://Engineering - Automation/dbt-coves-tests/BIGQUERY/dataset
+          PROFILE_DBT_COVES_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROFILE_DBT_COVES_BIGQUERY
+          SERVICE_ACCOUNT_GCP: op://Engineering - dbt-coves/dbt-coves-tests/BIGQUERY/SERVICE_ACCOUNT_GCP
+          PROJECT_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROJECT_BIGQUERY
+          DATASET_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/DATASET_BIGQUERY
 
       - name: Create profiles
         run: |
