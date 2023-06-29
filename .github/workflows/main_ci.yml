@@ -39,11 +39,34 @@ jobs:
       - name: Install Dependencies using Poetry
         run: poetry install --with test
 
-      - name: Decrypt secrets
-        run: |
-          sudo apt install git-secret
-          gpg --import <(echo "$GPG_PRIVATE_KEY")
-          git secret reveal -f
+      - name: Load secrets
+        uses: 1password/load-secrets-action@v1
+        with:
+          # Export loaded secrets as environment variables
+          export-env: true
+        env:
+          OP_SERVICE_ACCOUNT_TOKEN: ${{ secrets.ONE_PASSWORD_SERVICE_ACCOUNT }}
+          # Redshift
+          PROFILE_DBT_COVES_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/PROFILE_DBT_COVES_REDSHIFT
+          HOST_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/HOST_REDSHIFT
+          USER_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/USER_REDSHIFT
+          PASSWORD_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/PASSWORD_REDSHIFT
+          DATABASE_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/DATABASE_REDSHIFT
+          SCHEMA_REDSHIFT: op://Engineering - dbt-coves/dbt-coves-tests/SCHEMA_REDSHIFT
+          # Snowflake
+          PROFILE_DBT_COVES_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/PROFILE_DBT_COVES_SNOWFLAKE
+          USER_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/USER_SNOWFLAKE
+          PASSWORD_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/PASSWORD_SNOWFLAKE
+          ACCOUNT_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/ACCOUNT_SNOWFLAKE
+          WAREHOUSE_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/WAREHOUSE_SNOWFLAKE
+          ROLE_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/ROLE_SNOWFLAKE
+          DATABASE_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/DATABASE_SNOWFLAKE
+          SCHEMA_SNOWFLAKE: op://Engineering - dbt-coves/dbt-coves-tests/SCHEMA_SNOWFLAKE
+          # Bigquery
+          PROFILE_DBT_COVES_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROFILE_DBT_COVES_BIGQUERY
+          SERVICE_ACCOUNT_GCP: op://Engineering - dbt-coves/dbt-coves-tests/SERVICE_ACCOUNT_GCP
+          PROJECT_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROJECT_BIGQUERY
+          DATASET_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/DATASET_BIGQUERY
 
       - name: Create profiles
         run: |
