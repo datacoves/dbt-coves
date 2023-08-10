@@ -14,14 +14,12 @@ def _get_mixpanel_env_token():
     return MIXPANEL_DEV_TOKEN if is_dev else MIXPANEL_PROD_TOKEN
 
 
-mixpanel = Mixpanel(token=_get_mixpanel_env_token())
-
-
 def trackable(task, **kwargs):
     def wrapper(task_instance, **kwargs):
         exit_code = task(task_instance)
         if not task_instance.args.disable_tracking:
             task_execution_props = _gen_task_usage_props(task_instance, exit_code)
+            mixpanel = Mixpanel(token=_get_mixpanel_env_token())
             mixpanel.track(
                 distinct_id=task_instance.args.uuid,
                 event_name=f"{task_execution_props['dbt-coves command']}\
