@@ -36,13 +36,13 @@ class GenerateSourcesTask(BaseGenerateTask):
             "--schemas",
             type=str,
             help="Comma separated list of schemas where raw data resides, "
-            "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
+                 "i.e. 'RAW_SALESFORCE,RAW_HUBSPOT'",
         )
         subparser.add_argument(
             "--select-relations",
             type=str,
             help="Comma separated list of relations where raw data resides, "
-            "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
+                 "i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'",
         )
         subparser.add_argument(
             "--exclude-relations",
@@ -53,31 +53,31 @@ class GenerateSourcesTask(BaseGenerateTask):
             "--sources-destination",
             type=str,
             help="Where sources yml files will be generated, default: "
-            "'models/staging/{{schema}}/sources.yml'",
+                 "'models/staging/{{schema}}/sources.yml'",
         )
         subparser.add_argument(
             "--models-destination",
             type=str,
             help="Where models sql files will be generated, default: "
-            "'models/staging/{{schema}}/{{relation}}.sql'",
+                 "'models/staging/{{schema}}/{{relation}}.sql'",
         )
         subparser.add_argument(
             "--model-props-destination",
             type=str,
             help="Where models yml files will be generated, default: "
-            "'models/staging/{{schema}}/{{relation}}.yml'",
+                 "'models/staging/{{schema}}/{{relation}}.yml'",
         )
         subparser.add_argument(
             "--update-strategy",
             type=str,
             help="Action to perform when a property file already exists: "
-            "'update', 'recreate', 'fail', 'ask' (per file)",
+                 "'update', 'recreate', 'fail', 'ask' (per file)",
         )
         subparser.add_argument(
             "--templates-folder",
             type=str,
             help="Folder with jinja templates that override default "
-            "sources generation templates, i.e. 'templates'",
+                 "sources generation templates, i.e. 'templates'",
         )
         subparser.add_argument(
             "--metadata",
@@ -317,7 +317,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             config_db = ""
         _, data = self.adapter.execute(
             f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} \
-                limit 1",
+                WHERE {' IS NOT NULL AND '.join([' CAST(' + sub + ' AS VARCHAR) ' for sub in json_cols])} IS NOT NULL limit 1",
             fetch=True,
         )
         result = dict()
@@ -325,11 +325,13 @@ class GenerateSourcesTask(BaseGenerateTask):
             for idx, json_col in enumerate(json_cols):
                 value = data.columns[idx]
                 try:
-                    nested_key_names = list(json.loads(value[0]).keys())
-                    result[json_col] = {}
-                    for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
-                    self.add_metadata_to_nested(relation, result, json_col)
+                    nested_object = json.loads(value[0])
+                    if type(nested_object) is dict:
+                        nested_key_names = list(nested_object.keys())
+                        result[json_col] = {}
+                        for key_name in nested_key_names:
+                            result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                        self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(
                         f"Column {json_col} in relation {relation.name} contains invalid JSON.\n"
