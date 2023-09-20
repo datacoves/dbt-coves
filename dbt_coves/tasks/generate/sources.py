@@ -317,7 +317,8 @@ class GenerateSourcesTask(BaseGenerateTask):
             config_db = ""
         _, data = self.adapter.execute(
             f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} \
-                WHERE {' IS NOT NULL AND '.join([' CAST(' + sub + ' AS VARCHAR) ' for sub in json_cols])} IS NOT NULL limit 1",
+                WHERE {' IS NOT NULL AND '.join([' CAST(' + sub + ' AS VARCHAR) ' for sub in json_cols])} \
+                IS NOT NULL limit 1",
             fetch=True,
         )
         result = dict()
