@@ -2,7 +2,6 @@ import json
 import os
 import pathlib
 from copy import copy
-from os import path
 
 import questionary
 from rich.console import Console
@@ -226,21 +225,18 @@ class LoadAirbyteTask(BaseLoadTask):
                 elif self.secrets_path:
                     secret_target_name = slugify(exported_json_data["name"].lower())
                     # Get the secret file for that name
-                    secret_file = os.path.join(
-                        self.secrets_path,
-                        directory,
-                        secret_target_name + ".json",
+                    expected_secret_filepath = pathlib.Path(
+                        self.secrets_path, directory, secret_target_name + ".json"
                     )
 
-                    if path.isfile(secret_file):
-                        secret_data = json.load(open(secret_file))
-                    else:
+                    if not expected_secret_filepath.exists():
                         raise AirbyteLoaderException(
-                            f"Secret file for {secret_target_name} not found\n"
-                            f"Please create secret for [bold red]{secret_target_name}[/bold red] "
-                            "with the following keys: "
+                            f"Secret file {expected_secret_filepath} not found\n"
+                            f"Please create secret file with the following keys: "
                             f"[bold red]{', '.join(k for k in hidden_fields)}[/bold red]"
                         )
+
+                    secret_data = json.load(open(expected_secret_filepath))
                 else:
                     raise AirbyteLoaderException(
                         "secrets_path or secrets_manager flag must be provided"
@@ -278,7 +274,7 @@ class LoadAirbyteTask(BaseLoadTask):
 
     def _create_source_or_destination(self, exported_data, object_type):
         create = True
-        response = self.airbyte_api.api_call(
+        response: dict = self.airbyte_api.api_call(
             self.airbyte_api.api_endpoints["CREATE_OBJECT"].format(obj=object_type),
             exported_data,
         )
@@ -288,7 +284,8 @@ class LoadAirbyteTask(BaseLoadTask):
         elif object_type == "destinations":
             new_object_body = {"destinationId": response["destinationId"]}
 
-        conn_status = self._test_created_object(new_object_body, object_type)
+        object_name = response.get("name", "")
+        conn_status = self._test_created_object(new_object_body, object_type, object_name)
         if conn_status.get("status", "").lower() != "succeeded":
             console.print(
                 f"Connection test for {exported_data['name']} failed:\n {conn_status['message']}"
@@ -408,8 +405,8 @@ class LoadAirbyteTask(BaseLoadTask):
             "Please review Airbyte's configuration"
         )
 
-    def _test_created_object(self, test_body, obj_type):
-        console.print("Testing created object")
+    def _test_created_object(self, test_body, obj_type, obj_name):
+        console.print(f"Testing created {obj_type} [green]{obj_name}[/green]")
         return self.airbyte_api.api_call(
             self.airbyte_api.api_endpoints["TEST_CONNECTION"].format(obj=obj_type),
             test_body,
@@ -506,12 +503,12 @@ class LoadAirbyteTask(BaseLoadTask):
 
     def _get_source_id_by_name(self, source_name):
         for source in self.airbyte_api.airbyte_sources_list:
-            if source["name"].lower() == source_name:
+            if source["name"] == source_name:
                 return source["sourceId"]
 
     def _get_destination_id_by_name(self, destination_name):
         for destination in self.airbyte_api.airbyte_destinations_list:
-            if destination["name"].lower() == destination_name:
+            if destination["name"] == destination_name:
                 return destination["destinationId"]
 
     def _get_connection_id_by_endpoints(self, source_id, destination_id):
@@ -533,13 +530,14 @@ class LoadAirbyteTask(BaseLoadTask):
         current_copy.pop("breakingChange")
         return extracted_copy == current_copy
 
-    def _create_or_update_connection(self, connection_json):
+    def _create_or_update_connection(self, connection_json: dict):
         """
         Identify source_id and destination_id by their names
         Update or create connection
         """
         source_name = connection_json["sourceName"]
         destination_name = connection_json["destinationName"]
+        connection_json.pop("sourceCatalogId", "")
         source_id = self._get_source_id_by_name(source_name)
         destination_id = self._get_destination_id_by_name(destination_name)
         if not source_id or not destination_id:
@@ -583,9 +581,9 @@ class LoadAirbyteTask(BaseLoadTask):
 
         if exported_json_data["connectorVersion"] != object_definition["dockerImageTag"]:
             console.print(
-                f"[red]WARNING:[/red] Current Airbyte [b]{object_definition['name']}[/b]"
+                f"[red]WARNING:[/red] Current Airbyte [b]{object_definition['name']}[/b] "
                 f"{object_type} connector version [b]({object_definition['dockerImageTag']})"
-                f"[/b] doesn't match exported [b]{exported_json_data['name']}[/b]"
+                f"[/b] doesn't match exported [b]{exported_json_data['name']}[/b] "
                 f"version ({exported_json_data['connectorVersion']}) being loaded"
             )
 

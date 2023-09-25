@@ -254,22 +254,21 @@ class ExtractAirbyteTask(BaseExtractTask):
         except OSError as e:
             raise AirbyteExtractorException(f"Couldn't write {path}: {e}")
 
-    def _save_json_connection(self, connection):
+    def _save_json_connection(self, connection: dict):
         connection = copy(connection)
         connection.pop("connectionId")
 
-        connection_source_name = self._get_airbyte_source_from_id(connection["sourceId"])[
-            "name"
-        ].lower()
+        connection_source_name = self._get_airbyte_source_from_id(connection["sourceId"])["name"]
         connection_destination_name = self._get_airbyte_destination_from_id(
             connection["destinationId"]
-        )["name"].lower()
+        )["name"]
 
         # Once we used the source and destination IDs,
         # they are no longer required and don't need to be saved
         # Instead, they are replaced with their respective names
         connection.pop("sourceId", None)
         connection.pop("destinationId", None)
+        connection.pop("sourceCatalogId", None)
         connection["sourceName"] = connection_source_name
         connection["destinationName"] = connection_destination_name
         filename = f"{connection_source_name}-{connection_destination_name}.json"
