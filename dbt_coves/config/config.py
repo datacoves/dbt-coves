@@ -48,10 +48,16 @@ class GenerateMetadataModel(BaseModel):
     no_prompt: Optional[bool] = False
 
 
+class GenerateDocsModel(BaseModel):
+    merge_deferred: Optional[bool] = False
+    state: Optional[str] = ""
+
+
 class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
     properties: Optional[GeneratePropertiesModel] = GeneratePropertiesModel()
     metadata: Optional[GenerateMetadataModel] = GenerateMetadataModel()
+    docs: Optional[GenerateDocsModel] = GenerateDocsModel()
 
 
 class ExtractAirbyteModel(BaseModel):
@@ -165,6 +171,8 @@ class DbtCovesConfig:
         "generate.metadata.exclude_relations",
         "generate.metadata.destination",
         "generate.metadata.no_prompt",
+        "generate.docs.merge_deferred",
+        "generate.docs.state",
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",
