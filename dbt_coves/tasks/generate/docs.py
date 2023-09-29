@@ -68,23 +68,14 @@ class GenerateDocsTask(BaseConfiguredTask):
 
     def _fix_dbt_docs_links(self, docs_path: Path):
         dbt_docs_index_path = Path(docs_path, "index.html")
-        new_tab_tag = "<base target='_blank'>"
-        with open(dbt_docs_index_path, "r") as f:
+        with open(dbt_docs_index_path, "w+") as f:
             html_content = f.read()
-
-        head_start = html_content.find("<head>") + len("<head>")
-        head_end = html_content.find("</head>")
-
-        if new_tab_tag not in html_content[head_start:head_end]:
-            modified_content = html_content[:head_end] + new_tab_tag + html_content[head_end:]
-
-            # Write the modified content back to the HTML file
-            with open(dbt_docs_index_path, "w") as html_file:
-                html_file.write(modified_content)
-            console.print(
-                "[green]:heavy_check_mark:[/green] dbt docs updated. "
-                "External links will now open in a new tab"
-            )
+            html_content.replace("</head>", "<base target='_blank'></head>")
+            f.write(html_content)
+        console.print(
+            "[green]:heavy_check_mark:[/green] dbt docs updated. "
+            "External links will now open in a new tab"
+        )
 
     def _get_catalog_json(self, docs_folder: Path) -> Dict[str, Any]:
         """
@@ -103,18 +94,27 @@ class GenerateDocsTask(BaseConfiguredTask):
         """
         Merge nodes and sources from the state catalog.json into the local docs.
         """
-        n_nodes_merged = 0
-        n_sources_merged = 0
+        n_nodes_merged = sum(
+            1
+            for key in target_catalog.get("nodes", {})
+            if key not in local_catalog.get("nodes", {})
+        )
+        n_sources_merged = sum(
+            1
+            for key in target_catalog.get("sources", {})
+            if key not in local_catalog.get("sources", {})
+        )
 
-        for key, value in target_catalog.get("nodes", {}).items():
-            if key not in local_catalog.get("nodes", {}):
-                local_catalog["nodes"][key] = value
-                n_nodes_merged += 1
-
-        for key, value in target_catalog.get("sources", {}).items():
-            if key not in local_catalog.get("sources", {}):
-                local_catalog["sources"][key] = value
-                n_sources_merged += 1
+        local_catalog["nodes"].update(
+            (key, value)
+            for key, value in target_catalog.get("nodes", {}).items()
+            if key not in local_catalog.get("nodes", {})
+        )
+        local_catalog["sources"].update(
+            (key, value)
+            for key, value in target_catalog.get("sources", {}).items()
+            if key not in local_catalog.get("sources", {})
+        )
 
         console.print(
             f"Merged [green]{n_nodes_merged} nodes[/green] and [green]{n_sources_merged} sources[/green] into",
@@ -145,7 +145,7 @@ class GenerateDocsTask(BaseConfiguredTask):
 
     @trackable
     def run(self):
-        # self._generate_dbt_docs()
+        self._generate_dbt_docs()
 
         local_docs_path = Path(self.config.project_root, "target")
         self._fix_dbt_docs_links(local_docs_path)
