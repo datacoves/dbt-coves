@@ -94,16 +94,15 @@ class GenerateDocsTask(BaseConfiguredTask):
         """
         Merge nodes and sources from the state catalog.json into the local docs.
         """
-        n_nodes_merged = sum(
-            1
-            for key in target_catalog.get("nodes", {})
-            if key not in local_catalog.get("nodes", {})
+        nodes_diff = set(target_catalog.get("nodes", {}).keys()) - set(
+            local_catalog.get("nodes", {}).keys()
         )
-        n_sources_merged = sum(
-            1
-            for key in target_catalog.get("sources", {})
-            if key not in local_catalog.get("sources", {})
+        n_nodes_merged = len(nodes_diff)
+
+        sources_diff = set(target_catalog.get("sources", {}).keys()) - set(
+            local_catalog.get("sources", {}).keys()
         )
+        n_sources_merged = len(sources_diff)
 
         local_catalog["nodes"].update(
             (key, value)
@@ -156,10 +155,10 @@ class GenerateDocsTask(BaseConfiguredTask):
         if merge_deferred:
             target_docs_path = Path(state_location, "catalog.json")
             if not state_location or not target_docs_path.exists():
-                console.print(
+                raise DbtCovesGenerateDocsException(
                     "A valid [red][i]--state[/i][/red] argument is required "
                     "when using [yellow]--merge-deferred[/yellow]"
                 )
-                return -1
+
             self._merge_dbt_catalogs(local_docs_path, state_location)
         return 0
