@@ -179,7 +179,7 @@ dbt-coves generate sources -h
 
 ```console
 --flatten-json-fields
-# Flag: flatten model JSON fields
+# Action to perform when JSON fields exist: 'yes', 'no', 'ask' (per file)
 ```
 
 ```console
@@ -478,6 +478,7 @@ generate:
     update_strategy: ask # Action to perform when a property file already exists. Options: update, recreate, fail, ask (per file)
     templates_folder: ".dbt_coves/templates" # Folder where source generation jinja templates are located. Override default templates creating  source_props.yml, source_model_props.yml, and source_model.sql under this folder
     metadata: "metadata.csv" # Path to csv file containing metadata
+    flatten_json_fields: ask
 
   properties:
     destination: "{{model_folder_path}}/{{model_file_name}}.yml" # Where models yml files will be generated
