@@ -4,7 +4,7 @@ from jinja2 import ChoiceLoader, Environment, FileSystemLoader, PackageLoader
 
 
 def add_env_vars(context):
-    context["env_vars"] = os.environ.copy()
+    context["env_var"] = os.environ.copy()
     return context
 
 

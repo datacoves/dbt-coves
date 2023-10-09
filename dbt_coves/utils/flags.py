@@ -46,7 +46,7 @@ class DbtCovesFlags:
                 "templates_folder": None,
                 "metadata": None,
                 "no_prompt": False,
-                "flatten_json_fields": False,
+                "flatten_json_fields": None,
                 "overwrite_staging_models": False,
                 "skip_model_props": False,
             },
@@ -189,7 +189,9 @@ class DbtCovesFlags:
                 if self.args.no_prompt:
                     self.generate["sources"]["no_prompt"] = True
                 if self.args.flatten_json_fields:
-                    self.generate["sources"]["flatten_json_fields"] = True
+                    self.generate["sources"][
+                        "flatten_json_fields"
+                    ] = self.args.flatten_json_fields.lower()
                 if self.args.overwrite_staging_models:
                     self.generate["sources"]["overwrite_staging_models"] = True
                 if self.args.skip_model_props:

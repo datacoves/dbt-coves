@@ -85,7 +85,11 @@ class GenerateSourcesTask(BaseGenerateTask):
             help="Path to csv file containing metadata, i.e. 'metadata.csv'",
         )
         subparser.add_argument(
-            "--flatten-json-fields", help="Flatten JSON fields", action="store_true", default=False
+            "--flatten-json-fields",
+            type=str,
+            choices=["yes", "no", "ask"],
+            help="Action to perform when Flatten JSON fields exist:"
+            "'yes', 'no', 'ask' (per file)",
         )
         subparser.add_argument(
             "--overwrite-staging-models",
@@ -135,7 +139,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         models_destination = self.get_config_value("models_destination")
         options = {
             "override_all": "Yes" if self.overwrite_sqls else None,
-            "flatten_all": "Yes" if self.flatten_json else None,
+            "flatten_all": "Yes" if self.flatten_json == "yes" else None,
             "model_prop_update_all": False,
             "model_prop_recreate_all": False,
             "source_prop_update_all": False,
@@ -189,7 +193,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         columns = self.adapter.get_columns_in_relation(relation)
         nested_field_type = self.NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
         nested = [col.name for col in columns if col.dtype == nested_field_type]
-        if not options["flatten_all"]:
+        if not options["flatten_all"] and self.flatten_json == "ask":
             if nested:
                 field_nlg = "field"
                 flatten_nlg = "flatten it"

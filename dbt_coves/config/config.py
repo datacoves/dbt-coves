@@ -34,7 +34,7 @@ class GenerateSourcesModel(BaseModel):
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
     no_prompt: Optional[bool] = False
-    flatten_json_fields: Optional[bool] = False
+    flatten_json_fields: Optional[str] = "ask"
     overwrite_staging_models: Optional[bool] = False
     skip_model_props: Optional[bool] = False
 
