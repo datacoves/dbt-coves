@@ -68,6 +68,19 @@ class DbtCovesFlags:
                 "destination": None,
                 "no_prompt": False,
             },
+            "airflow_dags": {
+                "from_path": None,
+                "validate_operators": False,
+                "generators_folder": None,
+                "generator_params": {},
+                "secrets_path": None,
+                "secrets_manager": None,
+                "secrets_url": None,
+                "secrets_token": None,
+                "secrets_project": None,
+                "secrets_tags": None,
+                "secrets_key": None,
+            },
         }
         self.extract = {
             "airbyte": {
@@ -236,6 +249,33 @@ class DbtCovesFlags:
                     self.generate["metadata"]["destination"] = self.args.destination
                 if self.args.no_prompt:
                     self.generate["metadata"]["no_prompt"] = True
+
+            # generate airflow_dags
+            if self.args.cls.__name__ == "GenerateAirflowDagsTask":
+                if self.args.from_path:
+                    self.generate["airflow_dags"]["from_path"] = self.args.from_path
+                if self.args.validate_operators:
+                    self.generate["airflow_dags"][
+                        "validate_operators"
+                    ] = self.args.validate_operators
+                if self.args.generators_folder:
+                    self.generate["airflow_dags"]["generators_folder"] = self.args.generators_folder
+                if self.args.generator_params:
+                    self.generate["airflow_dags"]["generator_params"] = self.args.generator_params
+                if self.args.secrets_path:
+                    self.generate["airflow_dags"]["secrets_path"] = self.args.secrets_path
+                if self.args.secrets_manager:
+                    self.generate["airflow_dags"]["secrets_manager"] = self.args.secrets_manager
+                if self.args.secrets_url:
+                    self.generate["airflow_dags"]["secrets_url"] = self.args.secrets_url
+                if self.args.secrets_token:
+                    self.generate["airflow_dags"]["secrets_token"] = self.args.secrets_token
+                if self.args.secrets_project:
+                    self.generate["airflow_dags"]["secrets_project"] = self.args.secrets_project
+                if self.args.secrets_tags:
+                    self.generate["airflow_dags"]["secrets_tags"] = self.args.secrets_tags
+                if self.args.secrets_key:
+                    self.generate["airflow_dags"]["secrets_key"] = self.args.secrets_key
 
             # load airbyte
             if self.args.cls.__name__ == "LoadAirbyteTask":

@@ -55,7 +55,12 @@ class AirbyteApiCaller:
         """
         Generic `api caller` for contacting Airbyte
         """
-        response = requests.post(endpoint, json=body, timeout=timeout)
+        # TODO: remove
+        headers = {
+            "Content-Type": "application/json",
+            "Authorization": "Basic YWlyYnl0ZTpwYXNzd29yZA==",
+        }
+        response = requests.post(endpoint, json=body, timeout=timeout, headers=headers)
         if response.status_code >= 200 and response.status_code < 300:
             return json.loads(response.text) if response.text else None
         else:

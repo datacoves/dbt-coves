@@ -1,7 +1,7 @@
 """Holds config for dbt-coves."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -48,10 +48,25 @@ class GenerateMetadataModel(BaseModel):
     no_prompt: Optional[bool] = False
 
 
+class GenerateAirflowDagsModel(BaseModel):
+    from_path: Optional[str] = ""
+    validate_operators: Optional[bool] = False
+    generators_folder: Optional[str] = "dbt_coves.tasks.generate.airflow_generators"
+    generator_params: Optional[Dict[str, Any]] = {}
+    secrets_path: Optional[str] = ""
+    secrets_manager: Optional[str] = ""
+    secrets_url: Optional[str] = ""
+    secrets_token: Optional[str] = ""
+    secrets_project: Optional[str] = ""
+    secrets_tags: Optional[str] = ""
+    secrets_key: Optional[str] = ""
+
+
 class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
     properties: Optional[GeneratePropertiesModel] = GeneratePropertiesModel()
     metadata: Optional[GenerateMetadataModel] = GenerateMetadataModel()
+    airflow_dags: Optional[GenerateAirflowDagsModel] = GenerateAirflowDagsModel()
 
 
 class ExtractAirbyteModel(BaseModel):
@@ -165,6 +180,17 @@ class DbtCovesConfig:
         "generate.metadata.exclude_relations",
         "generate.metadata.destination",
         "generate.metadata.no_prompt",
+        "generate.airflow_dags.from_path",
+        "generate.airflow_dags.validate_operators",
+        "generate.airflow_dags.generators_folder",
+        "generate.airflow_dags.generator_params",
+        "generate.airflow_dags.secrets_path",
+        "generate.airflow_dags.secrets_manager",
+        "generate.airflow_dags.secrets_url",
+        "generate.airflow_dags.secrets_token",
+        "generate.airflow_dags.secrets_project",
+        "generate.airflow_dags.secrets_tags",
+        "generate.airflow_dags.secrets_key",
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",

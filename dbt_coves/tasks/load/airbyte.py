@@ -8,6 +8,7 @@ from rich.console import Console
 from slugify import slugify
 
 from dbt_coves.utils.api_caller import AirbyteApiCaller, AirbyteApiCallerException
+from dbt_coves.utils.secrets import load_secret_manager_data
 from dbt_coves.utils.tracking import trackable
 
 from .base import BaseLoadTask
@@ -92,7 +93,7 @@ class LoadAirbyteTask(BaseLoadTask):
             )
 
         if self.secrets_manager:
-            self.secrets_data = self._load_secret_data()
+            self.secrets_data = load_secret_manager_data()
 
         if self.secrets_path:
             self.secrets_path = os.path.abspath(self.secrets_path)

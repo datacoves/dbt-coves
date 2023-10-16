@@ -4,6 +4,7 @@ import questionary
 from rich.console import Console
 
 from dbt_coves.utils.api_caller import FivetranApiCaller
+from dbt_coves.utils.secrets import load_secret_manager_data
 from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import open_yaml
 
@@ -137,7 +138,7 @@ class LoadFivetranTask(BaseLoadTask):
             )
 
         if secrets_manager:
-            self.secret_manager_data = self._load_secret_data()
+            self.secret_manager_data = load_secret_manager_data()
 
         for fivetran_destination in self.extracted_destinations:
             if self.local_secrets:
