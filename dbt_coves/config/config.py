@@ -48,6 +48,11 @@ class GenerateMetadataModel(BaseModel):
     no_prompt: Optional[bool] = False
 
 
+class GenerateDocsModel(BaseModel):
+    merge_deferred: Optional[bool] = False
+    state: Optional[str] = ""
+
+
 class GenerateAirflowDagsModel(BaseModel):
     from_path: Optional[str] = ""
     validate_operators: Optional[bool] = False
@@ -66,6 +71,7 @@ class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
     properties: Optional[GeneratePropertiesModel] = GeneratePropertiesModel()
     metadata: Optional[GenerateMetadataModel] = GenerateMetadataModel()
+    docs: Optional[GenerateDocsModel] = GenerateDocsModel()
     airflow_dags: Optional[GenerateAirflowDagsModel] = GenerateAirflowDagsModel()
 
 
@@ -180,6 +186,8 @@ class DbtCovesConfig:
         "generate.metadata.exclude_relations",
         "generate.metadata.destination",
         "generate.metadata.no_prompt",
+        "generate.docs.merge_deferred",
+        "generate.docs.state",
         "generate.airflow_dags.from_path",
         "generate.airflow_dags.validate_operators",
         "generate.airflow_dags.generators_folder",

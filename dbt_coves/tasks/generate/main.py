@@ -3,6 +3,7 @@ from rich.console import Console
 from dbt_coves.tasks.base import BaseConfiguredTask
 
 from .airflow_dags import GenerateAirflowDagsTask
+from .docs import GenerateDocsTask
 from .metadata import GenerateMetadataTask
 from .properties import GeneratePropertiesTask
 from .sources import GenerateSourcesTask
@@ -24,6 +25,7 @@ class GenerateTask(BaseConfiguredTask):
         GenerateSourcesTask,
         GenerateMetadataTask,
         GenerateTemplatesTask,
+        GenerateDocsTask,
         GenerateAirflowDagsTask,
     ]
 

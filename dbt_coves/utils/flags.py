@@ -68,6 +68,10 @@ class DbtCovesFlags:
                 "destination": None,
                 "no_prompt": False,
             },
+            "docs": {
+                "merge_deferred": False,
+                "state": None,
+            },
             "airflow_dags": {
                 "from_path": None,
                 "validate_operators": False,
@@ -249,6 +253,13 @@ class DbtCovesFlags:
                     self.generate["metadata"]["destination"] = self.args.destination
                 if self.args.no_prompt:
                     self.generate["metadata"]["no_prompt"] = True
+
+            # generate docs
+            if self.args.cls.__name__ == "GenerateDocsTask":
+                if self.args.merge_deferred:
+                    self.generate["docs"]["merge_deferred"] = self.args.merge_deferred
+                if self.args.state:
+                    self.generate["docs"]["state"] = self.args.state
 
             # generate airflow_dags
             if self.args.cls.__name__ == "GenerateAirflowDagsTask":
