@@ -149,15 +149,15 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
 class AirbyteDbtGenerator(AirbyteGenerator, BaseDbtGenerator):
     def __init__(
         self,
-        airbyte_host: str = "http://localhost",
-        airbyte_port: str = "8000",
+        host: str = "http://localhost",
+        port: str = "8000",
         dbt_project_path: str = "",
         virtualenv_path: str = "",
         run_dbt_compile: bool = False,
         dbt_list_args: str = "",
         run_dbt_deps: bool = False,
     ):
-        AirbyteGenerator.__init__(self, airbyte_host, airbyte_port)
+        AirbyteGenerator.__init__(self, host, port)
         BaseDbtGenerator.__init__(
             self,
             dbt_project_path,
