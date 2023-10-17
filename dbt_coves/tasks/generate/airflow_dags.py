@@ -130,7 +130,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             dag_args += f'{indent * " "}{key}={dag_value},\n'
         return dag_args[:-2]
 
-    def build_dag_file(self, destination_path, dag_name: str, yml_dag: dict[str, Any]):
+    def build_dag_file(self, destination_path, dag_name: str, yml_dag: Dict[str, Any]):
         """
         Generate DAG Python file based on YML configuration
         """
@@ -267,7 +267,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         self.dag_output["imports"].append(f"from {module} import {_class}\n")
 
     def generate_task_output(
-        self, task_name: str, task_conf: dict[str, Any], individual_task: bool = True
+        self, task_name: str, task_conf: Dict[str, Any], individual_task: bool = True
     ):
         """
         Generate output for `tasks`: they can be individual (decorated with @type)
