@@ -5,11 +5,14 @@ from typing import Any, Dict
 
 import yaml
 from black import FileMode, format_str
+from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
 from dbt_coves.utils.secrets import load_secret_manager_data
 from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import deep_merge
+
+console = Console()
 
 
 class GenerateAirflowDagsException(Exception):
@@ -80,9 +83,24 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["airflow_dags"][key]
 
+    def _generate_dag(self, yml_filepath: Path):
+        self.build_dag_file(
+            destination_path=yml_filepath.with_suffix(".py"),
+            dag_name=yml_filepath.stem,
+            yml_dag=yaml.full_load(open(yml_filepath)),
+        )
+
+    def _inform_results(self):
+        if len(self.generation_results) > 0:
+            console.print(
+                "[green]:heavy_check_mark:[/green] Generated Airflow DAGs: "
+                f"[green]{', '.join(self.generation_results)}[/green]"
+            )
+
     @trackable
     def run(self):
-        self.ymls_path = self.get_config_value("from_path")
+        self.generation_results = set()
+        self.ymls_path = Path(self.get_config_value("from_path"))
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
@@ -90,15 +108,13 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
+        if self.ymls_path.is_dir():
+            for yml_filepath in glob(f"{self.ymls_path}/*.yml"):
+                self._generate_dag(Path(yml_filepath))
+        else:
+            self._generate_dag(self.ymls_path)
 
-        for yml_filepath in glob(f"{self.ymls_path}/*.yml"):
-            yml_as_path = Path(yml_filepath)
-
-            self.build_dag_file(
-                destination_path=yml_as_path.with_suffix(".py"),
-                dag_name=yml_as_path.stem,
-                yml_dag=yaml.full_load(open(yml_filepath)),
-            )
+        self._inform_results()
         return 0
 
     def dag_args_to_string(self, yaml, indent=2):
@@ -149,6 +165,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             black_formatted = format_str(final_output, mode=FileMode())
 
             f.write(black_formatted)
+            self.generation_results.add(dag_name)
 
     def _discover_secrets(self, yml_dag: Dict[str, Any]):
         """
