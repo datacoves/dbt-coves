@@ -57,7 +57,7 @@ class GenerateAirflowDagsModel(BaseModel):
     from_path: Optional[str] = ""
     validate_operators: Optional[bool] = False
     generators_folder: Optional[str] = "dbt_coves.tasks.generate.airflow_generators"
-    generator_params: Optional[Dict[str, Any]] = {}
+    generators_params: Optional[Dict[str, Any]] = {}
     secrets_path: Optional[str] = ""
     secrets_manager: Optional[str] = ""
     secrets_url: Optional[str] = ""
@@ -191,7 +191,7 @@ class DbtCovesConfig:
         "generate.airflow_dags.from_path",
         "generate.airflow_dags.validate_operators",
         "generate.airflow_dags.generators_folder",
-        "generate.airflow_dags.generator_params",
+        "generate.airflow_dags.generators_params",
         "generate.airflow_dags.secrets_path",
         "generate.airflow_dags.secrets_manager",
         "generate.airflow_dags.secrets_url",

@@ -50,7 +50,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             help="Custom DAG generators folder",
         )
         subparser.add_argument(
-            "--generator-params",
+            "--generators-params",
             help="Object with default values for the desired Generator(s), i.e {'AirbyteDbtGenerator' "
             "{'host': 'http://localhost'}}",
             type=str,
@@ -206,16 +206,16 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
 
     def _merge_generator_configs(self, tg_conf: Dict[str, Any], generator: str) -> Dict[str, Any]:
         """
-        Merge the generator configs between YML Dag and dbt-coves `generator_params` config
+        Merge the generator configs between YML Dag and dbt-coves `generators_params` config
         For example.
-        generator_params:
+        generators_params:
             AirbyteDbtGenerator:
                 host: "http://localhost"
                 port: 8000
         """
-        generator_params = self.get_config_value("generator_params")
-        coves_config_generator_params = generator_params.get(generator, {})
-        return deep_merge(tg_conf, coves_config_generator_params)
+        generators_params = self.get_config_value("generators_params")
+        coves_config_generators_params = generators_params.get(generator, {})
+        return deep_merge(tg_conf, coves_config_generators_params)
 
     def generate_task_group(self, tg_name: str, tg_conf: Dict[str, Any]):
         """

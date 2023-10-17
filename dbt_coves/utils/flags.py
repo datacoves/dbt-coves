@@ -76,7 +76,7 @@ class DbtCovesFlags:
                 "from_path": None,
                 "validate_operators": False,
                 "generators_folder": None,
-                "generator_params": None,
+                "generators_params": None,
                 "secrets_path": None,
                 "secrets_manager": None,
                 "secrets_url": None,
@@ -271,8 +271,8 @@ class DbtCovesFlags:
                     ] = self.args.validate_operators
                 if self.args.generators_folder:
                     self.generate["airflow_dags"]["generators_folder"] = self.args.generators_folder
-                if self.args.generator_params:
-                    self.generate["airflow_dags"]["generator_params"] = self.args.generator_params
+                if self.args.generators_params:
+                    self.generate["airflow_dags"]["generators_params"] = self.args.generators_params
                 if self.args.secrets_path:
                     self.generate["airflow_dags"]["secrets_path"] = self.args.secrets_path
                 if self.args.secrets_manager:

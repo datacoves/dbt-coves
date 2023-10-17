@@ -339,7 +339,27 @@ The basic structure of these YMLs must consist of:
       - `dependencies`: whether the task is dependent on another one(s)
       - any `key:value` pair of [Operator arguments](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/index.html)
 
-Basic YML DAG example:
+#### Airflow DAG Generators
+
+When a YML Dag `node` is of type `task_group`, **Generators** can be used instead of `Operators`.
+
+They are custom classes that receive YML `key:value` pairs and return one or more tasks for the respective task group. Any pair specified other than `type: task_group` will be passed to the specified `generator`, and it has the responsibility of returning N amount of `task_name = Operator(params)`.
+
+We provide some prebuilt Generators:
+
+- `AirbyteGenerator` creates `AirbyteTriggerSyncOperator` tasks, which are used in Airflow to sync Airbyte connections
+
+  - It must receive Airbyte's `host` and `port` and a `connection_ids` list of Airbyte Connections to Sync
+
+- `FivetranGenerator`: creates `FivetranOperator` tasks, which are used to trigger Fivetran sync operations from Airflow
+  - It must receive Fivetran's `api_key`, `api_secret` and a `connection_ids` list of Fivetran Connectors to Sync. It can optionally receive `wait_for_completion: true` and 2 tasks will be created for each sync: a `FivetranOperator` and it's respective `FivetranSensor` that monitors the status of the sync.
+- `AirbyteDbtGenerator` and `FivetranDbtGenerator`: instead of passing them Airbyte or Fivetran connections, they use dbt to discover those IDs. Apart from their parent Generators mandatory fields, they can receive:
+  - `dbt_project_path`: dbt/project/folder
+  - `virtualenv_path`: path to a virtualenv in case dbt has to be ran with another Python executable
+  - `run_dbt_compile`: true/false
+  - `run_dbt_deps`: true/false
+
+#### Basic YML DAG example:
 
 ```yaml
 description: "dbt-coves DAG"
@@ -350,32 +370,20 @@ default_args:
   start_date: 2023-01-01
 catchup: false
 nodes:
+  sync_airbyte:
+    type: task_group
+    tooltip: "Sync Airbyte connections"
+    generator: AirbyteGenerator
+    host: http://localhost
+    port: 8000
+    connection_ids:
+      - 28c7ff39-f675-456e-9620-71c4b6754f97
+      - 8f9e15b0-5f5f-4657-8191-162e28495ad9
   task_1:
-    type: task
-    operator: airflow.operators.bash.BashOperator
-    bash_command: "echo 'Hello Task_1'"
-  task_2:
-    type: task
     operator: airflow.operators.bash.BashOperator
     bash_command: "echo 'Hello Task_2'"
-    dependencies: ["task_1"]
+    dependencies: ["sync_airbyte"]
 ```
-
-#### Airflow DAG Generators
-
-When a YML Dag `node` is of type `task_group`, **Generators** can be used instead of `Operators`.
-
-They are custom classes that receive YML `key:value` pairs and return one or more tasks for the respective task group. Any pair specified other than `type: task_group` will be passed to the specified `generator`, and it has the responsibility of returning N amount of `task_name = Operator(params)`.
-
-We provide some Generators:
-
-- `AirbyteGenerator`: must receive Airbyte's `host` and `port` and optionally a `connection_ids` list of Airbyte Connections to Sync
-- `FivetranGenerator`: must receive Fivetran's `api_key` and `api_secret` and optionally a `connection_ids` list of Fivetran Connectors to Sync
-- `AirbyteDbtGenerator` and `FivetranDbtGenerator`: instead of passing them Airbyte or Fivetran connections, they use dbt to discover those IDs. Apart from their related Generators mandatory fields, they can receive:
-  - `dbt_project_path`: dbt/project/folder
-  - `virtualenv_path`: path to a virtualenv in case dbt has to be ran with another Python executable
-  - `run_dbt_compile`: true/false
-  - `run_dbt_deps`: true/false
 
 ##### Create your custom Generator
 
@@ -385,6 +393,17 @@ This Generator needs:
 
 - a `imports` attribute: a list of _module.class_ Operator of the tasks it outputs
 - a `generate_tasks` method that returns the set of `"task_name = Operator()"` strings to write as the task group tasks.
+
+```python
+class PostgresGenerator():
+    def __init__(self) -> None:
+        """ Any key:value pair in the YML Dag will get here """
+        self.imports = ["airflow.providers.postgres.operators.postgres.PostgresOperator"]
+
+    def generate_tasks(self):
+        """ Use your custom logic and return N `name = PostgresOperator()` strings """
+        raise NotImplementedError
+```
 
 ### airflow-dags generation arguments
 
@@ -401,7 +420,7 @@ This Generator needs:
 --generators-folder
 # Path to your Python module with custom Generators
 
---generator-params
+--generators-params
 # Object with default values for the desired Generator(s)
 # For example: {"AirbyteGenerator": {"host": "http://localhost", "port": "8000"}}
 

@@ -1,4 +1,3 @@
-from os import environ
 from typing import Any, Dict, List
 
 from slugify import slugify
@@ -6,8 +5,6 @@ from slugify import slugify
 from dbt_coves.utils.api_caller import FivetranApiCaller
 
 from .base import BaseDbtCovesTaskGenerator, BaseDbtGenerator
-
-TEST_MODE = bool(environ.get("TEST_MODE"))
 
 
 class FivetranGeneratorException(Exception):
@@ -29,15 +26,10 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         self.connection_ids = connection_ids
         self.wait_for_completion = wait_for_completion
         self.ignored_source_tables = ["fivetran_audit", "fivetran_audit_warning"]
-        if TEST_MODE:
-            self.fivetran_data = {}
-            self.fivetran_groups = {}
-            self.connectors_should_exist = False
-        else:
-            self.fivetran_api = FivetranApiCaller(api_key, api_secret)
-            self.fivetran_data = self.fivetran_api.fivetran_data
-            self.fivetran_groups = self.fivetran_api.fivetran_groups
-            self.connectors_should_exist = True
+        self.fivetran_api = FivetranApiCaller(api_key, api_secret)
+        self.fivetran_data = self.fivetran_api.fivetran_data
+        self.fivetran_groups = self.fivetran_api.fivetran_groups
+        self.connectors_should_exist = True
 
     def _get_fivetran_connector_name_for_id(self, connector_id):
         """

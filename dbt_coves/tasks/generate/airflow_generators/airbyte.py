@@ -1,4 +1,3 @@
-from os import environ
 from typing import Any, Dict, List
 
 from slugify import slugify
@@ -8,8 +7,6 @@ from dbt_coves.tasks.generate.airflow_generators.base import (
     BaseDbtGenerator,
 )
 from dbt_coves.utils.api_caller import AirbyteApiCaller
-
-TEST_MODE = bool(environ.get("TEST_MODE"))
 
 
 class AirbyteGeneratorException(Exception):
@@ -28,14 +25,9 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         self.connection_ids = connection_ids
         self.ignored_source_tables = []
         self.imports = ["airflow.providers.airbyte.operators.airbyte.AirbyteTriggerSyncOperator"]
-
-        if TEST_MODE:
-            self.airbyte_connections = []
-            self.connections_should_exist = False
-        else:
-            self.api_caller = AirbyteApiCaller(self.host, self.port)
-            self.airbyte_connections = self.api_caller.airbyte_connections_list
-            self.connections_should_exist = True
+        self.api_caller = AirbyteApiCaller(self.host, self.port)
+        self.airbyte_connections = self.api_caller.airbyte_connections_list
+        self.connections_should_exist = True
 
     def validate_ids_in_airbyte(self, connection_ids):
         """
