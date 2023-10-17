@@ -20,13 +20,13 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         api_key: str,
         api_secret: str,
         wait_for_completion: bool,
-        connector_ids: List[str] = [],
+        connection_ids: List[str] = [],
     ):
         self.imports = [
             "fivetran_provider.operators.fivetran.FivetranOperator",
             "fivetran_provider.sensors.fivetran.FivetranSensor",
         ]
-        self.connector_ids = connector_ids
+        self.connection_ids = connection_ids
         self.wait_for_completion = wait_for_completion
         self.ignored_source_tables = ["fivetran_audit", "fivetran_audit_warning"]
         if TEST_MODE:
@@ -57,7 +57,7 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         Return "variable = call" strings of Airflow Fivetran code
         """
         tasks = {}
-        for conn_id in self.connector_ids:
+        for conn_id in self.connection_ids:
             task_name = self._get_fivetran_connector_name_for_id(conn_id)
 
             trigger_id = task_name + "_trigger"
@@ -141,4 +141,4 @@ class FivetranDbtGenerator(FivetranGenerator, BaseDbtGenerator):
             run_dbt_deps,
             dbt_list_args,
         )
-        self.connector_ids = self.discover_dbt_connections()
+        self.connection_ids = self.discover_dbt_connections()

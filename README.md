@@ -95,7 +95,7 @@ dbt-coves setup precommit
 dbt-coves generate <resource>
 ```
 
-Where _\<resource\>_ could be _sources_, _properties_, _metadata_ or _docs_.
+Where _\<resource\>_ could be _sources_, _properties_, _metadata_, _docs_ or _airflow-dags_.
 
 ```console
 dbt-coves generate sources
@@ -317,6 +317,97 @@ You can use dbt-coves to improve the standard dbt docs generation process. It ge
 --state
 # Directory where your production catalog.json is located
 # Mandatory when using --merge-deferred
+```
+
+### Generate airflow-dags
+
+```console
+dbt-coves generate airflow-dags
+```
+
+Translate YML files into their Airflow Python code equivalent. With this, DAGs can be easily written with some `key:value` pairs.
+
+The basic structure of these YMLs must consist of:
+
+- Global configurations (description, schedule_interval, tags, catchup, etc.)
+- `default_args`
+- `nodes`: where tasks and task groups are defined
+  - each Node is a nested object, with it's `name` as key and it's configuration as values.
+    - this configuration must cover:
+      - `type`: 'task' or 'task_group'
+      - `operator`: Airflow operator that will run the tasks (full _module.class_ naming)
+      - `dependencies`: whether the task is dependent on another one(s)
+      - any `key:value` pair of [Operator arguments](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/index.html)
+
+Basic YML DAG example:
+
+```yaml
+description: "dbt-coves DAG"
+schedule_interval: "@hourly"
+tags:
+  - version_01
+default_args:
+  start_date: 2023-01-01
+catchup: false
+nodes:
+  task_1:
+    type: task
+    operator: airflow.operators.bash.BashOperator
+    bash_command: "echo 'Hello Task_1'"
+  task_2:
+    type: task
+    operator: airflow.operators.bash.BashOperator
+    bash_command: "echo 'Hello Task_2'"
+    dependencies: ["task_1"]
+```
+
+#### Airflow DAG Generators
+
+When a YML Dag `node` is of type `task_group`, **Generators** can be used instead of `Operators`.
+
+They are custom classes that receive YML `key:value` pairs and return one or more tasks for the respective task group. Any pair specified other than `type: task_group` will be passed to the specified `generator`, and it has the responsibility of returning N amount of `task_name = Operator(params)`.
+
+We provide some Generators:
+
+- `AirbyteGenerator`: must receive Airbyte's `host` and `port` and optionally a `connection_ids` list of Airbyte Connections to Sync
+- `FivetranGenerator`: must receive Fivetran's `api_key` and `api_secret` and optionally a `connection_ids` list of Fivetran Connectors to Sync
+- `AirbyteDbtGenerator` and `FivetranDbtGenerator`: instead of passing them Airbyte or Fivetran connections, they use dbt to discover those IDs. Apart from their related Generators mandatory fields, they can receive:
+  - `dbt_project_path`: dbt/project/folder
+  - `virtualenv_path`: path to a virtualenv in case dbt has to be ran with another Python executable
+  - `run_dbt_compile`: true/false
+  - `run_dbt_deps`: true/false
+
+##### Create your custom Generator
+
+You can create your own DAG Generator. Any `key:value` specified in the YML DAG will be passed to it's constructor.
+
+This Generator needs:
+
+- a `imports` attribute: a list of _module.class_ Operator of the tasks it outputs
+- a `generate_tasks` method that returns the set of `"task_name = Operator()"` strings to write as the task group tasks.
+
+### airflow-dags generation arguments
+
+`dbt-coves generate airflow-dags` supports the following args:
+
+```console
+--from-path
+# Path to the folder containing YML Dags, or the single file to generate.
+
+--validate-operators
+# Ensure Airflow operators are installed by trying to import them before writing to Python.
+# Flag: no value required
+
+--generators-folder
+# Path to your Python module with custom Generators
+
+--generator-params
+# Object with default values for the desired Generator(s)
+# For example: {"AirbyteGenerator": {"host": "http://localhost", "port": "8000"}}
+
+--secrets-path
+# Secret files location for DAG configuration, i.e. 'yml_path/secrets/'
+# Secret content must match the YML dag spec of `nodes -> node_name -> config`
 ```
 
 ## Extract configuration from Airbyte
