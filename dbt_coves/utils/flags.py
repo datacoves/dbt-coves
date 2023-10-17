@@ -76,7 +76,7 @@ class DbtCovesFlags:
                 "from_path": None,
                 "validate_operators": False,
                 "generators_folder": None,
-                "generator_params": {},
+                "generator_params": None,
                 "secrets_path": None,
                 "secrets_manager": None,
                 "secrets_url": None,

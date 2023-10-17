@@ -53,7 +53,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             "--generator-params",
             help="Object with default values for the desired Generator(s), i.e {'AirbyteDbtGenerator' "
             "{'host': 'http://localhost'}}",
-            type=dict,
+            type=str,
         )
         subparser.add_argument(
             "--secrets-path",
