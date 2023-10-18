@@ -347,11 +347,11 @@ They are custom classes that receive YML `key:value` pairs and return one or mor
 
 We provide some prebuilt Generators:
 
-- `AirbyteGenerator` creates `AirbyteTriggerSyncOperator` tasks, which are used in Airflow to sync Airbyte connections
+- `AirbyteGenerator` creates `AirbyteTriggerSyncOperator` tasks (one per Airbyte connection)
 
   - It must receive Airbyte's `host` and `port` and a `connection_ids` list of Airbyte Connections to Sync
 
-- `FivetranGenerator`: creates `FivetranOperator` tasks, which are used to trigger Fivetran sync operations from Airflow
+- `FivetranGenerator`: creates `FivetranOperator` tasks (one per Fivetran connection)
   - It must receive Fivetran's `api_key`, `api_secret` and a `connection_ids` list of Fivetran Connectors to Sync. It can optionally receive `wait_for_completion: true` and 2 tasks will be created for each sync: a `FivetranOperator` and it's respective `FivetranSensor` that monitors the status of the sync.
 - `AirbyteDbtGenerator` and `FivetranDbtGenerator`: instead of passing them Airbyte or Fivetran connections, they use dbt to discover those IDs. Apart from their parent Generators mandatory fields, they can receive:
   - `dbt_project_path`: dbt/project/folder
@@ -370,19 +370,20 @@ default_args:
   start_date: 2023-01-01
 catchup: false
 nodes:
-  sync_airbyte:
+  airbyte_dbt:
     type: task_group
-    tooltip: "Sync Airbyte connections"
-    generator: AirbyteGenerator
+    tooltip: "Sync dbt-related Airbyte connections"
+    generator: AirbyteDbtGenerator
     host: http://localhost
     port: 8000
-    connection_ids:
-      - 28c7ff39-f675-456e-9620-71c4b6754f97
-      - 8f9e15b0-5f5f-4657-8191-162e28495ad9
+    dbt_project_path: /path/to/dbt_project
+    virtualenv_path: /virtualenvs/dbt_160
+    run_dbt_compile: true
+    run_dbt_deps: false
   task_1:
     operator: airflow.operators.bash.BashOperator
-    bash_command: "echo 'Hello Task_2'"
-    dependencies: ["sync_airbyte"]
+    bash_command: "echo 'This runs after airbyte tasks'"
+    dependencies: ["airbyte_dbt"]
 ```
 
 ##### Create your custom Generator
