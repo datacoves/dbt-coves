@@ -18,6 +18,7 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         api_secret: str,
         wait_for_completion: bool,
         connection_ids: List[str] = [],
+        fivetran_conn_id: str = "",
     ):
         self.imports = [
             "fivetran_provider.operators.fivetran.FivetranOperator",
@@ -29,7 +30,8 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         self.fivetran_api = FivetranApiCaller(api_key, api_secret)
         self.fivetran_data = self.fivetran_api.fivetran_data
         self.fivetran_groups = self.fivetran_api.fivetran_groups
-        self.connectors_should_exist = True
+        self.connectors_should_exist = False
+        self.fivetran_conn_id = fivetran_conn_id
 
     def _get_fivetran_connector_name_for_id(self, connector_id):
         """
@@ -57,6 +59,7 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                 "task_id": trigger_id,
                 "connector_id": conn_id,
                 "do_xcom_push": True,
+                "fivetran_conn_id": self.fivetran_conn_id,
             }
             tasks[trigger_id] = self.generate_task(trigger_id, "FivetranOperator", **trigger_kwargs)
             if self.wait_for_completion:
@@ -66,6 +69,7 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                     "connector_id": conn_id,
                     "poke_interval": 60,
                     "xcom": f"{{ task_instance.xcom_pull('{trigger_id}', key='return_value') }}",
+                    "fivetran_conn_id": self.fivetran_conn_id,
                 }
                 tasks[sensor_id] = self.generate_task(sensor_id, "FivetranSensor", **sensor_kwargs)
 
@@ -123,8 +127,17 @@ class FivetranDbtGenerator(FivetranGenerator, BaseDbtGenerator):
         run_dbt_compile: bool = False,
         dbt_list_args: str = "",
         run_dbt_deps: bool = False,
+        fivetran_conn_id: str = "",
+        connection_ids: List[str] = [],
     ) -> Dict[str, Any]:
-        FivetranGenerator.__init__(self, api_key, api_secret, wait_for_completion)
+        FivetranGenerator.__init__(
+            self,
+            api_key=api_key,
+            api_secret=api_secret,
+            wait_for_completion=wait_for_completion,
+            fivetran_conn_id=fivetran_conn_id,
+            connection_ids=connection_ids,
+        )
         BaseDbtGenerator.__init__(
             self,
             dbt_project_path,

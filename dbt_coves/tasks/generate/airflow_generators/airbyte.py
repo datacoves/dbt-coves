@@ -19,15 +19,17 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         host: str = "http://localhost",
         port: str = "8000",
         connection_ids: List[str] = [],
+        airbyte_conn_id: str = "",
     ):
         self.host = host
         self.port = port
+        self.airbyte_conn_id = airbyte_conn_id
         self.connection_ids = connection_ids
         self.ignored_source_tables = []
         self.imports = ["airflow.providers.airbyte.operators.airbyte.AirbyteTriggerSyncOperator"]
         self.api_caller = AirbyteApiCaller(self.host, self.port)
         self.airbyte_connections = self.api_caller.airbyte_connections_list
-        self.connections_should_exist = True
+        self.connections_should_exist = False
 
     def validate_ids_in_airbyte(self, connection_ids):
         """
@@ -50,6 +52,7 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
             operator_kwargs = {
                 "task_id": task_name,
                 "connection_id": conn_id,
+                "airbyte_conn_id": self.airbyte_conn_id,
             }
             tasks[task_name] = self.generate_task(
                 task_name, "AirbyteTriggerSyncOperator", **operator_kwargs
@@ -148,8 +151,9 @@ class AirbyteDbtGenerator(AirbyteGenerator, BaseDbtGenerator):
         run_dbt_compile: bool = False,
         dbt_list_args: str = "",
         run_dbt_deps: bool = False,
+        airbyte_conn_id: str = "",
     ):
-        AirbyteGenerator.__init__(self, host, port)
+        AirbyteGenerator.__init__(self, host=host, port=port, airbyte_conn_id=airbyte_conn_id)
         BaseDbtGenerator.__init__(
             self,
             dbt_project_path,
