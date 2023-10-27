@@ -1,3 +1,4 @@
+import datetime
 import importlib
 from glob import glob
 from pathlib import Path
@@ -80,10 +81,16 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
     def __init__(self, *args, **kwargs):
         super().__init__(*args, **kwargs)
 
+    # Custom constructor to convert to datetime.datetime
+    def date_constructor(self, loader, node):
+        value = loader.construct_scalar(node)
+        return datetime.datetime.strptime(value, "%Y-%m-%d")
+
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["airflow_dags"][key]
 
     def _generate_dag(self, yml_filepath: Path):
+        yaml.FullLoader.add_constructor("tag:yaml.org,2002:timestamp", self.date_constructor)
         self.build_dag_file(
             destination_path=yml_filepath.with_suffix(".py"),
             dag_name=yml_filepath.stem,
@@ -104,6 +111,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
+        self.generated_groups = {}
         if self.secrets_path and self.secrets_manager:
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
@@ -124,9 +132,6 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         dag_args = ""
         for key, value in yaml.items():
             dag_value = f'"{value}"' if isinstance(value, str) else value
-            if "date" in key:
-                value = f"datetime({value})"
-
             dag_args += f'{indent * " "}{key}={dag_value},\n'
         return dag_args[:-2]
 
@@ -139,11 +144,9 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         default_args = {"default_args": yml_dag.pop("default_args", {})}
         self.dag_output = {
             "imports": [
-                "from airflow import DAG\n",
-                "from airflow.decorators import dag, task, task_group\n"
-                "from datetime import datetime\n",
+                "from airflow.decorators import dag, task_group\n",
+                "import datetime\n",
             ],
-            "globals": [f"default_args = {default_args}\n"],
             "dag": [
                 "@dag(\n",
                 f"{self.dag_args_to_string(default_args)},\n",
@@ -152,15 +155,20 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
                 f"def {dag_name}():\n",
             ],
         }
-
+        first_node = None
         for node_name, node_conf in nodes.items():
+            if not first_node:
+                first_node = node_name
             self.generate_node(node_name, node_conf)
 
+        self.dag_output["dag"].append(
+            f"{' '*4}{self.generated_groups.get(first_node, first_node)}\n"
+        )
+        self.dag_output["dag"].append(f"dag = {dag_name}()\n")
+
         with open(destination_path, "w") as f:
-            final_output = (
-                "".join(set(self.dag_output["imports"]))
-                + "".join(self.dag_output["globals"])
-                + "".join(self.dag_output["dag"])
+            final_output = "".join(set(self.dag_output["imports"])) + "".join(
+                self.dag_output["dag"]
             )
             black_formatted = format_str(final_output, mode=FileMode())
 
@@ -191,7 +199,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         if node_type == "task_group":
             self.generate_task_group(node_name, node_conf)
         if node_type == "task":
-            task_output = self.generate_task_output(node_name, node_conf, individual_task=True)
+            task_output = self.generate_task_output(node_name, node_conf)
             self.dag_output["dag"].extend(task_output)
 
     def get_generator_class(self, generator: str):
@@ -243,9 +251,12 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
                 task_group_output.append(f"{' ' *8}{' >> '.join(tasks.keys())}\n")
         elif tasks:
             for name, conf in tasks.items():
-                output = self.generate_task_output(name, conf, individual_task=False)
+                output = self.generate_task_output(name, conf, is_task_taskgroup=True)
                 task_group_output.extend(output)
 
+        tg_variable_name = f"tg_{tg_name}"
+        task_group_output.append(f"{' '*4}{tg_variable_name} = {tg_name}()\n")
+        self.generated_groups[tg_name] = tg_variable_name
         self.dag_output["dag"].extend(task_group_output)
 
     def _add_operator_import_to_output(self, operator: str):
@@ -267,32 +278,28 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         self.dag_output["imports"].append(f"from {module} import {_class}\n")
 
     def generate_task_output(
-        self, task_name: str, task_conf: Dict[str, Any], individual_task: bool = True
+        self, task_name: str, task_conf: Dict[str, Any], is_task_taskgroup=False
     ):
         """
         Generate output for `tasks`: they can be individual (decorated with @type)
         or part of a task-group
         """
+        indent = 8 if is_task_taskgroup else 4
         operator = task_conf.pop("operator")
         dependencies = task_conf.pop("dependencies", [])
         task_output = []
-        if individual_task:
-            task_output.extend(
-                [
-                    f"{' '*4}@task\n",
-                    f"{' '*4}def {task_name}():\n",
-                ]
-            )
-
         task_output.extend(
             [
-                f"{' '*8}{task_name} = {operator.split('.')[-1]}(\n",
-                f"{' '*8}{self.dag_args_to_string(task_conf)}\n",
-                f"{' '*8})\n",
+                f"{' '*indent}{task_name} = {operator.split('.')[-1]}(\n",
+                f"{' '*indent}task_id='{task_name}',\n",
+                f"{' '*indent}{self.dag_args_to_string(task_conf)}\n",
+                f"{' '*indent})\n",
             ]
         )
         if dependencies:
-            task_output.append(f"{' '*8}{task_name}.set_upstream([{','.join(dependencies)}])\n")
+            task_output.append(
+                f"{' '*indent}{task_name}.set_upstream([{','.join([self.generated_groups.get(d, d) for d in dependencies])}])\n"
+            )
 
         self._add_operator_import_to_output(operator)
         return task_output

@@ -66,6 +66,7 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                 # Sensor task - senses Fivetran connectors status
                 sensor_id = task_name + "_sensor"
                 sensor_kwargs = {
+                    "task_id": sensor_id,
                     "connector_id": conn_id,
                     "poke_interval": 60,
                     "xcom": f"{{ task_instance.xcom_pull('{trigger_id}', key='return_value') }}",
