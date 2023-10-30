@@ -1,7 +1,7 @@
 """Holds config for dbt-coves."""
 
 from pathlib import Path
-from typing import List, Optional
+from typing import Any, Dict, List, Optional
 
 from pydantic import BaseModel
 
@@ -34,7 +34,7 @@ class GenerateSourcesModel(BaseModel):
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
     no_prompt: Optional[bool] = False
-    flatten_json_fields: Optional[bool] = False
+    flatten_json_fields: Optional[str] = "ask"
     overwrite_staging_models: Optional[bool] = False
     skip_model_props: Optional[bool] = False
 
@@ -53,11 +53,26 @@ class GenerateDocsModel(BaseModel):
     state: Optional[str] = ""
 
 
+class GenerateAirflowDagsModel(BaseModel):
+    from_path: Optional[str] = ""
+    validate_operators: Optional[bool] = False
+    generators_folder: Optional[str] = "dbt_coves.tasks.generate.airflow_generators"
+    generators_params: Optional[Dict[str, Any]] = {}
+    secrets_path: Optional[str] = ""
+    secrets_manager: Optional[str] = ""
+    secrets_url: Optional[str] = ""
+    secrets_token: Optional[str] = ""
+    secrets_project: Optional[str] = ""
+    secrets_tags: Optional[str] = ""
+    secrets_key: Optional[str] = ""
+
+
 class GenerateModel(BaseModel):
     sources: Optional[GenerateSourcesModel] = GenerateSourcesModel()
     properties: Optional[GeneratePropertiesModel] = GeneratePropertiesModel()
     metadata: Optional[GenerateMetadataModel] = GenerateMetadataModel()
     docs: Optional[GenerateDocsModel] = GenerateDocsModel()
+    airflow_dags: Optional[GenerateAirflowDagsModel] = GenerateAirflowDagsModel()
 
 
 class ExtractAirbyteModel(BaseModel):
@@ -173,6 +188,17 @@ class DbtCovesConfig:
         "generate.metadata.no_prompt",
         "generate.docs.merge_deferred",
         "generate.docs.state",
+        "generate.airflow_dags.from_path",
+        "generate.airflow_dags.validate_operators",
+        "generate.airflow_dags.generators_folder",
+        "generate.airflow_dags.generators_params",
+        "generate.airflow_dags.secrets_path",
+        "generate.airflow_dags.secrets_manager",
+        "generate.airflow_dags.secrets_url",
+        "generate.airflow_dags.secrets_token",
+        "generate.airflow_dags.secrets_project",
+        "generate.airflow_dags.secrets_tags",
+        "generate.airflow_dags.secrets_key",
         "extract.airbyte.path",
         "extract.airbyte.host",
         "extract.airbyte.port",

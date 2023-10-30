@@ -46,7 +46,7 @@ class DbtCovesFlags:
                 "templates_folder": None,
                 "metadata": None,
                 "no_prompt": False,
-                "flatten_json_fields": False,
+                "flatten_json_fields": None,
                 "overwrite_staging_models": False,
                 "skip_model_props": False,
             },
@@ -71,6 +71,19 @@ class DbtCovesFlags:
             "docs": {
                 "merge_deferred": False,
                 "state": None,
+            },
+            "airflow_dags": {
+                "from_path": None,
+                "validate_operators": False,
+                "generators_folder": None,
+                "generators_params": None,
+                "secrets_path": None,
+                "secrets_manager": None,
+                "secrets_url": None,
+                "secrets_token": None,
+                "secrets_project": None,
+                "secrets_tags": None,
+                "secrets_key": None,
             },
         }
         self.extract = {
@@ -193,7 +206,9 @@ class DbtCovesFlags:
                 if self.args.no_prompt:
                     self.generate["sources"]["no_prompt"] = True
                 if self.args.flatten_json_fields:
-                    self.generate["sources"]["flatten_json_fields"] = True
+                    self.generate["sources"][
+                        "flatten_json_fields"
+                    ] = self.args.flatten_json_fields.lower()
                 if self.args.overwrite_staging_models:
                     self.generate["sources"]["overwrite_staging_models"] = True
                 if self.args.skip_model_props:
@@ -245,6 +260,33 @@ class DbtCovesFlags:
                     self.generate["docs"]["merge_deferred"] = self.args.merge_deferred
                 if self.args.state:
                     self.generate["docs"]["state"] = self.args.state
+
+            # generate airflow_dags
+            if self.args.cls.__name__ == "GenerateAirflowDagsTask":
+                if self.args.from_path:
+                    self.generate["airflow_dags"]["from_path"] = self.args.from_path
+                if self.args.validate_operators:
+                    self.generate["airflow_dags"][
+                        "validate_operators"
+                    ] = self.args.validate_operators
+                if self.args.generators_folder:
+                    self.generate["airflow_dags"]["generators_folder"] = self.args.generators_folder
+                if self.args.generators_params:
+                    self.generate["airflow_dags"]["generators_params"] = self.args.generators_params
+                if self.args.secrets_path:
+                    self.generate["airflow_dags"]["secrets_path"] = self.args.secrets_path
+                if self.args.secrets_manager:
+                    self.generate["airflow_dags"]["secrets_manager"] = self.args.secrets_manager
+                if self.args.secrets_url:
+                    self.generate["airflow_dags"]["secrets_url"] = self.args.secrets_url
+                if self.args.secrets_token:
+                    self.generate["airflow_dags"]["secrets_token"] = self.args.secrets_token
+                if self.args.secrets_project:
+                    self.generate["airflow_dags"]["secrets_project"] = self.args.secrets_project
+                if self.args.secrets_tags:
+                    self.generate["airflow_dags"]["secrets_tags"] = self.args.secrets_tags
+                if self.args.secrets_key:
+                    self.generate["airflow_dags"]["secrets_key"] = self.args.secrets_key
 
             # load airbyte
             if self.args.cls.__name__ == "LoadAirbyteTask":
