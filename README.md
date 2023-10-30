@@ -349,7 +349,7 @@ We provide some prebuilt Generators:
 
 - `AirbyteGenerator` creates `AirbyteTriggerSyncOperator` tasks (one per Airbyte connection)
 
-  - It must receive Airbyte's `host` and `port` and a `connection_ids` list of Airbyte Connections to Sync
+  - It must receive Airbyte's `host` and `port`, `airbyte_conn_id` (Airbyte's connection name on Airflow) and a `connection_ids` list of Airbyte Connections to Sync
 
 - `FivetranGenerator`: creates `FivetranOperator` tasks (one per Fivetran connection)
   - It must receive Fivetran's `api_key`, `api_secret` and a `connection_ids` list of Fivetran Connectors to Sync. It can optionally receive `wait_for_completion: true` and 2 tasks will be created for each sync: a `FivetranOperator` and it's respective `FivetranSensor` that monitors the status of the sync.
@@ -380,6 +380,7 @@ nodes:
     virtualenv_path: /virtualenvs/dbt_160
     run_dbt_compile: true
     run_dbt_deps: false
+    airbyte_conn_id: airbyte_connection
   task_1:
     operator: airflow.operators.bash.BashOperator
     bash_command: "echo 'This runs after airbyte tasks'"
