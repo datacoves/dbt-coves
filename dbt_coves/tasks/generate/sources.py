@@ -88,8 +88,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             "--flatten-json-fields",
             type=str,
             choices=["yes", "no", "ask"],
-            help="Action to perform when Flatten JSON fields exist:"
-            "'yes', 'no', 'ask' (per file)",
+            help="Action to perform when JSON fields exist:" "'yes', 'no', 'ask' (per file)",
         )
         subparser.add_argument(
             "--overwrite-staging-models",
