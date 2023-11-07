@@ -93,7 +93,7 @@ class LoadAirbyteTask(BaseLoadTask):
             )
 
         if self.secrets_manager:
-            self.secrets_data = load_secret_manager_data()
+            self.secrets_data = load_secret_manager_data(self)
 
         if self.secrets_path:
             self.secrets_path = os.path.abspath(self.secrets_path)

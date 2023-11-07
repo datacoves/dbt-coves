@@ -91,9 +91,8 @@ class LoadFivetranTask(BaseLoadTask):
         self.secrets_manager = self.get_config_value("secrets_manager")
         api_credentials_path = self.get_config_value("credentials")
         secrets_path = self.get_config_value("secrets_path")
-        secrets_manager = self.get_config_value("secrets_manager")
 
-        if secrets_path and secrets_manager:
+        if secrets_path and self.secrets_manager:
             raise FivetranLoaderException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
@@ -137,8 +136,8 @@ class LoadFivetranTask(BaseLoadTask):
                 str(self.secrets_path.absolute())
             )
 
-        if secrets_manager:
-            self.secret_manager_data = load_secret_manager_data()
+        if self.secrets_manager:
+            self.secret_manager_data = load_secret_manager_data(self)
 
         for fivetran_destination in self.extracted_destinations:
             if self.local_secrets:
