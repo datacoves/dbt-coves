@@ -69,7 +69,6 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                     "task_id": sensor_id,
                     "connector_id": conn_id,
                     "poke_interval": 60,
-                    "xcom": f"{{ task_instance.xcom_pull('{trigger_id}', key='return_value') }}",
                     "fivetran_conn_id": self.fivetran_conn_id,
                 }
                 tasks[sensor_id] = self.generate_task(sensor_id, "FivetranSensor", **sensor_kwargs)
