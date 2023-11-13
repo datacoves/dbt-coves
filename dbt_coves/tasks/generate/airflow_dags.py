@@ -39,6 +39,12 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             help="Folder where YML files will be read from",
         )
         subparser.add_argument(
+            "--dag-destination",
+            type=str,
+            required=False,
+            help="Folder where generated Python files will be stored",
+        )
+        subparser.add_argument(
             "--validate-operators",
             help="Ensure Airflow operators are installed by trying to import them "
             "prior to writing them with `generate airflow-dags`",
@@ -91,8 +97,12 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
 
     def _generate_dag(self, yml_filepath: Path):
         yaml.FullLoader.add_constructor("tag:yaml.org,2002:timestamp", self.date_constructor)
+        if self.destination_path:
+            dag_destination = self.destination_path.joinpath(f"{yml_filepath.stem}.py")
+        else:
+            dag_destination = yml_filepath.with_suffix(".py")
         self.build_dag_file(
-            destination_path=yml_filepath.with_suffix(".py"),
+            destination_path=dag_destination,
             dag_name=yml_filepath.stem,
             yml_dag=yaml.full_load(open(yml_filepath)),
         )
@@ -116,6 +126,10 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
+        self.destination_path = self.get_config_value("dag_destination")
+        if self.destination_path:
+            self.destination_path = Path(self.destination_path).resolve()
+            self.destination_path.mkdir(exist_ok=True, parents=True)
         if self.ymls_path.is_dir():
             for yml_filepath in glob(f"{self.ymls_path}/*.yml"):
                 self._generate_dag(Path(yml_filepath))
@@ -135,7 +149,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             dag_args += f'{indent * " "}{key}={dag_value},\n'
         return dag_args[:-2]
 
-    def build_dag_file(self, destination_path, dag_name: str, yml_dag: Dict[str, Any]):
+    def build_dag_file(self, destination_path: Path, dag_name: str, yml_dag: Dict[str, Any]):
         """
         Generate DAG Python file based on YML configuration
         """

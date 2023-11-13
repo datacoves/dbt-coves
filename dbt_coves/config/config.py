@@ -55,6 +55,7 @@ class GenerateDocsModel(BaseModel):
 
 class GenerateAirflowDagsModel(BaseModel):
     from_path: Optional[str] = ""
+    dag_destination: Optional[str] = ""
     validate_operators: Optional[bool] = False
     generators_folder: Optional[str] = "dbt_coves.tasks.generate.airflow_generators"
     generators_params: Optional[Dict[str, Any]] = {}
@@ -189,6 +190,7 @@ class DbtCovesConfig:
         "generate.docs.merge_deferred",
         "generate.docs.state",
         "generate.airflow_dags.from_path",
+        "generate.airflow_dags.dag_destination",
         "generate.airflow_dags.validate_operators",
         "generate.airflow_dags.generators_folder",
         "generate.airflow_dags.generators_params",
