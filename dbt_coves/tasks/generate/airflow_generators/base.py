@@ -157,7 +157,6 @@ class BaseDbtCovesTaskGenerator:
         Receive task_id, connection_id and Operator-string
         Returns Airflow call as a string
         """
-
         func_call = ", ".join(
             f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}" for k, v in kwargs.items()
         )
