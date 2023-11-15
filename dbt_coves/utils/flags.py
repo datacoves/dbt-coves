@@ -73,8 +73,8 @@ class DbtCovesFlags:
                 "state": None,
             },
             "airflow_dags": {
-                "from_path": None,
-                "target_path": None,
+                "yml_path": None,
+                "dag_path": None,
                 "validate_operators": False,
                 "generators_folder": None,
                 "generators_params": None,
@@ -264,10 +264,10 @@ class DbtCovesFlags:
 
             # generate airflow_dags
             if self.args.cls.__name__ == "GenerateAirflowDagsTask":
-                if self.args.from_path:
-                    self.generate["airflow_dags"]["from_path"] = self.args.from_path
-                if self.args.target_path:
-                    self.generate["airflow_dags"]["target_path"] = self.args.target_path
+                if self.args.yml_path:
+                    self.generate["airflow_dags"]["yml_path"] = self.args.yml_path
+                if self.args.dag_path:
+                    self.generate["airflow_dags"]["dag_path"] = self.args.dag_path
                 if self.args.validate_operators:
                     self.generate["airflow_dags"][
                         "validate_operators"
