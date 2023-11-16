@@ -28,7 +28,7 @@ def test_generate_airflow_dags(test_data_dir: Path, test_output_dir: Path):
         "airflow-dags",
         "--yml-path",
         test_data_dir,
-        "--dag-path",
+        "--dags-path",
         test_output_dir,
     ]
     subprocess.run(
@@ -38,5 +38,6 @@ def test_generate_airflow_dags(test_data_dir: Path, test_output_dir: Path):
     )
     dag_bag = DagBag(test_output_dir, include_examples=False)
     for file in os.listdir(test_output_dir):
-        os.remove(test_output_dir / file)
+        if file.endswith(".py"):
+            os.remove(test_output_dir / file)
     assert not dag_bag.import_errors
