@@ -33,7 +33,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             # help="Run dbt on an isolated environment",
             help="""Use this command to run dbt commands on special environments
             such as Airflow, or CI workers. When a read-write copy needs to be
-            created, its path can be found in DBT_COVES__CLONE_PATH.""",
+            created, its path can be found in /tmp/dbt_coves_dbt_clone_path.txt.""",
         )
         ext_subparser.set_defaults(cls=cls, which="dbt")
         cls.arg_parser = ext_subparser
@@ -69,7 +69,10 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         command = self.get_config_value("command")
         if self.is_readonly(project_dir):
-            tmp_dir = os.environ.get("DBT_COVES__CLONE_PATH")
+            path_file = Path("/tmp/dbt_coves_dbt_clone_path.txt")
+            tmp_dir = None
+            if path_file.exists():
+                tmp_dir = open(path_file).read().rstrip("\n")
             if not tmp_dir:
                 tmp_dir = tempfile.NamedTemporaryFile().name
             if not os.path.exists(tmp_dir):
@@ -84,7 +87,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                     console.print("Removing cloned read-write copy.")
                     shutil.rmtree(tmp_dir, ignore_errors=True)
                 else:
-                    os.environ["DBT_COVES__CLONE_PATH"] = tmp_dir
+                    console.print("Writing dbt clone path to '/tmp/dbt_coves_dbt_clone_path.txt'.")
+                    with open(path_file, "w") as f:
+                        f.write(tmp_dir)
         else:
             self.run_dbt(command, cwd=project_dir)
 
