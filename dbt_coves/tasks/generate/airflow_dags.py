@@ -33,13 +33,14 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             help="Generate Airflow Python DAGs from YML configuration files",
         )
         subparser.add_argument(
-            "--from-path",
+            "--yml-path",
+            "--yaml-path",
             type=str,
             required=False,
             help="Folder where YML files will be read from",
         )
         subparser.add_argument(
-            "--dag-destination",
+            "--dags-path",
             type=str,
             required=False,
             help="Folder where generated Python files will be stored",
@@ -97,8 +98,8 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
 
     def _generate_dag(self, yml_filepath: Path):
         yaml.FullLoader.add_constructor("tag:yaml.org,2002:timestamp", self.date_constructor)
-        if self.destination_path:
-            dag_destination = self.destination_path.joinpath(f"{yml_filepath.stem}.py")
+        if self.dags_path:
+            dag_destination = self.dags_path.joinpath(f"{yml_filepath.stem}.py")
         else:
             dag_destination = yml_filepath.with_suffix(".py")
         self.build_dag_file(
@@ -117,7 +118,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
     @trackable
     def run(self):
         self.generation_results = set()
-        self.ymls_path = Path(self.get_config_value("from_path"))
+        self.ymls_path = Path(self.get_config_value("yml_path"))
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
@@ -126,10 +127,10 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
-        self.destination_path = self.get_config_value("dag_destination")
-        if self.destination_path:
-            self.destination_path = Path(self.destination_path).resolve()
-            self.destination_path.mkdir(exist_ok=True, parents=True)
+        self.dags_path = self.get_config_value("dags_path")
+        if self.dags_path:
+            self.dags_path = Path(self.dags_path).resolve()
+            self.dags_path.mkdir(exist_ok=True, parents=True)
         if self.ymls_path.is_dir():
             for yml_filepath in glob(f"{self.ymls_path}/*.yml"):
                 self._generate_dag(Path(yml_filepath))

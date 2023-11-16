@@ -155,10 +155,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             return selected_properties
 
     def select_models(self, dbt_models):
-        dbt_models_manifest_naming = [
-            f"{model['resource_type']}.{model['package_name']}.{model['name']}"
-            for model in dbt_models
-        ]
+        dbt_models_manifest_naming = [m["unique_id"] for m in dbt_models]
 
         # Filter user selection
         if len(dbt_models_manifest_naming) == 1:
