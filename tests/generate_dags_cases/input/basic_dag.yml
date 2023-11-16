@@ -1,0 +1,22 @@
+description: "Blue / Green run"
+schedule_interval: "0 0 1 */12 *"
+tags:
+  - version_1
+default_args:
+  start_date: 2023-01-01
+catchup: false
+nodes:
+  transform:
+    type: task
+    operator: airflow.operators.bash.BashOperator
+    bash_command: "$DATACOVES__REPO_PATH/automate/blue_green_run.py -s 'tag:daily_run_airbyte+ tag:daily_run_fivetran+ -t prd'"
+  marketing_automation:
+    type: task
+    operator: airflow.operators.bash.BashOperator
+    bash_command: "echo 'send data to marketing tool'"
+    dependencies: ["transform"]
+  update_catalog:
+    type: task
+    operator: airflow.operators.bash.BashOperator
+    bash_command: "echo 'refresh data catalog'"
+    dependencies: ["transform"]
