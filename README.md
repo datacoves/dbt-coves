@@ -412,8 +412,11 @@ class PostgresGenerator():
 `dbt-coves generate airflow-dags` supports the following args:
 
 ```console
---from-path
-# Path to the folder containing YML Dags, or the single file to generate.
+--yml-path --yaml-path
+# Path to the folder containing YML files to translate into Python DAGs
+
+--dag-path
+# Path to the folder where Python DAGs will be generated.
 
 --validate-operators
 # Ensure Airflow operators are installed by trying to import them before writing to Python.
