@@ -259,17 +259,12 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         """
         Node generation entrypoint
         """
-        try:
-            node_type = node_conf.pop("type")
-            if node_type == "task_group":
-                self.generate_task_group(node_name, node_conf)
-            if node_type == "task":
-                task_output = self.generate_task_output(node_name, node_conf)
-                self.dag_output["dag"].extend(task_output)
-        except KeyError:
-            raise GenerateAirflowDagsException(
-                "No node-type provided, please specify node type: 'task' or 'task_group'"
-            )
+        node_type = node_conf.pop("type", "")
+        if node_type == "task_group":
+            self.generate_task_group(node_name, node_conf)
+        if node_type == "task":
+            task_output = self.generate_task_output(node_name, node_conf)
+            self.dag_output["dag"].extend(task_output)
 
     def get_generator_class(self, generator: str):
         """
