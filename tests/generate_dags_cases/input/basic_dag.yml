@@ -7,19 +7,15 @@ default_args:
 catchup: false
 custom_callbacks:
   on_success_callback:
-    module: callbacks.slack_messages
-    callable: inform_success
+    module: time
+    callable: sleep
     args:
-      connection_id: DATACOVES_SLACK
-      message: Custom YML success message
-      color: 0000FF
+      secs: 1
   on_failure_callback:
-    module: callbacks.slack_messages
-    callable: inform_failure
+    module: time
+    callable: sleep
     args:
-      connection_id: DATACOVES_SLACK
-      message: Custom YML error message
-      color: 9900FF
+      secs: 1
 nodes:
   transform:
     type: task
