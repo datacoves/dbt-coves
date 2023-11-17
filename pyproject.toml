@@ -45,6 +45,7 @@ copier = "6.0.0"
 gitpython = "^3.1.31"
 mixpanel = "^4.10.0"
 black = "^23.11.0"
+isort = "^5.12.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
@@ -123,7 +124,7 @@ line-length = 100
 target-version=['py37', 'py38', 'py39', 'py310', 'py311']
 
 [tool.isort]
-known_third_party=["black", "copier", "dbt", "dotenv", "git", "google", "jinja2", "mixpanel", "pretty_errors", "pydantic", "pyfiglet", "pytest", "questionary", "redshift_connector", "requests", "rich", "ruamel", "slugify", "snowflake", "yaml"]
+known_third_party=["black", "copier", "dbt", "dotenv", "git", "google", "isort", "jinja2", "mixpanel", "pretty_errors", "pydantic", "pyfiglet", "pytest", "questionary", "redshift_connector", "requests", "rich", "ruamel", "slugify", "snowflake", "yaml"]
 line_length=100
 multi_line_output=3
 include_trailing_comma=true

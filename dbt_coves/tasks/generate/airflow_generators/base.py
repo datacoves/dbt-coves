@@ -41,7 +41,7 @@ class BaseDbtGenerator:
             self.dbt_project_path = Path(self.dbt_project_path)
         else:
             self.dbt_project_path = (
-                Path(environ.get("DATACOVES__REPO_PATH", "/opt/airflow/dags/repo"))
+                Path(environ.get("DATACOVES__REPO_PATH", "/config/workspace"))
                 / self.dbt_project_path
             )
         cwd = self.dbt_project_path
