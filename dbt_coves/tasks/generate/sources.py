@@ -88,6 +88,7 @@ class GenerateSourcesTask(BaseGenerateTask):
             "--flatten-json-fields",
             type=str,
             choices=["yes", "no", "ask"],
+            default="ask",
             help="Action to perform when JSON fields exist:" "'yes', 'no', 'ask' (per file)",
         )
         subparser.add_argument(
