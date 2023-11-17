@@ -297,6 +297,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         tasks = tg_conf.pop("tasks", {})
 
         if generator:
+            console.print(f"Generating DAGs with [yellow]{generator}[/yellow]")
             generator_class = self.get_generator_class(generator)
             tg_conf = self._merge_generator_configs(tg_conf, generator)
             generator_instance = generator_class(**tg_conf)
