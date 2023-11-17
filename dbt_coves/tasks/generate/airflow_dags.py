@@ -1,9 +1,11 @@
 import datetime
 import importlib
+import textwrap
 from glob import glob
 from pathlib import Path
 from typing import Any, Dict
 
+import isort
 import yaml
 from black import FileMode, format_str
 from rich.console import Console
@@ -14,6 +16,20 @@ from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import deep_merge
 
 console = Console()
+
+AIRFLOW_K8S_CONFIG_TEMPLATE = textwrap.dedent(
+    """{{
+        "pod_override": k8s.V1Pod(
+            spec=k8s.V1PodSpec(
+                containers=[
+                    k8s.V1Container(
+                        {config}
+                    )
+                ]
+            )
+        ),
+}}"""
+)
 
 
 class GenerateAirflowDagsException(Exception):
@@ -146,9 +162,35 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         """
         dag_args = ""
         for key, value in yaml.items():
-            dag_value = f'"{value}"' if isinstance(value, str) else value
-            dag_args += f'{indent * " "}{key}={dag_value},\n'
+            if "custom_callbacks" in key:
+                for call in self.generate_custom_callbacks(yaml["custom_callbacks"]):
+                    dag_args += f"{indent * ' '}{call},\n"
+            else:
+                dag_value = (
+                    f'"{value}"' if (isinstance(value, str) and "config" not in key) else value
+                )
+                dag_args += f'{indent * " "}{key}={dag_value},\n'
         return dag_args[:-2]
+
+    def generate_custom_callbacks(self, custom_callbacks: Dict[str, Any]):
+        """
+        Generate imports, globals, and return DAG `callback=run_callback` settings
+        """
+        callback_calls = []
+        for callback, definition in custom_callbacks.items():
+            module = definition["module"]
+            callable = definition["callable"]
+            custom_callback_name = f"run_{callable}"
+            args = definition.get("args", {})
+            self.dag_output["imports"].append(f"from {module} import {callable}\n")
+            self.dag_output["globals"].extend(
+                [
+                    f"def {custom_callback_name}(context):\n",
+                    f"{2*' '}{callable}(context, {self.dag_args_to_string(args)})\n",
+                ]
+            )
+            callback_calls.append(f"{2 * ' '}{callback}={custom_callback_name}")
+        return callback_calls
 
     def build_dag_file(self, destination_path: Path, dag_name: str, yml_dag: Dict[str, Any]):
         """
@@ -159,17 +201,22 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         default_args = {"default_args": yml_dag.pop("default_args", {})}
         self.dag_output = {
             "imports": [
-                "from airflow.decorators import dag, task_group\n",
+                "from airflow.decorators import dag\n",
                 "import datetime\n",
             ],
+            "globals": [],
             "dag": [
                 "@dag(\n",
                 f"{self.dag_args_to_string(default_args)},\n",
+            ],
+        }
+        self.dag_output["dag"].extend(
+            [
                 f"{self.dag_args_to_string(yml_dag)}\n",
                 ")\n",
                 f"def {dag_name}():\n",
-            ],
-        }
+            ]
+        )
         first_node = None
         for node_name, node_conf in nodes.items():
             if not first_node:
@@ -182,12 +229,14 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         self.dag_output["dag"].append(f"dag = {dag_name}()\n")
 
         with open(destination_path, "w") as f:
-            final_output = "".join(set(self.dag_output["imports"])) + "".join(
-                self.dag_output["dag"]
+            final_output = (
+                "".join(set(self.dag_output["imports"]))
+                + "".join(self.dag_output["globals"])
+                + "".join(self.dag_output["dag"])
             )
             black_formatted = format_str(final_output, mode=FileMode())
-
-            f.write(black_formatted)
+            isort_formatted = isort.code(black_formatted)
+            f.write(isort_formatted)
             self.generation_results.add(dag_name)
 
     def _discover_secrets(self, yml_dag: Dict[str, Any]):
@@ -230,11 +279,6 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
     def _merge_generator_configs(self, tg_conf: Dict[str, Any], generator: str) -> Dict[str, Any]:
         """
         Merge the generator configs between YML Dag and dbt-coves `generators_params` config
-        For example.
-        generators_params:
-            AirbyteDbtGenerator:
-                host: "http://localhost"
-                port: 8000
         """
         generators_params = self.get_config_value("generators_params")
         coves_config_generators_params = generators_params.get(generator, {})
@@ -244,6 +288,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         """
         Generate Task Groups, using YML's `generator` or `tasks`
         """
+        self.dag_output["imports"].append("from airflow.decorators import task_group\n"),
         task_group_output = [
             f"{' '*4}@task_group(group_id='{tg_name}', tooltip='{tg_conf.pop('tooltip', '')}')\n",
             f"{' '*4}def {tg_name}():\n",
@@ -292,6 +337,37 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
 
         self.dag_output["imports"].append(f"from {module} import {_class}\n")
 
+    def generate_airflow_k8s_inner_conf(self, task_name: str, config: Dict[str, Any]):
+        """
+        Generate the multiline config section of Airflow's K8S_INNER_CONF template
+        """
+        k8s_resources_string_template = (
+            "resources=k8s.V1ResourceRequirements(requests={resources}),\n"
+        )
+        config_lines = f"name='{task_name}',\n "
+        for key, value in config.items():
+            if key == "resources":
+                config_lines += k8s_resources_string_template.format(resources=value)
+            else:
+                config_lines += f"{key}= '{value}',\n"
+        return config_lines
+
+    def create_and_append_k8s_config(self, task_name: str, task_conf: Dict[str, Any]):
+        """
+        Create config section of AIRFLOW_K8S_CONFIG template
+        Extend template into Globals section of the Python file
+        Update task_conf with new `executor_config=config` task arguments
+        """
+        config_global_name = f"{task_name.upper()}_CONFIG"
+        inner_config_lines = self.generate_airflow_k8s_inner_conf(
+            task_name, task_conf.pop("config")
+        )
+        self.dag_output["globals"].append(
+            f"{config_global_name}={AIRFLOW_K8S_CONFIG_TEMPLATE.format(config=inner_config_lines)}\n"
+        )
+        self.dag_output["imports"].append("from kubernetes.client import models as k8s\n")
+        task_conf["executor_config"] = config_global_name
+
     def generate_task_output(
         self, task_name: str, task_conf: Dict[str, Any], is_task_taskgroup=False
     ):
@@ -299,6 +375,8 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         Generate output for `tasks`: they can be individual (decorated with @type)
         or part of a task-group
         """
+        if "config" in task_conf:
+            self.create_and_append_k8s_config(task_name, task_conf)
         indent = 8 if is_task_taskgroup else 4
         operator = task_conf.pop("operator")
         dependencies = task_conf.pop("dependencies", [])
