@@ -10,7 +10,7 @@ import yaml
 from black import FileMode, format_str
 from rich.console import Console
 
-from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
+from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.secrets import load_secret_manager_data
 from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import deep_merge
@@ -36,7 +36,7 @@ class GenerateAirflowDagsException(Exception):
     pass
 
 
-class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
+class GenerateAirflowDagsTask(NonDbtBaseTask):
     """
     Task that generate sources, models and model properties automatically
     """
@@ -101,8 +101,8 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         subparser.set_defaults(cls=cls, which="airflow_dags")
         return subparser
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, args, config):
+        super().__init__(args, config)
 
     # Custom constructor to convert to datetime.datetime
     def date_constructor(self, loader, node):
@@ -123,13 +123,6 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             dag_name=yml_filepath.stem,
             yml_dag=yaml.full_load(open(yml_filepath)),
         )
-
-    def _inform_results(self):
-        if len(self.generation_results) > 0:
-            console.print(
-                "[green]:heavy_check_mark:[/green] Generated Airflow DAGs: "
-                f"[green]{', '.join(self.generation_results)}[/green]"
-            )
 
     @trackable
     def run(self):
@@ -152,8 +145,6 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
                 self._generate_dag(Path(yml_filepath))
         else:
             self._generate_dag(self.ymls_path)
-
-        self._inform_results()
         return 0
 
     def dag_args_to_string(self, yaml, indent=2):
@@ -218,6 +209,7 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
             ]
         )
         first_node = None
+        console.print(f"Generating DAG: [b][i]{dag_name}[/i][/b]")
         for node_name, node_conf in nodes.items():
             if not first_node:
                 first_node = node_name
@@ -297,7 +289,6 @@ class GenerateAirflowDagsTask(NonDbtBaseConfiguredTask):
         tasks = tg_conf.pop("tasks", {})
 
         if generator:
-            console.print(f"Generating DAGs with [yellow]{generator}[/yellow]")
             generator_class = self.get_generator_class(generator)
             tg_conf = self._merge_generator_configs(tg_conf, generator)
             generator_instance = generator_class(**tg_conf)
