@@ -61,7 +61,14 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                 "do_xcom_push": True,
                 "fivetran_conn_id": self.fivetran_conn_id,
             }
-            tasks[trigger_id] = self.generate_task(trigger_id, "FivetranOperator", **trigger_kwargs)
+            tasks[trigger_id] = {
+                "trigger": {
+                    "task_name": trigger_id,
+                    "task_call": self.generate_task(
+                        trigger_id, "FivetranOperator", **trigger_kwargs
+                    ),
+                }
+            }
             if self.wait_for_completion:
                 # Sensor task - senses Fivetran connectors status
                 sensor_id = task_name + "_sensor"
@@ -71,7 +78,10 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                     "poke_interval": 60,
                     "fivetran_conn_id": self.fivetran_conn_id,
                 }
-                tasks[sensor_id] = self.generate_task(sensor_id, "FivetranSensor", **sensor_kwargs)
+                tasks[trigger_id]["sensor"] = {
+                    "task_name": sensor_id,
+                    "task_call": self.generate_task(sensor_id, "FivetranSensor", **sensor_kwargs),
+                }
 
         return tasks
 
@@ -89,13 +99,14 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                         return True
         return False
 
-    def get_pipeline_connection_id(
+    def get_pipeline_connection_ids(
         self, source_db: str, source_schema: str, source_table: str
     ) -> str:
         """
         Given a table name, schema and db, returns the corresponding Fivetran Connection ID
         """
         fivetran_schema_db_naming = f"{source_schema}.{source_table}".lower()
+        connector_ids = set()
         for dest_dict in self.fivetran_data.values():
             # destination dict can be empty if Fivetran Destination is missing configuration or not yet tested
             if dest_dict and dest_dict.get("details"):
@@ -109,7 +120,9 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                                 source_schema.lower(),
                                 source_table.lower(),
                             ):
-                                return connector_id
+                                connector_ids.add(connector_id)
+        if connector_ids:
+            return connector_ids
         if self.connectors_should_exist:
             raise FivetranGeneratorException(
                 f"There is no Fivetran Connector for {source_db}.{fivetran_schema_db_naming}"
@@ -121,7 +134,7 @@ class FivetranDbtGenerator(FivetranGenerator, BaseDbtGenerator):
         self,
         api_key,
         api_secret,
-        wait_for_completion: bool = False,
+        wait_for_completion: bool = True,
         dbt_project_path: str = "",
         virtualenv_path: str = "",
         run_dbt_compile: bool = False,
