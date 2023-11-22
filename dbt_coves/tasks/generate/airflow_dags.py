@@ -296,11 +296,17 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 self._add_operator_import_to_output(operator)
             tasks = generator_instance.generate_tasks()
 
-            for task_call in tasks.values():
-                task_group_output.append(f"{' '*8}{task_call}\n")
+            for task_name, task_call in tasks.items():
+                if type(task_call) == str:
+                    task_group_output.append(f"{' '*8}{task_call}\n")
+                    task_group_output.append(f"{' '*8}{task_name}\n")
+                elif isinstance(task_call, dict):
+                    trigger = task_call.pop("trigger")
+                    sensor = task_call.pop("sensor")
+                    task_group_output.append(f"{' ' *8}{trigger['name']}\n")
+                    task_group_output.append(f"{' ' *8}{sensor['call']}\n")
+                    task_group_output.append(f"{' ' *8}{trigger['name']} >> {sensor['name']}\n")
 
-            if len(tasks) > 1:
-                task_group_output.append(f"{' ' *8}{' >> '.join(tasks.keys())}\n")
         elif tasks:
             for name, conf in tasks.items():
                 output = self.generate_task_output(name, conf, is_task_taskgroup=True)
