@@ -61,12 +61,10 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                 "do_xcom_push": True,
                 "fivetran_conn_id": self.fivetran_conn_id,
             }
-            tasks[trigger_id] = {
+            tasks[conn_id] = {
                 "trigger": {
-                    "task_name": trigger_id,
-                    "task_call": self.generate_task(
-                        trigger_id, "FivetranOperator", **trigger_kwargs
-                    ),
+                    "name": trigger_id,
+                    "call": self.generate_task(trigger_id, "FivetranOperator", **trigger_kwargs),
                 }
             }
             if self.wait_for_completion:
@@ -78,9 +76,9 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                     "poke_interval": 60,
                     "fivetran_conn_id": self.fivetran_conn_id,
                 }
-                tasks[trigger_id]["sensor"] = {
-                    "task_name": sensor_id,
-                    "task_call": self.generate_task(sensor_id, "FivetranSensor", **sensor_kwargs),
+                tasks[conn_id]["sensor"] = {
+                    "name": sensor_id,
+                    "call": self.generate_task(sensor_id, "FivetranSensor", **sensor_kwargs),
                 }
 
         return tasks
