@@ -52,7 +52,10 @@ class GenerateDocsTask(BaseConfiguredTask):
         return self.coves_config.integrated["generate"]["docs"][key]
 
     def _generate_dbt_docs(self):
-        output = run_and_capture_cwd(["dbt", "docs", "generate"], self.config.project_root)
+        command = ["dbt", "docs", "generate"]
+        if self.config.args.PROFILES_DIR:
+            command.extend(["--profiles-dir", self.config.args.PROFILES_DIR])
+        output = run_and_capture_cwd(command, self.config.project_root)
 
         if output.returncode == 0:
             deps_status = "[green]SUCCESS :heavy_check_mark:[/green]"
