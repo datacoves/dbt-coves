@@ -303,7 +303,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 elif isinstance(task_call, dict):
                     trigger = task_call.pop("trigger")
                     sensor = task_call.pop("sensor")
-                    task_group_output.append(f"{' ' *8}{trigger['name']}\n")
+                    task_group_output.append(f"{' ' *8}{trigger['call']}\n")
                     task_group_output.append(f"{' ' *8}{sensor['call']}\n")
                     task_group_output.append(f"{' ' *8}{trigger['name']} >> {sensor['name']}\n")
 
