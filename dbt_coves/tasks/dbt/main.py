@@ -3,6 +3,8 @@ import shlex
 import shutil
 import subprocess
 import tempfile
+import requests
+
 from pathlib import Path
 
 from rich.console import Console
@@ -108,10 +110,24 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in args])
         self.run_command(f"dbt {str_args}", cwd=cwd)
 
+        self.upload_manifest(cwd=cwd)
+
     def is_readonly(self, folder: str) -> bool:
         """Returns True if `folder` is readonly"""
         stat = os.statvfs(folder)
         return bool(stat.f_flag & os.ST_RDONLY) or not os.access(folder, os.W_OK)
+
+    def upload_manifest(self, cwd):
+        manifest_path = os.path.join(cwd, "target/manifest.json")
+
+        if os.path.isfile(manifest_path):
+            with open(manifest_path, "r") as file:
+                contents = file.read()
+                url = "http://localhost:4000/api/internal/manifests"
+                headers = {"Authorization": "Bearer dev_internal_bearer_token"}
+                payload = {"account_id": 1, "environment_id": 2, "dag_run_id": 3}
+                files = {"file": contents}
+                requests.post(url, headers=headers, data=payload, files=files)
 
     def run_command(
         self,

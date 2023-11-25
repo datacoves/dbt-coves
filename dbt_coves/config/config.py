@@ -143,6 +143,7 @@ class RunDbtModel(BaseModel):
     command: Optional[str] = ""
     project_dir: Optional[str] = ""
     virtualenv: Optional[str] = ""
+    upload_manifest: Optional[bool] = False
     cleanup: Optional[bool] = False
 
 
