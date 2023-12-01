@@ -110,7 +110,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in args])
         self.run_command(f"dbt {str_args}", cwd=cwd)
 
-        self.upload_manifest(cwd=cwd)
+        if self.get_config_value("upload_manifest"):
+            self.upload_manifest(cwd=cwd)
 
     def is_readonly(self, folder: str) -> bool:
         """Returns True if `folder` is readonly"""
@@ -121,10 +122,20 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         manifest_path = os.path.join(cwd, "target/manifest.json")
 
         if os.path.isfile(manifest_path):
+            url = self.get_config_value("upload_manifest_url")
+            bearer_token = self.get_config_value("upload_manifest_token")
+
+            if not url:
+                console.print("[red]No dbt upload_manifest_url specified[/red].")
+                return 0
+
+            if not bearer_token:
+                console.print("[red]No dbt upload_manifest_token specified[/red].")
+                return 0
+
             with open(manifest_path, "r") as file:
                 contents = file.read()
-                url = "http://localhost:4000/api/internal/manifests"
-                headers = {"Authorization": "Bearer dev_internal_bearer_token"}
+                headers = {"Authorization": f"Bearer {bearer_token}"}
                 payload = {"account_id": 1, "environment_id": 2, "dag_run_id": 3}
                 files = {"file": contents}
                 requests.post(url, headers=headers, data=payload, files=files)

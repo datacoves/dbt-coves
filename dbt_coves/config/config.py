@@ -144,6 +144,8 @@ class RunDbtModel(BaseModel):
     project_dir: Optional[str] = ""
     virtualenv: Optional[str] = ""
     upload_manifest: Optional[bool] = False
+    upload_manifest_url: Optional[str] = ""
+    upload_manifest_token: Optional[str] = ""
     cleanup: Optional[bool] = False
 
 
@@ -221,6 +223,7 @@ class DbtCovesConfig:
         "dbt.project_dir",
         "dbt.virtualenv",
         "dbt.cleanup",
+        "dbt.upload_manifest",
         "extract.fivetran.path",
         "extract.fivetran.api_key",
         "extract.fivetran.api_secret",
