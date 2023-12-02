@@ -110,7 +110,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in args])
         self.run_command(f"dbt {str_args}", cwd=cwd)
 
-        if self.get_config_value("upload_manifest"):
+        if True:
             self.upload_manifest(cwd=cwd)
 
     def is_readonly(self, folder: str) -> bool:
