@@ -1,4 +1,3 @@
-import glob
 import json
 import subprocess
 from pathlib import Path
@@ -127,18 +126,11 @@ class GeneratePropertiesTask(BaseGenerateTask):
         return list(manifest_data)
 
     def load_manifest_nodes(self):
-        path_pattern = f"{self.config.project_root}/**/manifest.json"
-        manifest_path = glob.glob(path_pattern)[0]
-
-        if not manifest_path:
-            raise GeneratePropertiesException("Could not find manifest.json")
-
-        with open(manifest_path, "r") as manifest:
-            manifest_data = manifest.read()
-
-        data = json.loads(manifest_data)
-
-        return data
+        try:
+            with open(f"{self.config.project_root}/target/manifest.json", "r") as manifest:
+                return json.load(manifest)
+        except FileNotFoundError:
+            raise GeneratePropertiesException("Could not find manifest.json in target/ folder")
 
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["properties"].get(key)
@@ -170,7 +162,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             "model_prop_recreate_all": False,
         }
         for model in models:
-            model_data = manifest["nodes"].get(model)
+            model_data = manifest.get("nodes", {}).get(model)
             if not model_data:
                 console.print(f"Model [red]{model}[/red] not found in manifest's nodes")
                 continue
