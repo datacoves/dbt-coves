@@ -271,6 +271,10 @@ class DbtCovesConfig:
             f"Integrated: Loading config at abs: {apath} relative: {config_path} cwd: {cwd} File exists? {config_path.exists()}"
         )
         config_copy = self._config.dict()
+        files = os.listdir()
+        files.sort()
+        for file in files:
+            console.print(file)
 
         for value in self.CLI_OVERRIDE_FLAGS:
             path_items = value.split(".")
