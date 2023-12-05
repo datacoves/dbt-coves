@@ -1,5 +1,6 @@
 """Holds config for dbt-coves."""
 
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -264,11 +265,9 @@ class DbtCovesConfig:
         """
         console.print(self._config_path)
         config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
+        apath = os.path.abspath(config_path)
         console.print(
-            f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
-        )
-        logger.info(
-            f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
+            f"Integrated: Loading config from {apath}. File exists? {config_path.exists()}"
         )
         config_copy = self._config.dict()
 
