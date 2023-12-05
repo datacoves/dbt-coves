@@ -10,6 +10,10 @@ from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.yaml import open_yaml
 
+from rich.console import Console
+
+console = Console()
+
 
 class GeneratePropertiesModel(BaseModel):
     templates_folder: Optional[str] = ".dbt_coves/templates"
@@ -293,6 +297,9 @@ class DbtCovesConfig:
             logger.debug("Trying to find .dbt_coves in current folder")
 
             config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
+            console.print(
+                f"Looking for config at {config_path}. File exists: {config_path.exists()}"
+            )
             if config_path.exists():
                 coves_config_dir = config_path
                 logger.debug(f"{coves_config_dir} exists and was retreived.")
