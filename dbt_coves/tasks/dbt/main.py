@@ -144,7 +144,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                     "run_id": run_id,
                 }
                 files = {"file": contents}
-                requests.post(url, headers=headers, data=payload, files=files)
+                req = requests.post(url, headers=headers, data=payload, files=files)
+                console.print(req.status_code)
+                console.print(req.content)
 
     def run_command(
         self,
