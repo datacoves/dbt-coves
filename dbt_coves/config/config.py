@@ -266,8 +266,9 @@ class DbtCovesConfig:
         console.print(self._config_path)
         config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
         apath = os.path.abspath(config_path)
+        cwd = os.getcwd()
         console.print(
-            f"Integrated: Loading config from {apath}. File exists? {config_path.exists()}"
+            f"Integrated: Loading config at abs: {apath} relative: {config_path} cwd: {cwd} File exists? {config_path.exists()}"
         )
         config_copy = self._config.dict()
 
