@@ -124,16 +124,6 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         if os.path.isfile(manifest_path):
             url = self.get_config_value("upload_manifest_url")
             bearer_token = self.get_config_value("upload_manifest_token")
-            dag_run_id = os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
-            airflow_env_slug = os.environ.get(
-                "AIRFLOW__KUBERNETES_ENVIRONMENT_VARIABLES__DATACOVES__ENVIRONMENT_SLUG"
-            )
-            env_slug = os.environ.get("DATACOVES__ENVIRONMENT_SLUG")
-            envs = []
-            for key, value in os.environ.items():
-                envs.append(f"{key}: {value}")
-
-            envs = "\n".join(envs)
 
             if not url:
                 console.print("[red]No dbt upload_manifest_url specified[/red].")
@@ -143,14 +133,15 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 console.print("[red]No dbt upload_manifest_token specified[/red].")
                 return 0
 
+            run_id = os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
+            env_slug = os.environ.get("DATACOVES__ENVIRONMENT_SLUG")
+
             with open(manifest_path, "r") as file:
                 contents = file.read()
                 headers = {"Authorization": f"Bearer {bearer_token}"}
                 payload = {
-                    "airflow_environment_slug": airflow_env_slug,
-                    "environment_id": env_slug,
-                    "dag_run_id": dag_run_id,
-                    "envs": envs,
+                    "environment_slug": env_slug,
+                    "run_id": run_id,
                 }
                 files = {"file": contents}
                 requests.post(url, headers=headers, data=payload, files=files)
