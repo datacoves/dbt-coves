@@ -111,6 +111,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         self.run_command(f"dbt {str_args}", cwd=cwd)
 
         if self.get_config_value("upload_manifest"):
+            console.print("Upload manifest enabled. Uploading...")
             self.upload_manifest(cwd=cwd)
         else:
             console.print("Upload manifest disabled. Skipping.")
@@ -137,6 +138,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
             run_id = os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
             env_slug = os.environ.get("DATACOVES__ENVIRONMENT_SLUG")
+            console.print(f"Uploading manifest for DAGRun {run_id} in Environment {env_slug}")
 
             with open(manifest_path, "r") as file:
                 contents = file.read()
