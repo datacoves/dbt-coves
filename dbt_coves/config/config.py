@@ -298,7 +298,10 @@ class DbtCovesConfig:
 
             config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
             console.print(
-                f"Looking for config at {config_path}. File exists: {config_path.exists()}"
+                f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
+            )
+            logger.info(
+                f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
             )
             if config_path.exists():
                 coves_config_dir = config_path
