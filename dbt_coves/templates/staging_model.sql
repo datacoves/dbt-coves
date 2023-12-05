@@ -23,6 +23,7 @@ final as (
         cast({{ key }}.{{ col }} as {{ cols[col]["type"].lower().replace("varchar", "string") }}) as {{ cols[col]["id"] }}{% if not loop.last or columns %},{% endif %}
   {%- endfor %}
 {%- endfor %}
+{%- else %}
 {%- for col in columns %}
         cast({{ col['name'] }} as {{ col["type"].lower().replace("varchar", "string") }}) as {{ col['id'] }}{% if not loop.last %},{% endif %}
 {%- endfor %}
