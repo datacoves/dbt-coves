@@ -112,6 +112,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         if self.get_config_value("upload_manifest"):
             self.upload_manifest(cwd=cwd)
+        else:
+            console.print("Upload manifest disabled. Skipping.")
 
     def is_readonly(self, folder: str) -> bool:
         """Returns True if `folder` is readonly"""
@@ -147,6 +149,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 req = requests.post(url, headers=headers, data=payload, files=files)
                 console.print(req.status_code)
                 console.print(req.content)
+        else:
+            console.print("Upload manifest enabled but no manifest.json found. Skipping.")
 
     def run_command(
         self,
