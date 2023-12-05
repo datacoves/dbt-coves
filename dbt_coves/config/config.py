@@ -254,6 +254,7 @@ class DbtCovesConfig:
         self._flags = flags
         self._task = self._flags.task
         self._config_path = self._flags.config_path
+        console.print(self._config_path)
         self._config = ConfigModel()
 
     @property
@@ -293,6 +294,7 @@ class DbtCovesConfig:
 
     def locate_config(self) -> None:
         # If path is relative to cwd
+        console.print("Loading the config")
         if self._config_path == Path(str()):
             logger.debug("Trying to find .dbt_coves in current folder")
 
@@ -310,6 +312,7 @@ class DbtCovesConfig:
 
     def load_config(self) -> None:
         is_project_valid = self.validate_dbt_project()
+        console.print(f"is_project_valid: {is_project_valid}")
         if is_project_valid:
             self.locate_config()
         else:
