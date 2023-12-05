@@ -262,6 +262,14 @@ class DbtCovesConfig:
         """
         Returns the values read from the config file plus the overrides from cli flags
         """
+        console.print(self._config_path)
+        config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
+        console.print(
+            f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
+        )
+        logger.info(
+            f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
+        )
         config_copy = self._config.dict()
 
         for value in self.CLI_OVERRIDE_FLAGS:

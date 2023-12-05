@@ -217,6 +217,7 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     DbtCovesTraceback(main_parser)
 
     coves_config = None
+    console.print(f"Task needs config: {task_cls.needs_config}")
     if task_cls.needs_config:
         coves_config = DbtCovesConfig(main_parser)
         coves_config.load_config()
