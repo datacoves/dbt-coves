@@ -94,12 +94,15 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
             if namespace_definition == "customformat":
                 return conn["namespaceFormat"].lower()
 
-    def get_pipeline_connection_id(self, db: str, schema: str, table: str) -> str:
+    def get_pipeline_connection_ids(self, db: str, schema: str, table: str) -> str:
         """
         Given a table name, schema and db, returns the corresponding Airbyte Connection ID
         """
         airbyte_tables = []
-        for conn in self.airbyte_connections:
+        connection_ids = set()
+        for conn in list(
+            filter(lambda conn: conn.get("status") == "active", self.airbyte_connections)
+        ):
             for stream in conn["syncCatalog"]["streams"]:
                 # look for the table
                 airbyte_table = stream["stream"]["name"].lower()
@@ -119,7 +122,9 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
                         airbyte_schema = self._get_connection_schema(conn, destination_config)
                         # and finally, match schema, if defined
                         if airbyte_schema == schema or not airbyte_schema:
-                            return conn.get("connectionId")
+                            connection_ids.add(conn["connectionId"])
+        if connection_ids:
+            return connection_ids
         if self.connections_should_exist:
             raise AirbyteGeneratorException(
                 f"Airbyte error: there are no connections for table {db}.{schema}.{table}. "

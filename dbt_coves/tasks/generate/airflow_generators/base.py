@@ -41,7 +41,7 @@ class BaseDbtGenerator:
             self.dbt_project_path = Path(self.dbt_project_path)
         else:
             self.dbt_project_path = (
-                Path(environ.get("DATACOVES__REPO_PATH", "/opt/airflow/dags/repo"))
+                Path(environ.get("DATACOVES__REPO_PATH", "/config/workspace"))
                 / self.dbt_project_path
             )
         cwd = self.dbt_project_path
@@ -136,9 +136,11 @@ class BaseDbtGenerator:
                 continue
             source_db = manifest_json["sources"][source]["database"].lower()
             source_schema = manifest_json["sources"][source]["schema"].lower()
-            connection_id = self.get_pipeline_connection_id(source_db, source_schema, source_table)
-            if connection_id:
-                connections_ids.add(connection_id)
+            connections_for_source = self.get_pipeline_connection_ids(
+                source_db, source_schema, source_table
+            )
+            if connections_for_source:
+                connections_ids.update(connections_for_source)
 
         return connections_ids
 

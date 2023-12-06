@@ -5,11 +5,27 @@ tags:
 default_args:
   start_date: 2023-01-01
 catchup: false
+custom_callbacks:
+  on_success_callback:
+    module: time
+    callable: sleep
+    args:
+      secs: 1
+  on_failure_callback:
+    module: time
+    callable: sleep
+    args:
+      secs: 1
 nodes:
   transform:
     type: task
     operator: airflow.operators.bash.BashOperator
     bash_command: "$DATACOVES__REPO_PATH/automate/blue_green_run.py -s 'tag:daily_run_airbyte+ tag:daily_run_fivetran+ -t prd'"
+    config:
+      image: datacoves/airflow-pandas:latest
+      resources:
+        memory: 8Gi
+        cpu: 1000m
   marketing_automation:
     type: task
     operator: airflow.operators.bash.BashOperator
