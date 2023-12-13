@@ -110,7 +110,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in args])
         self.run_command(f"dbt {str_args}", cwd=cwd)
 
-        if self.get_config_value("upload_manifest"):
+        if self.get_env("DATACOVES__UPLOAD_MANIFEST"):
             console.print("Upload manifest enabled. Uploading...")
             self.upload_manifest(cwd=cwd)
         else:
@@ -125,8 +125,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         manifest_path = os.path.join(cwd, "target/manifest.json")
 
         if os.path.isfile(manifest_path):
-            url = self.get_config_value("upload_manifest_url")
-            bearer_token = self.get_config_value("upload_manifest_token")
+            url = self.get_env("DATACOVES__UPLOAD_MANIFEST_URL")
+            bearer_token = self.get_env("DATACOVES__UPLOAD_MANIFEST_TOKEN")
 
             if not url:
                 console.print("[red]No dbt upload_manifest_url specified[/red].")
@@ -136,8 +136,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 console.print("[red]No dbt upload_manifest_token specified[/red].")
                 return 0
 
-            run_id = os.environ.get("AIRFLOW_CTX_DAG_RUN_ID")
-            env_slug = os.environ.get("DATACOVES__ENVIRONMENT_SLUG")
+            run_id = self.get_env("AIRFLOW_CTX_DAG_RUN_ID")
+            env_slug = self.get_env("DATACOVES__ENVIRONMENT_SLUG")
             console.print(f"Uploading manifest for DAGRun {run_id} in Environment {env_slug}")
 
             with open(manifest_path, "r") as file:
@@ -185,3 +185,6 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
     def get_config_value(self, key):
         return self.coves_config.integrated["dbt"][key]
+
+    def get_env(self, key):
+        return os.environ.get(key)
