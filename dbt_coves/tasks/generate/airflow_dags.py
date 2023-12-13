@@ -208,16 +208,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"def {dag_name}():\n",
             ]
         )
-        first_node = None
         console.print(f"Generating DAG: [b][i]{dag_name}[/i][/b]")
         for node_name, node_conf in nodes.items():
-            if not first_node:
-                first_node = node_name
             self.generate_node(node_name, node_conf)
 
-        self.dag_output["dag"].append(
-            f"{' '*4}{self.generated_groups.get(first_node, first_node)}\n"
-        )
         self.dag_output["dag"].append(f"dag = {dag_name}()\n")
 
         with open(destination_path, "w") as f:
@@ -296,14 +290,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 self._add_operator_import_to_output(operator)
             tasks = generator_instance.generate_tasks()
 
-            for task_name, task_call in tasks.items():
+            for task_call in tasks.values():
                 if type(task_call) == str:
                     task_group_output.append(f"{' '*8}{task_call}\n")
-                    task_group_output.append(f"{' '*8}{task_name}\n")
                 elif isinstance(task_call, dict):
                     trigger = task_call.pop("trigger")
                     sensor = task_call.pop("sensor")
-                    task_group_output.append(f"{' ' *8}{trigger['name']}\n")
+                    task_group_output.append(f"{' ' *8}{trigger['call']}\n")
                     task_group_output.append(f"{' ' *8}{sensor['call']}\n")
                     task_group_output.append(f"{' ' *8}{trigger['name']} >> {sensor['name']}\n")
 

@@ -173,16 +173,15 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             cmd_list = shlex.split(command)
 
         try:
-            output = subprocess.check_output(cmd_list, env=env, cwd=cwd)
+            output = subprocess.check_output(cmd_list, env=env, cwd=cwd, stderr=subprocess.PIPE)
             console.print(
                 f"{Text.from_ansi(output.decode())}\n"
                 f"[green]{command} :heavy_check_mark:[/green]"
             )
         except subprocess.CalledProcessError as e:
-            raise RunDbtException(
-                f"Exception ocurred running [red]{command}[/red]:\n"
-                f"{Text.from_ansi(e.output.decode())}"
-            )
+            formatted = f"{Text.from_ansi(e.stderr.decode())}"
+            e.stderr = f"Exception ocurred running [red]{command}[/red]:\n {formatted}"
+            raise
 
     def get_config_value(self, key):
         return self.coves_config.integrated["dbt"][key]

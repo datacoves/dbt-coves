@@ -2,6 +2,7 @@ import argparse
 import pathlib
 import sys
 import uuid
+from subprocess import CalledProcessError
 from typing import List
 
 import pyfiglet
@@ -252,6 +253,17 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
             "No [u]dbt_project.yml[/u] found. Current folder doesn't look like a dbt project."
         )
         return 1
+    except CalledProcessError as cpe:
+        import traceback
+
+        logger.debug(traceback.format_exc())
+        if cpe.returncode == 137:
+            console.print(
+                "[red]The process was killed by the OS due to running out of memory.[/red]"
+            )
+        console.print(f"[red]:cross_mark:[/red] {cpe.stderr}")
+
+        return cpe.returncode
     except Exception as ex:
         import traceback
 
