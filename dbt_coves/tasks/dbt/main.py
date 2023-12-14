@@ -191,8 +191,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 f"[green]{command} :heavy_check_mark:[/green]"
             )
         except subprocess.CalledProcessError as e:
-            formatted = f"{Text.from_ansi(e.stderr.decode())}"
-            e.stderr = f"Exception ocurred running [red]{command}[/red]:\n {formatted}"
+            formatted = f"{Text.from_ansi(e.stderr.decode()) if e.stderr else Text.from_ansi(e.stdout.decode())}"
+            e.stderr = f"An error has occurred running [red]{command}[/red]:\n{formatted}"
             raise
 
     def get_config_value(self, key):
