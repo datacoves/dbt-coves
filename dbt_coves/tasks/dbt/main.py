@@ -110,7 +110,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in args])
         self.run_command(f"dbt {str_args}", cwd=cwd)
 
-        if self.get_env("DATACOVES__UPLOAD_MANIFEST"):
+        if self.get_env("DATACOVES__UPLOAD_MANIFEST") in ["True", "true", True]:
             console.print("Upload manifest enabled. Uploading...")
             print("print: Upload manifest enabled. Uploading...")
             self.upload_manifest(cwd=cwd)
