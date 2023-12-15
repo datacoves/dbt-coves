@@ -112,11 +112,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         if self.get_env("DATACOVES__UPLOAD_MANIFEST") in ["True", "true", True]:
             console.print("Upload manifest enabled. Uploading...")
-            print("print: Upload manifest enabled. Uploading...")
             self.upload_manifest(cwd=cwd)
         else:
             console.print("Upload manifest disabled. Skipping.")
-            print("print: Upload manifest disabled. Skipping.")
 
     def is_readonly(self, folder: str) -> bool:
         """Returns True if `folder` is readonly"""
@@ -127,28 +125,24 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         manifest_path = os.path.join(cwd, "target/manifest.json")
 
         if os.path.isfile(manifest_path):
+            url = self.get_env("DATACOVES__UPLOAD_MANIFEST_URL")
             bearer_token = self.get_env("DATACOVES__UPLOAD_MANIFEST_TOKEN")
             env_slug = self.get_env("DATACOVES__ENVIRONMENT_SLUG")
-            url = self.get_env("DATACOVES__UPLOAD_MANIFEST_URL")
             run_id = self.get_env("AIRFLOW_CTX_DAG_RUN_ID")
 
             if not url:
                 console.print("[red]No dbt upload_manifest_url specified[/red].")
-                print("print: [red]No dbt upload_manifest_url specified[/red].")
-                return 0
+                return 1
 
             if not bearer_token:
                 console.print("[red]No dbt upload_manifest_token specified[/red].")
-                print("print: [red]No dbt upload_manifest_token specified[/red].")
-                return 0
+                return 1
 
             if not env_slug:
                 console.print("[red]No dbt env_slug specified[/red].")
-                print("print: [red]No dbt env_slug specified[/red].")
-                return 0
+                return 1
 
             console.print(f"Uploading manifest for DAGRun {run_id} in Environment {env_slug}")
-            print(f"print: Uploading manifest for DAGRun {run_id} in Environment {env_slug}")
 
             with open(manifest_path, "r") as file:
                 contents = file.read()
@@ -158,11 +152,17 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                     "run_id": run_id,
                 }
                 files = {"file": contents}
-                req = requests.post(url, headers=headers, data=payload, files=files)
-                console.print(req.status_code)
-                print(req.status_code)
-                console.print(req.content)
-                print(req.content)
+                req = requests.post(url, headers=headers, data=payload, files=files, timeout=5.0)
+
+                if req.status_code == 200:
+                    return 0
+                else:
+                    console.print(
+                        f"[red] Uploading the manifest failed with {req.status_code} [red]"
+                    )
+                    console.print(req.content)
+                    return 1
+
         else:
             console.print("Upload manifest enabled but no manifest.json found. Skipping.")
 

@@ -1,6 +1,5 @@
 """Holds config for dbt-coves."""
 
-import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -10,10 +9,6 @@ from dbt_coves.core.exceptions import MissingDbtProject
 from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.yaml import open_yaml
-
-from rich.console import Console
-
-console = Console()
 
 
 class GeneratePropertiesModel(BaseModel):
@@ -148,9 +143,6 @@ class RunDbtModel(BaseModel):
     command: Optional[str] = ""
     project_dir: Optional[str] = ""
     virtualenv: Optional[str] = ""
-    upload_manifest: Optional[bool] = False
-    upload_manifest_url: Optional[str] = ""
-    upload_manifest_token: Optional[str] = ""
     cleanup: Optional[bool] = False
 
 
@@ -228,7 +220,6 @@ class DbtCovesConfig:
         "dbt.project_dir",
         "dbt.virtualenv",
         "dbt.cleanup",
-        "dbt.upload_manifest",
         "extract.fivetran.path",
         "extract.fivetran.api_key",
         "extract.fivetran.api_secret",
@@ -255,7 +246,6 @@ class DbtCovesConfig:
         self._flags = flags
         self._task = self._flags.task
         self._config_path = self._flags.config_path
-        console.print(self._config_path)
         self._config = ConfigModel()
 
     @property
@@ -263,18 +253,7 @@ class DbtCovesConfig:
         """
         Returns the values read from the config file plus the overrides from cli flags
         """
-        console.print(self._config_path)
-        config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
-        apath = os.path.abspath(config_path)
-        cwd = os.getcwd()
-        console.print(
-            f"Integrated: Loading config at abs: {apath} relative: {config_path} cwd: {cwd} File exists? {config_path.exists()}"
-        )
         config_copy = self._config.dict()
-        files = os.listdir()
-        files.sort()
-        for file in files:
-            console.print(file)
 
         for value in self.CLI_OVERRIDE_FLAGS:
             path_items = value.split(".")
@@ -306,14 +285,10 @@ class DbtCovesConfig:
 
     def locate_config(self) -> None:
         # If path is relative to cwd
-        console.print("Loading the config")
         if self._config_path == Path(str()):
             logger.debug("Trying to find .dbt_coves in current folder")
 
             config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
-            console.print(
-                f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
-            )
             logger.info(
                 f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
             )
@@ -324,7 +299,6 @@ class DbtCovesConfig:
 
     def load_config(self) -> None:
         is_project_valid = self.validate_dbt_project()
-        console.print(f"is_project_valid: {is_project_valid}")
         if is_project_valid:
             self.locate_config()
         else:
