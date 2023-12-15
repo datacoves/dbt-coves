@@ -289,9 +289,6 @@ class DbtCovesConfig:
             logger.debug("Trying to find .dbt_coves in current folder")
 
             config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
-            logger.info(
-                f"Looking for the config.yml at {config_path}. File exists? {config_path.exists()}"
-            )
             if config_path.exists():
                 coves_config_dir = config_path
                 logger.debug(f"{coves_config_dir} exists and was retreived.")
