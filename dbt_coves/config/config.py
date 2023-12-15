@@ -1,5 +1,6 @@
 """Holds config for dbt-coves."""
 
+import os
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -288,7 +289,9 @@ class DbtCovesConfig:
         if self._config_path == Path(str()):
             logger.debug("Trying to find .dbt_coves in current folder")
 
-            config_path = Path().joinpath(self.DBT_COVES_CONFIG_FILEPATH)
+            config_path = Path(os.environ.get("DATACOVES__DBT_HOME", "")).joinpath(
+                self.DBT_COVES_CONFIG_FILEPATH
+            )
             if config_path.exists():
                 coves_config_dir = config_path
                 logger.debug(f"{coves_config_dir} exists and was retreived.")
