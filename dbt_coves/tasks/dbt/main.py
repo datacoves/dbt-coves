@@ -1,5 +1,4 @@
 import os
-import requests
 import shlex
 import shutil
 import subprocess
@@ -7,6 +6,7 @@ import tempfile
 
 from pathlib import Path
 
+import requests
 from rich.console import Console
 from rich.text import Text
 
