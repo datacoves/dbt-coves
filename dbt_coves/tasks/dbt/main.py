@@ -1,9 +1,9 @@
 import os
+import requests
 import shlex
 import shutil
 import subprocess
 import tempfile
-import requests
 
 from pathlib import Path
 
