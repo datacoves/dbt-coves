@@ -153,7 +153,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 files = {"file": contents}
                 req = requests.post(url, headers=headers, data=payload, files=files, timeout=5.0)
 
-                if req.status_code == 200:
+                if req.status_code == 201:
                     return 0
                 else:
                     console.print(
