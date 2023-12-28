@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import Any, Dict, List
 
 from slugify import slugify
@@ -46,7 +47,7 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         Return "variable = call" strings of Airflow Airbyte code
         """
         self.validate_ids_in_airbyte(self.connection_ids)
-        tasks = {}
+        tasks = OrderedDict()
         for conn_id in self.connection_ids:
             task_name = self._create_airbyte_connection_name_for_id(conn_id)
             operator_kwargs = {
