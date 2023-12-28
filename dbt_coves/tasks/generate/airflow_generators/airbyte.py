@@ -100,7 +100,7 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         Given a table name, schema and db, returns the corresponding Airbyte Connection ID
         """
         airbyte_tables = []
-        connection_ids = set()
+        connection_ids = []
         for conn in list(
             filter(lambda conn: conn.get("status") == "active", self.airbyte_connections)
         ):
@@ -122,8 +122,10 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
                     ):
                         airbyte_schema = self._get_connection_schema(conn, destination_config)
                         # and finally, match schema, if defined
-                        if airbyte_schema == schema or not airbyte_schema:
-                            connection_ids.add(conn["connectionId"])
+                        if (airbyte_schema == schema or not airbyte_schema) and conn.get(
+                            "connectionId"
+                        ) not in connection_ids:
+                            connection_ids.append(conn["connectionId"])
         if connection_ids:
             return connection_ids
         if self.connections_should_exist:

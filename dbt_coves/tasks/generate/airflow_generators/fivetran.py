@@ -105,7 +105,7 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         Given a table name, schema and db, returns the corresponding Fivetran Connection ID
         """
         fivetran_schema_db_naming = f"{source_schema}.{source_table}".lower()
-        connector_ids = set()
+        connector_ids = []
         for dest_dict in self.fivetran_data.values():
             # destination dict can be empty if Fivetran Destination is missing configuration or not yet tested
             if dest_dict and dest_dict.get("details"):
@@ -114,12 +114,15 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                     # find the appropiate Connector from destination connectors)
                     for connector_id, connector_data in dest_dict.get("connectors", {}).items():
                         for schema_id, schema_data in connector_data.get("schemas", {}).items():
-                            if self._dbt_schema_table_in_connector(
-                                {schema_id: schema_data},
-                                source_schema.lower(),
-                                source_table.lower(),
+                            if (
+                                self._dbt_schema_table_in_connector(
+                                    {schema_id: schema_data},
+                                    source_schema.lower(),
+                                    source_table.lower(),
+                                )
+                                and connector_id not in connector_ids
                             ):
-                                connector_ids.add(connector_id)
+                                connector_ids.append(connector_id)
         if connector_ids:
             return connector_ids
         if self.connectors_should_exist:
