@@ -128,7 +128,7 @@ class BaseDbtGenerator:
         if deploy_path:
             subprocess.run(["rm", "-rf", deploy_path], check=True)
 
-        connections_ids = set()
+        connections_ids = []
         for source in sources_list:
             # Transform the 'dbt source' into [db, schema, table]
             source_table = manifest_json["sources"][source]["identifier"].lower()
@@ -140,7 +140,9 @@ class BaseDbtGenerator:
                 source_db, source_schema, source_table
             )
             if connections_for_source:
-                connections_ids.update(connections_for_source)
+                for connection in connections_for_source:
+                    if connection not in connections_ids:
+                        connections_ids.append(connection)
 
         return connections_ids
 
