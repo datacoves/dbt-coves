@@ -1,3 +1,4 @@
+from collections import OrderedDict
 from typing import Any, Dict, List
 
 from slugify import slugify
@@ -50,7 +51,7 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         """
         Return "variable = call" strings of Airflow Fivetran code
         """
-        tasks = {}
+        tasks = OrderedDict()
         for conn_id in self.connection_ids:
             task_name = self._get_fivetran_connector_name_for_id(conn_id)
 
