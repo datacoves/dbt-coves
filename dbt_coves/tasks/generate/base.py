@@ -79,6 +79,7 @@ class BaseGenerateTask(BaseConfiguredTask):
             if not filtered_schemas:
                 console.print("No schemas selected")
                 exit()
+
         return filtered_schemas
 
     def select_schemas(self, schemas):
