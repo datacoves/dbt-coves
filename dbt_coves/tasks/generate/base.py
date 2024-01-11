@@ -68,8 +68,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if fnmatch.fnmatch(schema.lower(), selector.lower()):
                     filtered_schemas.append(schema)
                     break
-
-        filtered_schemas = list(set(filtered_schemas))
+        filtered_schemas = list({f'"{schema}"' for schema in filtered_schemas})
 
         if not filtered_schemas:
             schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
@@ -80,7 +79,6 @@ class BaseGenerateTask(BaseConfiguredTask):
             if not filtered_schemas:
                 console.print("No schemas selected")
                 exit()
-
         return filtered_schemas
 
     def select_schemas(self, schemas):
