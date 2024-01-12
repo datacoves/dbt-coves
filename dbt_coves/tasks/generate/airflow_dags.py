@@ -129,7 +129,6 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
     def run(self):
         self.generation_results = set()
         self.ymls_path = os.getenv("DATACOVES__DAGS__YML_PATH") or self.get_config_value("yml_path")
-
         self.dags_path = os.getenv("DATACOVES__DAGS__PATH") or self.get_config_value("dags_path")
         if not (self.ymls_path and self.dags_path):
             raise GenerateAirflowDagsException(
