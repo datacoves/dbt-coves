@@ -1,5 +1,6 @@
 import datetime
 import importlib
+import os
 import textwrap
 from glob import glob
 from pathlib import Path
@@ -127,7 +128,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
     @trackable
     def run(self):
         self.generation_results = set()
-        self.ymls_path = Path(self.get_config_value("yml_path"))
+        self.ymls_path = os.getenv("DATACOVES__DAGS__YML_PATH") or self.get_config_value("yml_path")
+
+        self.dags_path = os.getenv("DATACOVES__DAGS__PATH") or self.get_config_value("dags_path")
+        if not (self.ymls_path and self.dags_path):
+            raise GenerateAirflowDagsException(
+                "You must provide source (--yml-path) and destination (--dags-path) of DAGs"
+            )
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
@@ -136,10 +143,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
-        self.dags_path = self.get_config_value("dags_path")
-        if self.dags_path:
-            self.dags_path = Path(self.dags_path).resolve()
-            self.dags_path.mkdir(exist_ok=True, parents=True)
+        self.ymls_path = Path(self.ymls_path).resolve()
+        self.dags_path = Path(self.dags_path).resolve()
+        self.dags_path.mkdir(exist_ok=True, parents=True)
         if self.ymls_path.is_dir():
             for yml_filepath in glob(f"{self.ymls_path}/*.yml"):
                 self._generate_dag(Path(yml_filepath))
