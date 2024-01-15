@@ -1,6 +1,5 @@
 import datetime
 import importlib
-import os
 import textwrap
 from glob import glob
 from pathlib import Path
@@ -115,6 +114,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
 
     def _generate_dag(self, yml_filepath: Path):
         yaml.FullLoader.add_constructor("tag:yaml.org,2002:timestamp", self.date_constructor)
+        console.print(f"Generating DAG for [b][i]{yml_filepath.absolute()}[/i][/b]")
         if self.dags_path:
             dag_destination = self.dags_path.joinpath(f"{yml_filepath.stem}.py")
         else:
@@ -127,14 +127,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
 
     @trackable
     def run(self):
-        self.generation_results = set()
-        self.ymls_path = os.getenv("DATACOVES__AIRFLOW_DAGS_YML_PATH") or self.get_config_value(
-            "yml_path"
-        )
-        self.dags_path = os.getenv("DATACOVES__AIRFLOW_DAGS_PATH") or self.get_config_value(
-            "dags_path"
-        )
-        if not (self.ymls_path and self.dags_path):
+        ymls_path = self.get_config_value("yml_path")
+        dags_path = self.get_config_value("dags_path")
+        if not (ymls_path and dags_path):
             raise GenerateAirflowDagsException(
                 "You must provide source (--yml-path) and destination (--dags-path) of DAGs"
             )
@@ -146,8 +141,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
-        self.ymls_path = Path(self.ymls_path).resolve()
-        self.dags_path = Path(self.dags_path).resolve()
+        self.ymls_path = Path(ymls_path).resolve()
+        self.dags_path = Path(dags_path).resolve()
         self.dags_path.mkdir(exist_ok=True, parents=True)
         if self.ymls_path.is_dir():
             for yml_filepath in glob(f"{self.ymls_path}/*.yml"):
@@ -197,7 +192,12 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         Generate DAG Python file based on YML configuration
         """
         yml_dag = self._discover_secrets(yml_dag)
-        nodes = yml_dag.pop("nodes", {})
+        try:
+            nodes = yml_dag.pop("nodes")
+        except KeyError:
+            raise GenerateAirflowDagsException(
+                f"YML file [red][b][i]{dag_name}[/i][/b][/red] must contain a 'nodes' section"
+            )
         default_args = {"default_args": yml_dag.pop("default_args", {})}
         self.dag_output = {
             "imports": [
@@ -217,7 +217,6 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"def {dag_name}():\n",
             ]
         )
-        console.print(f"Generating DAG: [b][i]{dag_name}[/i][/b]")
         for node_name, node_conf in nodes.items():
             self.generate_node(node_name, node_conf)
 
@@ -229,10 +228,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 + "".join(self.dag_output["globals"])
                 + "".join(self.dag_output["dag"])
             )
-            black_formatted = format_str(final_output, mode=FileMode())
-            isort_formatted = isort.code(black_formatted)
-            f.write(isort_formatted)
-            self.generation_results.add(dag_name)
+            try:
+                black_formatted = format_str(final_output, mode=FileMode())
+                isort_formatted = isort.code(black_formatted)
+                f.write(isort_formatted)
+            except Exception:
+                f.write(final_output)
+                console.print(f"DAG {dag_name} resulted in an invalid DAG, writing without format")
 
     def _discover_secrets(self, yml_dag: Dict[str, Any]):
         """
@@ -254,7 +256,12 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Node generation entrypoint
         """
-        node_type = node_conf.pop("type", "")
+        try:
+            node_type = node_conf.pop("type")
+        except KeyError:
+            raise GenerateAirflowDagsException(
+                f"Node [red][b][i]{node_name}[/i][/b][/red] has no [i]'task'[/i] or [i]'task_group'[/i] type"
+            )
         if node_type == "task_group":
             self.generate_task_group(node_name, node_conf)
         if node_type == "task":
@@ -378,7 +385,12 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         if "config" in task_conf:
             self.create_and_append_k8s_config(task_name, task_conf)
         indent = 8 if is_task_taskgroup else 4
-        operator = task_conf.pop("operator")
+        try:
+            operator = task_conf.pop("operator")
+        except KeyError:
+            raise GenerateAirflowDagsException(
+                f"Task [red][b][i]{task_name}[/i][/b][/red] has no [i]'operator'[/i]"
+            )
         dependencies = task_conf.pop("dependencies", [])
         task_output = []
         task_output.extend(
