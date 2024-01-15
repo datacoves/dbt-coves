@@ -1,6 +1,7 @@
 """Holds config for dbt-coves."""
 
 import os
+import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -272,8 +273,38 @@ class DbtCovesConfig:
         if self._config_path:
             yaml_dict = open_yaml(self._config_path) or {}
 
+            # Replace environment variable placeholders
+            yaml_dict = self.replace_env_vars(yaml_dict)
+
             # use pydantic to shape and validate
             self._config = ConfigModel(**yaml_dict)
+
+    def replace_env_vars(self, yaml_dict: Dict) -> Dict:
+        # Define a regular expression pattern to find placeholders
+        pattern = r"\{\{\s*env_var\(['\"]([^'\"]+)['\"]\)\s*\}\}"
+
+        # Iterate through the YAML dictionary and replace placeholders
+        def replace(match):
+            env_var_name = match.group(1)
+            try:
+                return os.environ[env_var_name]
+            except KeyError:
+                raise ValueError(
+                    f"Configuration environment variable [red]{env_var_name}[/red] not found"
+                )
+
+        def replace_recursively(obj):
+            if isinstance(obj, dict):
+                for key, value in obj.items():
+                    obj[key] = replace_recursively(value)
+            elif isinstance(obj, list):
+                for i, item in enumerate(obj):
+                    obj[i] = replace_recursively(item)
+            elif isinstance(obj, str):
+                obj = re.sub(pattern, replace, obj)
+            return obj
+
+        return replace_recursively(yaml_dict)
 
     def validate_dbt_project(self):
         if not self._flags.task_cls.needs_dbt_project:
