@@ -131,7 +131,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         dags_path = self.get_config_value("dags_path")
         if not (ymls_path and dags_path):
             raise GenerateAirflowDagsException(
-                "You must provide source (--yml-path) and destination (--dags-path) of DAGs"
+                "You must provide source ([i]--yml-path[/i]) and destination ([i]--dags-path[/i]) of DAGs"
             )
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
@@ -191,13 +191,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate DAG Python file based on YML configuration
         """
-        yml_dag = self._discover_secrets(yml_dag)
         try:
             nodes = yml_dag.pop("nodes")
         except KeyError:
             raise GenerateAirflowDagsException(
                 f"YML file [red][b][i]{dag_name}[/i][/b][/red] must contain a 'nodes' section"
             )
+        yml_dag = self._discover_secrets(yml_dag)
         default_args = {"default_args": yml_dag.pop("default_args", {})}
         self.dag_output = {
             "imports": [
@@ -234,7 +234,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f.write(isort_formatted)
             except Exception:
                 f.write(final_output)
-                console.print(f"DAG {dag_name} resulted in an invalid DAG, writing without format")
+                console.print(f"DAG {dag_name} resulted in an invalid DAG, skipping")
 
     def _discover_secrets(self, yml_dag: Dict[str, Any]):
         """
