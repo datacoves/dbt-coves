@@ -669,6 +669,19 @@ load:
     # 'api_key' + 'api_secret' are mutually exclusive with 'credentials', use one or the other
 ```
 
+## env_var
+
+From `dbt-coves 1.6.28` onwards, you can consume environment variables in you config file using `{{env_var(VAR_NAME)}}`. For example:
+
+```yaml
+generate:
+  sources:
+    database: "{{env_var(MAIN_DATABASE)}}"
+    schemas:
+      - "{{env_var(DEV_SCHEMA)}}"
+      - "{{env_var(STAGING_SCHEMA)}}"
+```
+
 ## Telemetry
 
 dbt-coves has telemetry built in to help the maintainers from Datacoves understand which commands are being used and which are not to prioritize future development of dbt-coves. We do not track credentials nor details of your dbt execution such as model names. The one detail we do use related to dbt is the anonymous user_id to help us identify distinct users.
