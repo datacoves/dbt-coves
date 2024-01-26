@@ -114,16 +114,19 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
 
     def _generate_dag(self, yml_filepath: Path):
         yaml.FullLoader.add_constructor("tag:yaml.org,2002:timestamp", self.date_constructor)
-        console.print(f"Generating DAG for [b][i]{yml_filepath.absolute()}[/i][/b]")
-        if self.dags_path:
-            dag_destination = self.dags_path.joinpath(f"{yml_filepath.stem}.py")
-        else:
-            dag_destination = yml_filepath.with_suffix(".py")
-        self.build_dag_file(
-            destination_path=dag_destination,
-            dag_name=yml_filepath.stem,
-            yml_dag=yaml.full_load(open(yml_filepath)),
-        )
+        console.print(f"Generating [b][i]{yml_filepath.stem}[/i][/b]")
+        try:
+            if self.dags_path:
+                dag_destination = self.dags_path.joinpath(f"{yml_filepath.stem}.py")
+            else:
+                dag_destination = yml_filepath.with_suffix(".py")
+            self.build_dag_file(
+                destination_path=dag_destination,
+                dag_name=yml_filepath.stem,
+                yml_dag=yaml.full_load(open(yml_filepath)),
+            )
+        except GenerateAirflowDagsException as e:
+            console.print(f"[red]{e}[/red]")
 
     @trackable
     def run(self):
@@ -197,6 +200,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             raise GenerateAirflowDagsException(
                 f"YML file [red][b][i]{dag_name}[/i][/b][/red] must contain a 'nodes' section"
             )
+            return
         yml_dag = self._discover_secrets(yml_dag)
         default_args = {"default_args": yml_dag.pop("default_args", {})}
         self.dag_output = {
@@ -232,9 +236,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 black_formatted = format_str(final_output, mode=FileMode())
                 isort_formatted = isort.code(black_formatted)
                 f.write(isort_formatted)
-            except Exception:
+            except Exception as exc:
                 f.write(final_output)
-                console.print(f"DAG {dag_name} resulted in an invalid DAG, skipping")
+                console.print(f"DAG {dag_name} resulted in an invalid DAG, skipping. Error: {exc}")
 
     def _discover_secrets(self, yml_dag: Dict[str, Any]):
         """
