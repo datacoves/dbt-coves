@@ -6,7 +6,7 @@ authors = ["Datacoves <hello@datacoves.com>"]
 license = "Apache 2.0"
 readme = "README.md"
 classifiers = [
-    "Development Status :: 3 - Alpha",
+    "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Information Technology",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Code Generators",
@@ -20,7 +20,7 @@ classifiers = [
 include = ["templates/*"]
 keywords = ["data engineering", "analytics engineering", "dbt", 'ETL', "data modelling"]
 homepage = "https://datacoves.com"
-documentation = "https://datacoves.gitbook.io/dbt-coves/"
+documentation = "https://github.com/datacoves/dbt-coves/blob/main/README.md"
 repository = "https://github.com/datacoves/dbt-coves"
 
 [tool.poetry.dependencies]
