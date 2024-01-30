@@ -256,7 +256,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         import traceback
 
         logger.debug(traceback.format_exc())
-        if cpe.returncode == 137:
+        if cpe.returncode in [137, 247]:
             console.print(
                 "[red]The process was killed by the OS due to running out of memory.[/red]"
             )
