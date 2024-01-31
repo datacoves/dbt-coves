@@ -68,7 +68,10 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if fnmatch.fnmatch(schema.lower(), selector.lower()):
                     filtered_schemas.append(schema)
                     break
-        filtered_schemas = list({f'"{schema}"' for schema in filtered_schemas})
+        if "snowflake" in self.adapter.type().lower():
+            filtered_schemas = list({f'"{schema}"' for schema in filtered_schemas})
+        else:
+            filtered_schemas = list(set(filtered_schemas))
 
         if not filtered_schemas:
             schema_nlg = f"schema{'s' if len(schema_name_selectors) > 1 else ''}"
