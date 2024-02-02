@@ -194,14 +194,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate DAG Python file based on YML configuration
         """
+        yml_dag = self._discover_secrets(yml_dag)
         try:
             nodes = yml_dag.pop("nodes")
         except KeyError:
             raise GenerateAirflowDagsException(
                 f"YML file [red][b][i]{dag_name}[/i][/b][/red] must contain a 'nodes' section"
             )
-            return
-        yml_dag = self._discover_secrets(yml_dag)
         default_args = {"default_args": yml_dag.pop("default_args", {})}
         self.dag_output = {
             "imports": [
@@ -240,6 +239,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f.write(final_output)
                 console.print(f"DAG {dag_name} resulted in an invalid DAG, skipping. Error: {exc}")
 
+    def _merge_secret_nodes(self, secret_nodes, yml_dag) -> Dict[str, Any]:
+        for node_name, node_config in secret_nodes.get("nodes", {}).items():
+            yml_node = yml_dag.get("nodes", {}).get(node_name)
+            if yml_node:
+                yml_dag["nodes"][node_name] = deep_merge(node_config, yml_node)
+        return yml_dag
+
     def _discover_secrets(self, yml_dag: Dict[str, Any]):
         """
         Load secrets locally/remotely, and merge their 'nodes' into YML file ones
@@ -247,12 +253,12 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         if self.secrets_path:
             for secret in glob(f"{self.secrets_path}/*.yml"):
                 secret_data = yaml.full_load(open(secret))
-                yml_dag = deep_merge(secret_data, yml_dag)
+                yml_dag = self._merge_secret_nodes(secret_data, yml_dag)
 
         if self.secrets_manager:
             secret_data = load_secret_manager_data(self)
             for secret in secret_data:
-                yml_dag = deep_merge(secret.get("value", {}), yml_dag)
+                yml_dag = self._merge_secret_nodes(secret.get("value", {}), yml_dag)
 
         return yml_dag
 
