@@ -281,17 +281,15 @@ class DbtCovesConfig:
 
     def replace_env_vars(self, yaml_dict: Dict) -> Dict:
         # Define a regular expression pattern to find placeholders
-        pattern = r"\{\{\s*env_var\(['\"]([^'\"]+)['\"]\)\s*\}\}"
+        env_var_pattern = re.compile(
+            r"\{\{\s*env_var\s*\(\s*['\"]?\s*([^'\"]+)['\"]?\s*(?:,\s*['\"]?\s*([^'\"]+)['\"]?\s*)?\)\s*\}\}"
+        )
 
         # Iterate through the YAML dictionary and replace placeholders
-        def replace(match):
+        def replace_env_var(match):
             env_var_name = match.group(1)
-            try:
-                return os.environ[env_var_name]
-            except KeyError:
-                raise ValueError(
-                    f"Configuration environment variable [red]{env_var_name}[/red] not found"
-                )
+            default_value = match.group(2) or ""
+            return os.environ.get(env_var_name, default_value)
 
         def replace_recursively(obj):
             if isinstance(obj, dict):
@@ -301,7 +299,7 @@ class DbtCovesConfig:
                 for i, item in enumerate(obj):
                     obj[i] = replace_recursively(item)
             elif isinstance(obj, str):
-                obj = re.sub(pattern, replace, obj)
+                obj = env_var_pattern.sub(replace_env_var, obj)
             return obj
 
         return replace_recursively(yaml_dict)
