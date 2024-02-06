@@ -289,9 +289,9 @@ def _gen_get_app_uuid(args):
             dbt_coves_user = {"id": dbt_coves_uuid}
             save_yaml(uuid_path, dbt_coves_user)
             args.uuid = dbt_coves_uuid
-    except Exception:
+    except Exception as e:
         logger.debug(
-            f"Permission denied when trying to create ~/.dbt-coves/, user home is {os.environ.get('HOME')}"
+            f"Error occurred when trying to create ~/.dbt-coves/: {str(e)}, user home is {os.environ.get('HOME')}"
         )
         args.uuid = None
 
