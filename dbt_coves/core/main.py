@@ -1,4 +1,5 @@
 import argparse
+import os
 import pathlib
 import sys
 import uuid
@@ -276,17 +277,23 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
 
 
 def _gen_get_app_uuid(args):
-    dbt_coves_homepath = pathlib.Path("~/.dbt-coves/").expanduser()
-    dbt_coves_homepath.mkdir(exist_ok=True)
-    uuid_path = dbt_coves_homepath / ".user.yml"
     try:
-        existent_uuid = open_yaml(uuid_path).get("id")
-        args.uuid = existent_uuid
-    except FileNotFoundError:
-        dbt_coves_uuid = str(uuid.uuid4())
-        dbt_coves_user = {"id": dbt_coves_uuid}
-        save_yaml(uuid_path, dbt_coves_user)
-        args.uuid = dbt_coves_uuid
+        dbt_coves_homepath = pathlib.Path("~/.dbt-coves/").expanduser()
+        dbt_coves_homepath.mkdir(exist_ok=True)
+        uuid_path = dbt_coves_homepath / ".user.yml"
+        try:
+            existent_uuid = open_yaml(uuid_path).get("id")
+            args.uuid = existent_uuid
+        except FileNotFoundError:
+            dbt_coves_uuid = str(uuid.uuid4())
+            dbt_coves_user = {"id": dbt_coves_uuid}
+            save_yaml(uuid_path, dbt_coves_user)
+            args.uuid = dbt_coves_uuid
+    except Exception as e:
+        logger.debug(
+            f"Error occurred when trying to create ~/.dbt-coves/: {str(e)}, user home is {os.environ.get('HOME')}"
+        )
+        args.uuid = None
 
 
 if __name__ == "__main__":

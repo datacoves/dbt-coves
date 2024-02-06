@@ -1,31 +1,39 @@
+import base64
 import os
 
 from dbt import version as dbt_version
-from mixpanel import Mixpanel
+from mixpanel import Mixpanel, MixpanelException
 
 from dbt_coves import __version__ as dbt_coves_version
+from dbt_coves.utils.log import LOGGER as logger
 
-MIXPANEL_DEV_TOKEN = os.environ.get("MIXPANEL_DEV_TOKEN", "3ba306217d298cc3b1a1ffe3442e938c")
-MIXPANEL_PROD_TOKEN = os.environ.get("MIXPANEL_PROD_TOKEN", "602e75af80a5c6d103c83bd2c675b247")
+MIXPANEL_DEV_ENV = "M2JhMzA2MjE3ZDI5OGNjM2IxYTFmZmUzNDQyZTkzOGM="
+MIXPANEL_PROD_ENV = "NjAyZTc1YWY4MGE1YzZkMTAzYzgzYmQyYzY3NWIyNDc="
 
 
 def _get_mixpanel_env_token():
     is_dev = os.environ.get("DBTCOVES_DEV_ENV")
-    return MIXPANEL_DEV_TOKEN if is_dev else MIXPANEL_PROD_TOKEN
+    token = MIXPANEL_DEV_ENV if is_dev else MIXPANEL_PROD_ENV
+    return base64.b64decode(token).decode()
 
 
 def trackable(task, **kwargs):
     def wrapper(task_instance, **kwargs):
         exit_code = task(task_instance)
-        if not task_instance.args.disable_tracking:
-            task_execution_props = _gen_task_usage_props(task_instance, exit_code)
-            mixpanel = Mixpanel(token=_get_mixpanel_env_token())
-            mixpanel.track(
-                distinct_id=task_instance.args.uuid,
-                event_name=f"{task_execution_props['dbt-coves command']}\
-                      {task_execution_props.get('dbt-coves subcommand', '')}",
-                properties=task_execution_props,
-            )
+        if task_instance.args.uuid and not task_instance.args.disable_tracking:
+            try:
+                task_execution_props = _gen_task_usage_props(task_instance, exit_code)
+                mixpanel = Mixpanel(token=_get_mixpanel_env_token())
+                mixpanel.track(
+                    distinct_id=task_instance.args.uuid,
+                    event_name=f"{task_execution_props['dbt-coves command']}\
+                        {task_execution_props.get('dbt-coves subcommand', '')}",
+                    properties=task_execution_props,
+                )
+            except MixpanelException:
+                logger.debug(
+                    f"Unable to track task {task_instance} from user {task_instance.args.uuid}"
+                )
         return exit_code
 
     return wrapper
