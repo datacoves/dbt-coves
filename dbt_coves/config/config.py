@@ -280,7 +280,7 @@ class DbtCovesConfig:
             self._config = ConfigModel(**yaml_dict)
 
     def replace_env_vars(self, yaml_dict: Dict) -> Dict:
-        # Define a regular expression pattern to find placeholders
+        # regex -> {{ env_var('ENV_VAR_NAME', 'DEFAULT_VALUE') }}
         env_var_pattern = re.compile(
             r"\{\{\s*env_var\s*\(\s*['\"]?\s*([^'\"]+)['\"]?\s*(?:,\s*['\"]?\s*([^'\"]+)['\"]?\s*)?\)\s*\}\}"
         )
