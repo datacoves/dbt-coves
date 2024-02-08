@@ -32,8 +32,8 @@ try:
 except ImportError:
     from dbt.cli.resolvers import default_profiles_dir
 
-    PROFILES_DIR = os.environ.get("DBT_PROFILES_DIR") or default_profiles_dir()
     VARS_DEFAULT_IS_STR = True
+    PROFILES_DIR = os.environ.get("DBT_PROFILES_DIR") or default_profiles_dir()
 
 console = Console()
 
