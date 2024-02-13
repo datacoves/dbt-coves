@@ -42,7 +42,7 @@ class GenerateDocsTask(BaseConfiguredTask):
             help="Catalog.json to use as reference for merging",
         )
         subparser.add_argument(
-            "--cmd-flags",
+            "--dbt-args",
             type=str,
             help="Command-specific dbt flags. Instead of dash `-` please use `+`.",
         )
