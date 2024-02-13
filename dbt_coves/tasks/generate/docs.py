@@ -67,7 +67,7 @@ class GenerateDocsTask(BaseConfiguredTask):
             new_section=True,
         )
         if output.returncode > 0:
-            raise Exception("dbt deps error. Check logs.")
+            raise Exception("Error when running 'dbt docs generate'. Check logs.")
 
     def _fix_dbt_docs_links(self, docs_path: Path):
         dbt_docs_index_path = Path(docs_path, "index.html")
