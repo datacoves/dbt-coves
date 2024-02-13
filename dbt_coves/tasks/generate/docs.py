@@ -8,7 +8,7 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.tasks.setup.utils import print_row
-from dbt_coves.utils.shell import run_and_capture_cwd
+from dbt_coves.utils.shell import prepare_cmd, run_and_capture_cwd
 from dbt_coves.utils.tracking import trackable
 
 console = Console()
@@ -41,6 +41,11 @@ class GenerateDocsTask(BaseConfiguredTask):
             type=str,
             help="Catalog.json to use as reference for merging",
         )
+        subparser.add_argument(
+            "--cmd-flags",
+            nargs="*",
+            help="Command-specific dbt flags. Instead of dash `-` please use `+`.",
+        )
         cls.arg_parser = base_subparser
         subparser.set_defaults(cls=cls, which="docs")
         return subparser
@@ -52,11 +57,8 @@ class GenerateDocsTask(BaseConfiguredTask):
         return self.coves_config.integrated["generate"]["docs"][key]
 
     def _generate_dbt_docs(self):
-        command = ["dbt", "docs", "generate"]
-        if self.config.args.PROFILES_DIR:
-            command.extend(["--profiles-dir", self.config.args.PROFILES_DIR])
+        command = prepare_cmd(self, ["docs", "generate"])
         output = run_and_capture_cwd(command, self.config.project_root)
-
         if output.returncode == 0:
             deps_status = "[green]SUCCESS :heavy_check_mark:[/green]"
         else:

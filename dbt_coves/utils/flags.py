@@ -1,4 +1,5 @@
 """Flags module containing the DbtCovesFlags "Factory"."""
+
 import os
 import sys
 from argparse import ArgumentParser
@@ -71,6 +72,7 @@ class DbtCovesFlags:
             "docs": {
                 "merge_deferred": False,
                 "state": None,
+                "cmd_flags": [],
             },
             "airflow_dags": {
                 "yml_path": None,
@@ -261,6 +263,8 @@ class DbtCovesFlags:
                     self.generate["docs"]["merge_deferred"] = self.args.merge_deferred
                 if self.args.state:
                     self.generate["docs"]["state"] = self.args.state
+                if self.args.cmd_flags:
+                    self.generate["docs"]["cmd_flags"] = self.args.cmd_flags
 
             # generate airflow_dags
             if self.args.cls.__name__ == "GenerateAirflowDagsTask":

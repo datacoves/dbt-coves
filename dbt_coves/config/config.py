@@ -53,6 +53,7 @@ class GenerateMetadataModel(BaseModel):
 class GenerateDocsModel(BaseModel):
     merge_deferred: Optional[bool] = False
     state: Optional[str] = ""
+    cmd_flags: Optional[List[str]] = []
 
 
 class GenerateAirflowDagsModel(BaseModel):
@@ -191,6 +192,7 @@ class DbtCovesConfig:
         "generate.metadata.no_prompt",
         "generate.docs.merge_deferred",
         "generate.docs.state",
+        "generate.docs.cmd_flags",
         "generate.airflow_dags.yml_path",
         "generate.airflow_dags.dags_path",
         "generate.airflow_dags.validate_operators",
