@@ -24,9 +24,9 @@ def run_and_capture_cwd(args_list, cwd) -> CompletedProcess:
     return shell_run(args_list, cwd=cwd)
 
 
-def get_flags(flags: Optional[Sequence[str]] = None) -> List[str]:
+def get_flags(flags: str = "") -> List[str]:
     if flags:
-        return [flag.replace("+", "-") for flag in flags if flag]
+        return flags.split()
     else:
         return []
 
@@ -37,6 +37,6 @@ def prepare_cmd(task, command: Sequence[str]) -> List[str]:
         command.extend(["--profiles-dir", task.config.args.PROFILES_DIR])
     if task.config.args.project_dir:
         command.extend(["--project-dir", task.config.args.project_dir])
-    cmd_flags = get_flags(task.get_config_value("cmd_flags"))
-    command.extend(cmd_flags)
+    dbt_args = get_flags(task.get_config_value("dbt_args"))
+    command.extend(dbt_args)
     return command

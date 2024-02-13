@@ -72,7 +72,7 @@ class DbtCovesFlags:
             "docs": {
                 "merge_deferred": False,
                 "state": None,
-                "cmd_flags": [],
+                "dbt_args": [],
             },
             "airflow_dags": {
                 "yml_path": None,
@@ -263,8 +263,8 @@ class DbtCovesFlags:
                     self.generate["docs"]["merge_deferred"] = self.args.merge_deferred
                 if self.args.state:
                     self.generate["docs"]["state"] = self.args.state
-                if self.args.cmd_flags:
-                    self.generate["docs"]["cmd_flags"] = self.args.cmd_flags
+                if self.args.dbt_args:
+                    self.generate["docs"]["dbt_args"] = self.args.dbt_args
 
             # generate airflow_dags
             if self.args.cls.__name__ == "GenerateAirflowDagsTask":

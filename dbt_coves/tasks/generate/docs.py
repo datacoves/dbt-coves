@@ -43,7 +43,7 @@ class GenerateDocsTask(BaseConfiguredTask):
         )
         subparser.add_argument(
             "--cmd-flags",
-            nargs="*",
+            type=str,
             help="Command-specific dbt flags. Instead of dash `-` please use `+`.",
         )
         cls.arg_parser = base_subparser
