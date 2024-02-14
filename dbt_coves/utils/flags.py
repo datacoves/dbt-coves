@@ -1,4 +1,5 @@
 """Flags module containing the DbtCovesFlags "Factory"."""
+
 import os
 import sys
 from argparse import ArgumentParser
@@ -71,6 +72,7 @@ class DbtCovesFlags:
             "docs": {
                 "merge_deferred": False,
                 "state": None,
+                "dbt_args": None,
             },
             "airflow_dags": {
                 "yml_path": None,
@@ -138,7 +140,19 @@ class DbtCovesFlags:
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
-        self.args = self.cli_parser.parse_args(cli_args or sys.argv[1:])
+        args = sys.argv[1:]
+
+        # TODO: FIXME: This is a temporary logic for when --dbt-args is followed by a single-word string,
+        # like cases of --dbt-args "--no-compile",
+        # it was being treated as a follow-up argument instead of string
+        for i, arg in enumerate(args):
+            if arg == "--dbt-args" and i + 1 < len(args):
+                next_arg = args[i + 1]
+                if not any(c.isspace() for c in next_arg):
+                    # If the following argument is a single-word string, add a whitespace at the end
+                    args[i + 1] += " "
+
+        self.args = self.cli_parser.parse_args(cli_args or args)
 
         if hasattr(self.args, "PROFILES_DIR"):
             self.args.PROFILES_DIR = os.path.expanduser(self.args.PROFILES_DIR)
@@ -261,6 +275,8 @@ class DbtCovesFlags:
                     self.generate["docs"]["merge_deferred"] = self.args.merge_deferred
                 if self.args.state:
                     self.generate["docs"]["state"] = self.args.state
+                if self.args.dbt_args:
+                    self.generate["docs"]["dbt_args"] = self.args.dbt_args
 
             # generate airflow_dags
             if self.args.cls.__name__ == "GenerateAirflowDagsTask":
