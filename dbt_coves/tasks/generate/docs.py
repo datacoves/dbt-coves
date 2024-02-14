@@ -44,7 +44,7 @@ class GenerateDocsTask(BaseConfiguredTask):
         subparser.add_argument(
             "--dbt-args",
             type=str,
-            help="Command-specific dbt flags. Instead of dash `-` please use `+`.",
+            help="A single, double-quoted, string of `dbt docs generate` args",
         )
         cls.arg_parser = base_subparser
         subparser.set_defaults(cls=cls, which="docs")
