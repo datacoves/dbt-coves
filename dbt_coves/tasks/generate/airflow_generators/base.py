@@ -114,7 +114,7 @@ class BaseDbtGenerator:
                 error_message += f"{e.stdout.decode()}\n"
             if e.stderr:
                 error_message += f"{e.stderr.decode()}"
-            raise GeneratorException(f"Exception ocurred running {command}\n{error_message}")
+            raise GeneratorException(f"Exception occurred running {command}\n{error_message}")
 
         sources_list = []
         if "No nodes selected" not in stdout:
