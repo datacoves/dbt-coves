@@ -24,6 +24,7 @@ AIRFLOW_K8S_CONFIG_TEMPLATE = textwrap.dedent(
             spec=k8s.V1PodSpec(
                 containers=[
                     k8s.V1Container(
+                        name='base',
                         {config}
                     )
                 ]
@@ -355,10 +356,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate the multiline config section of Airflow's K8S_INNER_CONF template
         """
+        config_lines = ""
         k8s_resources_string_template = (
             "resources=k8s.V1ResourceRequirements(requests={resources}),\n"
         )
-        config_lines = f"name='{task_name}',\n "
         for key, value in config.items():
             if key == "resources":
                 config_lines += k8s_resources_string_template.format(resources=value)
