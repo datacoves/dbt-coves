@@ -638,6 +638,20 @@ generate:
   docs:
     merge_deferred: true
     state: logs/
+    dbt_args: "--no-compile --select foo --exclude bar"
+
+  airflow_dags:
+    yml_path:
+    dags_path:
+    generators_params:
+      AirbyteDbtGenerator:
+        host: "{{ env_var('AIRBYTE_HOST_NAME') }}"
+        port: "{{ env_var('AIRBYTE_PORT') }}"
+        airbyte_conn_id: airbyte_connection
+
+        dbt_project_path: "{{ env_var('DBT_HOME') }}"
+        run_dbt_compile: true
+        run_dbt_deps: false
 
 extract:
   airbyte:
@@ -671,15 +685,15 @@ load:
 
 ## env_var
 
-From `dbt-coves 1.6.28` onwards, you can consume environment variables in you config file using `{{env_var(VAR_NAME)}}`. For example:
+From `dbt-coves 1.6.28` onwards, you can consume environment variables in you config file using `"{{env_var('VAR_NAME', 'DEFAULT VALUE')}}"`. For example:
 
 ```yaml
 generate:
   sources:
-    database: "{{env_var(MAIN_DATABASE)}}"
+    database: "{{env_var('MAIN_DATABASE', 'dev_database')}}"
     schemas:
-      - "{{env_var(DEV_SCHEMA)}}"
-      - "{{env_var(STAGING_SCHEMA)}}"
+      - "{{env_var('DEV_SCHEMA', 'John')}}"
+      - "{{env_var('STAGING_SCHEMA', 'Staging')}}"
 ```
 
 ## Telemetry
