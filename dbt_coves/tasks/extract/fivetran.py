@@ -3,6 +3,7 @@ from pathlib import Path
 import questionary
 from rich.console import Console
 
+from dbt_coves.core.exceptions import MissingArgumentException
 from dbt_coves.utils.api_caller import FivetranApiCaller
 from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import open_yaml
@@ -69,9 +70,8 @@ class ExtractFivetranTask(BaseExtractTask):
         if not extract_destination or not (
             (self.api_key and self.api_secret) or api_credentials_path
         ):
-            raise FivetranExtractorException(
-                "Couldn't start extraction: one (or more) of the following arguments is missing: "
-                "'path', 'api-key', 'api-secret', 'credentials'"
+            raise MissingArgumentException(
+                ["path", "api-key", "api-secret", "credentials"], self.coves_config
             )
 
         if api_credentials_path:

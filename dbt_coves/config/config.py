@@ -328,15 +328,6 @@ class DbtCovesConfig:
                     logger.debug(f"{coves_config_dir} exists and was retrieved.")
                     self._config_path = coves_config_dir
                     break
-        if self._config_path == Path(str()):
-            # If config_path wasn't overwritten it means config.yml doesn't exist
-            from rich.console import Console
-
-            console = Console()
-            console.print(
-                "No [yellow].dbt_coves/config.yml[/yellow] found, "
-                "visit https://github.com/datacoves/dbt-coves?#settings for details"
-            )
 
     def load_config(self) -> None:
         is_project_valid = self.validate_dbt_project()

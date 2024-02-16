@@ -6,6 +6,7 @@ from copy import copy
 
 from rich.console import Console
 
+from dbt_coves.core.exceptions import MissingArgumentException
 from dbt_coves.utils.api_caller import AirbyteApiCaller
 from dbt_coves.utils.tracking import trackable
 
@@ -66,10 +67,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         airbyte_port = self.get_config_value("port")
 
         if not extract_destination or not airbyte_host or not airbyte_port:
-            raise AirbyteExtractorException(
-                "Couldn't start extraction: one (or more) of the following arguments is missing"
-                "either in the configuration file or Command-Line arguments: 'path', 'host', 'port'"
-            )
+            raise MissingArgumentException(["path", "host", "port"], self.coves_config)
 
         extract_destination = pathlib.Path(extract_destination)
 
