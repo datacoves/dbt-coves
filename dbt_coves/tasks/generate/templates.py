@@ -47,9 +47,7 @@ class GenerateTemplatesTask(BaseConfiguredTask):
 
         dbt_project_path = self.config.project_root
         templates_destination_path = (
-            dbt_project_path
-            / Path(self.coves_config.DBT_COVES_CONFIG_FILEPATH).parent
-            / "templates"
+            dbt_project_path / Path(self.coves_config.DBT_COVES_CONFIG_FOLDER) / "templates"
         )
         templates_destination_path.mkdir(parents=True, exist_ok=True)
 

@@ -10,6 +10,7 @@ import yaml
 from black import FileMode, format_str
 from rich.console import Console
 
+from dbt_coves.core.exceptions import MissingArgumentException
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.secrets import load_secret_manager_data
 from dbt_coves.utils.tracking import trackable
@@ -23,6 +24,7 @@ AIRFLOW_K8S_CONFIG_TEMPLATE = textwrap.dedent(
             spec=k8s.V1PodSpec(
                 containers=[
                     k8s.V1Container(
+                        name='base',
                         {config}
                     )
                 ]
@@ -52,13 +54,11 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             "--yml-path",
             "--yaml-path",
             type=str,
-            required=False,
             help="Folder where YML files will be read from",
         )
         subparser.add_argument(
             "--dags-path",
             type=str,
-            required=False,
             help="Folder where generated Python files will be stored",
         )
         subparser.add_argument(
@@ -133,9 +133,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         ymls_path = self.get_config_value("yml_path")
         dags_path = self.get_config_value("dags_path")
         if not (ymls_path and dags_path):
-            raise GenerateAirflowDagsException(
-                "You must provide source ([i]--yml-path[/i]) and destination ([i]--dags-path[/i]) of DAGs"
-            )
+            raise MissingArgumentException(["--yml-path", "--dags-path"], self.coves_config)
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
@@ -358,10 +356,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate the multiline config section of Airflow's K8S_INNER_CONF template
         """
+        config_lines = ""
         k8s_resources_string_template = (
             "resources=k8s.V1ResourceRequirements(requests={resources}),\n"
         )
-        config_lines = f"name='{task_name}',\n "
         for key, value in config.items():
             if key == "resources":
                 config_lines += k8s_resources_string_template.format(resources=value)
