@@ -318,11 +318,14 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 if type(task_call) == str:
                     task_group_output.append(f"{' '*8}{task_call}\n")
                 elif isinstance(task_call, dict):
-                    trigger = task_call.pop("trigger")
-                    sensor = task_call.pop("sensor")
-                    task_group_output.append(f"{' ' *8}{trigger['call']}\n")
-                    task_group_output.append(f"{' ' *8}{sensor['call']}\n")
-                    task_group_output.append(f"{' ' *8}{trigger['name']} >> {sensor['name']}\n")
+                    trigger = task_call.get("trigger", {})
+                    sensor = task_call.get("sensor", {})
+                    task_group_output.append(f"{' ' *8}{trigger.get('call', '')}\n")
+                    task_group_output.append(f"{' ' *8}{sensor.get('call', '')}\n")
+                    if sensor:
+                        task_group_output.append(f"{' ' *8}{trigger['name']} >> {sensor['name']}\n")
+                    else:
+                        task_group_output.append(f"{' ' *8}{trigger['name']}\n")
 
         elif tasks:
             for name, conf in tasks.items():
