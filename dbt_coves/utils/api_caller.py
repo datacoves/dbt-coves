@@ -83,7 +83,7 @@ class AirbyteApiCaller:
             "TEST_CONNECTION": airbyte_api_base_endpoint + "{obj}/check_connection",
         }
         try:
-            console.print("Loading Airbyte data")
+            console.print("Querying [i]Airbyte[/i] connections")
             self.airbyte_workspace_id = self.api_call(
                 self.api_endpoints["LIST_OBJECTS"].format(obj="workspaces")
             )["workspaces"][0]["workspaceId"]
@@ -199,7 +199,7 @@ class FivetranApiCaller:
         return created_group_id
 
     def _populate_fivetran_data(self) -> Dict[Any, Any]:
-        console.print("Loading Fivetran data")
+        console.print("Querying [i]Fivetran[/i] connections")
         fivetran_data = {}
         fivetran_group_map = {}
         fivetran_groups = self._fivetran_api_call(
