@@ -22,8 +22,8 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         fivetran_conn_id: str = "",
     ):
         self.imports = [
-            "fivetran_provider.operators.fivetran.FivetranOperator",
-            "fivetran_provider.sensors.fivetran.FivetranSensor",
+            "fivetran_provider_async.operators.FivetranOperator",
+            "fivetran_provider_async.sensors.FivetranSensor",
         ]
         self.connection_ids = connection_ids
         self.wait_for_completion = wait_for_completion
@@ -58,9 +58,9 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
             trigger_id = task_name + "_trigger"
             trigger_kwargs = {
                 "task_id": trigger_id,
-                "connector_id": conn_id,
-                "do_xcom_push": True,
                 "fivetran_conn_id": self.fivetran_conn_id,
+                "connector_id": conn_id,
+                "wait_for_completion": self.wait_for_completion,
             }
             tasks[conn_id] = {
                 "trigger": {
@@ -68,14 +68,14 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                     "call": self.generate_task(trigger_id, "FivetranOperator", **trigger_kwargs),
                 }
             }
-            if self.wait_for_completion:
+            if not self.wait_for_completion:
                 # Sensor task - senses Fivetran connectors status
                 sensor_id = task_name + "_sensor"
                 sensor_kwargs = {
                     "task_id": sensor_id,
+                    "fivetran_conn_id": self.fivetran_conn_id,
                     "connector_id": conn_id,
                     "poke_interval": 60,
-                    "fivetran_conn_id": self.fivetran_conn_id,
                 }
                 tasks[conn_id]["sensor"] = {
                     "name": sensor_id,
@@ -136,7 +136,7 @@ class FivetranDbtGenerator(FivetranGenerator, BaseDbtGenerator):
         self,
         api_key,
         api_secret,
-        wait_for_completion: bool = True,
+        wait_for_completion: bool = False,
         dbt_project_path: str = "",
         virtualenv_path: str = "",
         run_dbt_compile: bool = False,

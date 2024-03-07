@@ -348,11 +348,9 @@ They are custom classes that receive YML `key:value` pairs and return one or mor
 We provide some prebuilt Generators:
 
 - `AirbyteGenerator` creates `AirbyteTriggerSyncOperator` tasks (one per Airbyte connection)
-
   - It must receive Airbyte's `host` and `port`, `airbyte_conn_id` (Airbyte's connection name on Airflow) and a `connection_ids` list of Airbyte Connections to Sync
-
 - `FivetranGenerator`: creates `FivetranOperator` tasks (one per Fivetran connection)
-  - It must receive Fivetran's `api_key`, `api_secret` and a `connection_ids` list of Fivetran Connectors to Sync. It can optionally receive `wait_for_completion: true` and 2 tasks will be created for each sync: a `FivetranOperator` and it's respective `FivetranSensor` that monitors the status of the sync.
+  - It must receive Fivetran's `api_key`, `api_secret` and a `connection_ids` list of Fivetran Connectors to Sync.
 - `AirbyteDbtGenerator` and `FivetranDbtGenerator`: instead of passing them Airbyte or Fivetran connections, they use dbt to discover those IDs. Apart from their parent Generators mandatory fields, they can receive:
   - `dbt_project_path`: dbt/project/folder
   - `virtualenv_path`: path to a virtualenv in case dbt has to be ran with another Python executable
