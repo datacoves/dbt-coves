@@ -6,6 +6,10 @@ from os import environ
 from pathlib import Path
 from typing import Any, Dict, Set
 
+from rich.console import Console
+
+console = Console()
+
 
 class GeneratorException(Exception):
     pass
@@ -65,6 +69,7 @@ class BaseDbtGenerator:
                     command = self.get_bash_command(self.virtualenv_path, "dbt deps")
                 else:
                     command = ["dbt", "deps"]
+                console.print("Running [i]dbt deps[/i]")
                 subprocess.run(
                     command,
                     check=True,
@@ -80,6 +85,7 @@ class BaseDbtGenerator:
                     )
                 else:
                     command = ["dbt", "compile"] + self.dbt_list_args.split()
+                console.print("Running [i]dbt compile[/i]")
                 subprocess.run(
                     command,
                     check=True,
@@ -99,6 +105,7 @@ class BaseDbtGenerator:
                     "--resource-type",
                     "source",
                 ] + self.dbt_list_args.split()
+                console.print("Listing [i]dbt sources[/i]")
 
             process = subprocess.run(
                 command,
