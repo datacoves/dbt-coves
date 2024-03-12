@@ -46,7 +46,7 @@ class SetupPrecommitTask(NonDbtBaseTask):
             )
         data = {}
         if len(dbt_project_paths) == 1:
-            data["dbt_project_dir"] = dbt_project_paths
+            data["dbt_project_dir"] = dbt_project_paths[0]
         else:
             data["dbt_project_dir"] = questionary.select(
                 "In which dbt project would you like to install pre-commit?",
