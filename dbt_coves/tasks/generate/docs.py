@@ -73,7 +73,7 @@ class GenerateDocsTask(BaseConfiguredTask):
 
     def _fix_dbt_docs_links(self, docs_path: Path):
         dbt_docs_index_path = Path(docs_path, "index.html")
-        with open(dbt_docs_index_path, "w+") as f:
+        with open(dbt_docs_index_path, "r+") as f:
             html_content = f.read()
             html_content.replace("</head>", "<base target='_blank'></head>")
             f.write(html_content)
