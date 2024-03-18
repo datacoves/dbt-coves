@@ -6,7 +6,11 @@
     "invocation_id": "c7e28506-890c-4ee5-b488-bb61f00f9672",
     "env": {}
   },
-  "nodes": {},
-  "sources": {},
+  "nodes": {
+    "deferred.prod.model": {}
+  },
+  "sources": {
+    "deferred.prod.source": {}
+  },
   "errors": null
 }

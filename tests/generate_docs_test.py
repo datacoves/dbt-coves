@@ -1,3 +1,4 @@
+import json
 import os
 import subprocess
 from pathlib import Path
@@ -81,3 +82,45 @@ def test_generate_docs_dbt_args(dbt_project_path):
         cwd=dbt_project_path,
     )
     assert os.path.exists(dbt_project_path / "target" / "index.html")
+
+
+def test_generate_docs_merged_state(dbt_project_path):
+    """
+    Run `dbt-coves generate docs --state state`
+    Assure state Catalog was merged into target Catalog:
+    (deferred.prod.model and deferred.prod.source)
+    """
+    command = [
+        "python",
+        "../../dbt_coves/core/main.py",
+        "generate",
+        "docs",
+        "--merge-deferred",
+        "--state",
+        "state",
+    ]
+    subprocess.run(command, check=True, cwd=dbt_project_path)
+    assert os.path.exists(dbt_project_path / "target" / "catalog.json")
+    with open(dbt_project_path / "target" / "catalog.json") as f:
+        catalog = json.load(f)
+        assert "deferred.prod.model" in catalog["nodes"]
+        assert "deferred.prod.source" in catalog["sources"]
+
+
+def test_generate_docs_modified_html(dbt_project_path):
+    """
+    Ensure that the generated html is modified
+    """
+    command = [
+        "python",
+        "../../dbt_coves/core/main.py",
+        "generate",
+        "docs",
+        "--merge-deferred",
+        "--state",
+        "state",
+    ]
+    subprocess.run(command, check=True, cwd=dbt_project_path)
+    with open(dbt_project_path / "target" / "index.html") as f:
+        html = f.read()
+        assert 'target="_blank"' in html
