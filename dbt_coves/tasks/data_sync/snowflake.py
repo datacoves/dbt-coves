@@ -10,10 +10,9 @@ from .sql_database import sql_database
 
 
 class SnowflakeDestination(object):
-
     def set_credentials(self) -> None:
-        """ dlt destination credentials can be set either by modifying the secrets file or
-            by setting environment variables. Setting environment variables.
+        """Dlt destination credentials can be set either by modifying the secrets file or
+        by setting environment variables. Setting environment variables.
         """
         dlt_prefix = "DESTINATION__SNOWFLAKE__CREDENTIALS__"
         data_sync_prefix = "DATA_SYNC_SNOWFLAKE_"
@@ -42,14 +41,10 @@ class SnowflakeDestinationDataSyncTask(BaseTask):
             help="""Loads data into Snowflake""",
         )
         subparser.add_argument(
-            "--destination",
-            help="Destination type: i.e. 'snowflake'",
-            required=False
+            "--destination", help="Destination type: i.e. 'snowflake'", required=False
         )
         subparser.add_argument(
-            "--destination-database",
-            help="Destination database name",
-            required=True
+            "--destination-database", help="Destination database name", required=True
         )
         subparser.set_defaults(cls=cls, which="snowflake")
         return subparser
@@ -64,8 +59,9 @@ class SnowflakeDestinationDataSyncTask(BaseTask):
 
     def get_source_connection_string(self):
         self.source_connection_string = os.environ.get("DATA_SYNC_SOURCE_CONNECTION_STRING")
-        assert self.source_connection_string, "Environment variable " \
-                                              "DATA_SYNC_SOURCE_CONNECTION_STRING is not defined"
+        assert self.source_connection_string, (
+            "Environment variable " "DATA_SYNC_SOURCE_CONNECTION_STRING is not defined"
+        )
 
     def get_destination_instance(self) -> None:
         self.destination_instance = SnowflakeDestination()
@@ -75,14 +71,12 @@ class SnowflakeDestinationDataSyncTask(BaseTask):
         pipeline = dlt.pipeline(
             pipeline_name="source",
             destination="snowflake",
-            dataset_name=self.args.destination_database
+            dataset_name=self.args.destination_database,
         )
 
         # By default the sql_database source reflects all tables in the schema
         # The database credentials are sourced from the `.dlt/secrets.toml` configuration
-        credentials = ConnectionStringCredentials(
-            self.source_connection_string
-        )
+        credentials = ConnectionStringCredentials(self.source_connection_string)
         source = sql_database(credentials=credentials)
 
         # Run the pipeline. For a large db this may take a while

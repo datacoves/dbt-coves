@@ -7,7 +7,7 @@ import dlt
 from dlt.common.configuration.specs import BaseConfiguration, configspec
 from dlt.common.typing import TDataItem
 from dlt.sources.credentials import ConnectionStringCredentials
-from sqlalchemy import Table, create_engine
+from sqlalchemy import create_engine
 from sqlalchemy.engine import Engine
 
 from .schema_types import SelectAny, Table, table_to_columns
@@ -49,9 +49,7 @@ class TableLoader:
         last_value_func = self.incremental.last_value_func
 
         # generate where
-        if (
-            last_value_func is max
-        ):  # Query ordered and filtered according to last_value function
+        if last_value_func is max:  # Query ordered and filtered according to last_value function
             filter_op = operator.ge
             filter_op_end = operator.lt
         elif last_value_func is min:
@@ -94,9 +92,7 @@ def table_rows(
     table_adapter_callback: Callable[[Table], None] = None,
 ) -> Iterator[TDataItem]:
     if defer_table_reflect:
-        table = Table(
-            table.name, table.metadata, autoload_with=engine, extend_existing=True
-        )
+        table = Table(table.name, table.metadata, autoload_with=engine, extend_existing=True)
         if table_adapter_callback:
             table_adapter_callback(table)
         # set the primary_key in the incremental
@@ -117,9 +113,7 @@ def table_rows(
     yield from loader.load_rows()
 
 
-def engine_from_credentials(
-    credentials: Union[ConnectionStringCredentials, Engine, str]
-) -> Engine:
+def engine_from_credentials(credentials: Union[ConnectionStringCredentials, Engine, str]) -> Engine:
     if isinstance(credentials, Engine):
         return credentials
     if isinstance(credentials, ConnectionStringCredentials):
