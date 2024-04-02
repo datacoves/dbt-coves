@@ -39,7 +39,7 @@ jobs:
           WHL_FILE=$(cat whl_file.txt)
           echo "::set-output name=whl_file::$WHL_FILE"
 
-      - name: Use .whl to pip-install
+      - name: pip install dbt-coves
         run: |
           WHL_FILE_PATH=${{ steps.extract_whl_name.outputs.whl_file }}
           pip install $WHL_FILE_PATH
