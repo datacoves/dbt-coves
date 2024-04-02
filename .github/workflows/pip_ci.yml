@@ -24,9 +24,6 @@ jobs:
       - name: run Pre-Commit
         uses: pre-commit/action@v3.0.0
 
-      - name: run pg_config
-        run: pg_config
-
       - name: Build dbt-coves using Poetry
         run: |
           poetry build
