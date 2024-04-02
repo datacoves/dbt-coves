@@ -85,3 +85,23 @@ jobs:
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
+
+      - name: Build dbt-coves using Poetry
+        run: |
+          poetry build
+
+      - name: Discover .whl file
+        id: discover_whl
+        run: |
+          ls dist/*.whl | grep -E "dbt_coves-[0-9]+\.[0-9]+\.[0-9]+-py3-none-any\.whl" | head -n 1 > whl_file.txt
+
+      - name: Extract .whl file name
+        id: extract_whl_name
+        run: |
+          WHL_FILE=$(cat whl_file.txt)
+          echo "::set-output name=whl_file::$WHL_FILE"
+
+      - name: pip install dbt-coves
+        run: |
+          WHL_FILE_PATH=${{ steps.extract_whl_name.outputs.whl_file }}
+          pip install $WHL_FILE_PATH
