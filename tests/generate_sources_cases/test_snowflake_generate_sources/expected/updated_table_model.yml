@@ -5,6 +5,10 @@ models:
     description: >
       Lorem ipsum dolor sit amet, consectetur adipiscing elit.
     columns:
+      - name: json_value_1
+        description: "TEST OF JSON VALUE 1 FLATTENED"
+      - name: json_value_2
+        description: "TEST OF JSON VALUE 2 FLATTENED"
       - name: test_smallint
         description: "TEST OF SMALLINT COLUMN TYPE"
       - name: test_integer
