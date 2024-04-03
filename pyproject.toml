@@ -48,7 +48,6 @@ mixpanel = "^4.10.0"
 black = "^23.11.0"
 isort = "^5.12.0"
 dlt = "^0.4.7"
-psycopg2 = "^2.9.9"
 pyyaml-include = "1.3.2"
 psycopg2-binary = "^2.9.9"
 
