@@ -1,2 +1,2 @@
 test_smallint,test_integer,test_bigint,test_decimal,test_numeric,test_string,test_date,test_timestamp,test_boolean,test_json
-1,1,1,1.100000000,1.100000000,a,2020-01-01,2020-01-01 00:00:00+00:00,True,"{""name"":""abc"",""value"":2}"
+1,1,1,1.100000000,1.100000000,a,2020-01-01,2020-01-01 00:00:00+00:00,True,"{'name': 'abc', 'value': 2}"
