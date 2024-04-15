@@ -5,15 +5,15 @@ tags:
 default_args:
   start_date: 2023-01-01
 catchup: false
-notifications:
+callbacks:
   on_success_callback:
-    notifier: time.sleep
+    callback: time.sleep
     args:
-      seconds: 1
+      - 1
   on_failure_callback:
-    notifier: time.sleep
+    callback: time.sleep
     args:
-      seconds: 1
+      - 1
 nodes:
   transform:
     type: task

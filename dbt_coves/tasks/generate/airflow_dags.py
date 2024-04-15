@@ -158,8 +158,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         dag_args = ""
         for key, value in yaml.items():
-            if "notifications" in key:
-                for call in self.generate_notifiers(yaml["notifications"]):
+            if "callbacks" in key:
+                for call in self.generate_notifiers(yaml["callbacks"]):
                     dag_args += f"{indent * ' '}{call},\n"
             else:
                 dag_value = (
@@ -172,20 +172,28 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate imports, globals, and return DAG `callback=Class(args=args)` settings
         """
-        notifiers_output = []
+        callback_output = []
         for callback, definition in notifiers.items():
-            notifier = definition["notifier"]
+            full_callback = definition["callback"]
             # Splitting into module and class
             # e.g. 'dbt_coves.notifications.slack.SlackNotifier'
-            split_notifier = notifier.split(".")
-            module = ".".join(split_notifier[:-1])
-            notifier_class = split_notifier[-1]
-            args = definition.get("args", {})
-            self.dag_output["imports"].append(f"from {module} import {notifier_class}\n")
-            notifier_args = ", ".join([f"{key}='{value}'" for key, value in args.items()])
-            notifier_usage = f"{notifier_class}({notifier_args})"
-            notifiers_output.append(f"{2 * ' '}{callback}={notifier_usage}")
-        return notifiers_output
+            split_callback = full_callback.split(".")
+            module = ".".join(split_callback[:-1])
+            callback_class = split_callback[-1]
+            args = definition.get("args", [])
+            self.dag_output["imports"].append(f"from {module} import {callback_class}\n")
+            callback_args = []
+            for arg in args:
+                if isinstance(arg, dict):
+                    for key, value in arg.items():
+                        if isinstance(value, str):
+                            value = f'"{value}"'
+                        callback_args.append(f"{key}={value}")
+                else:
+                    callback_args.append(str(arg))
+            callback_usage = f"{callback_class}({','.join(callback_args)})"
+            callback_output.append(f"{2 * ' '}{callback}={callback_usage}")
+        return callback_output
 
     def build_dag_file(self, destination_path: Path, dag_name: str, yml_dag: Dict[str, Any]):
         """
