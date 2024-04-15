@@ -158,8 +158,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         dag_args = ""
         for key, value in yaml.items():
-            if "custom_callbacks" in key:
-                for call in self.generate_custom_callbacks(yaml["custom_callbacks"]):
+            if "notifications" in key:
+                for call in self.generate_notifiers(yaml["notifications"]):
                     dag_args += f"{indent * ' '}{call},\n"
             else:
                 dag_value = (
@@ -168,25 +168,21 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 dag_args += f'{indent * " "}{key}={dag_value},\n'
         return dag_args[:-2]
 
-    def generate_custom_callbacks(self, custom_callbacks: Dict[str, Any]):
+    def generate_notifiers(self, notifiers: Dict[str, Any]):
         """
-        Generate imports, globals, and return DAG `callback=run_callback` settings
+        Generate imports, globals, and return DAG `callback=Class(args=args)` settings
         """
-        callback_calls = []
-        for callback, definition in custom_callbacks.items():
-            module = definition["module"]
-            callable = definition["callable"]
-            custom_callback_name = f"run_{callable}"
+        notifiers_output = []
+        for callback, definition in notifiers.items():
+            notifier = definition["notifier"]
+            # Splitting into module and class
+            module, _, notifier_class = notifier.rsplit(".", 2)
             args = definition.get("args", {})
-            self.dag_output["imports"].append(f"from {module} import {callable}\n")
-            self.dag_output["globals"].extend(
-                [
-                    f"def {custom_callback_name}(context):\n",
-                    f"{2*' '}{callable}(context, {self.dag_args_to_string(args)})\n",
-                ]
-            )
-            callback_calls.append(f"{2 * ' '}{callback}={custom_callback_name}")
-        return callback_calls
+            self.dag_output["imports"].append(f"from {module} import {notifier_class}\n")
+            notifier_args = ", ".join([f"{key}='{value}'" for key, value in args.items()])
+            notifier_usage = f"{notifier_class}({notifier_args})"
+            notifiers_output.append(f"{2 * ' '}{callback}={notifier_usage}")
+        return notifiers_output
 
     def build_dag_file(self, destination_path: Path, dag_name: str, yml_dag: Dict[str, Any]):
         """
