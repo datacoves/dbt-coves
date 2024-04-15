@@ -7,13 +7,13 @@ default_args:
 catchup: false
 notifications:
   on_success_callback:
-    notifier: notifiers.dbt_coves.test
+    notifier: time.sleep
     args:
-      message: Success
+      seconds: 1
   on_failure_callback:
-    notifier: notifiers.dbt_coves.test
+    notifier: time.sleep
     args:
-      message: Fail
+      seconds: 1
 nodes:
   transform:
     type: task

@@ -176,7 +176,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         for callback, definition in notifiers.items():
             notifier = definition["notifier"]
             # Splitting into module and class
-            module, _, notifier_class = notifier.rsplit(".", 2)
+            # e.g. 'dbt_coves.notifications.slack.SlackNotifier'
+            split_notifier = notifier.split(".")
+            module = ".".join(split_notifier[:-1])
+            notifier_class = split_notifier[-1]
             args = definition.get("args", {})
             self.dag_output["imports"].append(f"from {module} import {notifier_class}\n")
             notifier_args = ", ".join([f"{key}='{value}'" for key, value in args.items()])
