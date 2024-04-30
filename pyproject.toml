@@ -45,7 +45,7 @@ db-dtypes = "^1.0.5"
 copier = "6.0.0"
 gitpython = "^3.1.31"
 mixpanel = "^4.10.0"
-black = "^23.11.0"
+black = "^23"
 isort = "^5.12.0"
 dlt = {extras = ["postgres"], version = "^0.4.8"}
 psycopg2-binary = "^2.9.9"
