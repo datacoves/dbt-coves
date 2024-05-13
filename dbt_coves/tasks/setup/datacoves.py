@@ -56,7 +56,7 @@ class SetupDatacovesTask(NonDbtBaseTask):
         # dbt profile data gathering
 
         airflow_profile_path = os.environ.get(
-            "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", f"{self.dbt_home}/automate/dbt"
+            "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", f"{self.repo_path}/automate/dbt"
         )
         self.copier_context["airflow_profile_path"] = self._get_path_rel_to_root(
             airflow_profile_path
@@ -64,7 +64,7 @@ class SetupDatacovesTask(NonDbtBaseTask):
         self.copier_context["dbt_adapter"] = os.environ.get("DATACOVES__DBT_ADAPTER", "default")
         # sample DAG data
         airflow_dags_path = os.environ.get(
-            "DATACOVES__AIRFLOW_DAGS_PATH", f"{self.dbt_home}/orchestrate/dags"
+            "DATACOVES__AIRFLOW_DAGS_PATH", f"{self.repo_path}/orchestrate/dags"
         )
         self.copier_context["airflow_dags_path"] = self._get_path_rel_to_root(airflow_dags_path)
         copier.run_auto(
