@@ -41,7 +41,6 @@ class SetupDatacovesTask(NonDbtBaseTask):
     def run(self) -> int:
         try:
             self.repo_path = os.environ["DATACOVES__REPO_PATH"]
-            self.dbt_home = os.environ["DATACOVES__DBT_HOME"]
             self.copier_context = {"datacoves_env": True}
         except KeyError:
             raise DbtCovesException(
