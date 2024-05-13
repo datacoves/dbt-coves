@@ -133,11 +133,10 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
 
         try:
             output = subprocess.check_output(cmd_list, env=env, cwd=cwd, stderr=subprocess.PIPE)
-            breakpoint()
-            # console.print(
-            #     f"{Text.from_ansi(output.decode())}\n"
-            #     f"[green]{command} :heavy_check_mark:[/green]"
-            # )
+            console.print(
+                f"{Text.from_ansi(output.decode())}\n"
+                f"[green]{command} :heavy_check_mark:[/green]"
+            )
             print(output.decode())
         except subprocess.CalledProcessError as e:
             formatted = f"{Text.from_ansi(e.stderr.decode()) if e.stderr else Text.from_ansi(e.stdout.decode())}"
