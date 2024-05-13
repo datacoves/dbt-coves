@@ -52,8 +52,6 @@ class SetupPrecommitTask(NonDbtBaseTask):
                 "In which dbt project would you like to install pre-commit?",
                 choices=dbt_project_paths,
             ).ask()
-
-        breakpoint()
         copier.run_auto(
             src_path=str(Path(__file__).parent.joinpath("templates", "pre_commit").resolve()),
             dst_path=repo_root,
