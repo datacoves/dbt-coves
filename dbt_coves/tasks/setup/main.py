@@ -2,6 +2,7 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
 
+from .datacoves import SetupDatacovesTask
 from .dbt import SetupDbtTask
 from .git import SetupGitTask
 from .pre_commit import SetupPrecommitTask
@@ -19,12 +20,7 @@ class SetupTask(NonDbtBaseTask):
     Task that code-gen dbt resources
     """
 
-    tasks = [
-        SetupGitTask,
-        SetupDbtTask,
-        SetupSSHTask,
-        SetupPrecommitTask,
-    ]
+    tasks = [SetupGitTask, SetupDbtTask, SetupSSHTask, SetupPrecommitTask, SetupDatacovesTask]
 
     key_column_with = 20
     value_column_with = 50

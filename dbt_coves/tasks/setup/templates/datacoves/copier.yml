@@ -1,0 +1,18 @@
+airflow_profile_path:
+  type: str
+  help: Question
+
+setup_airflow_dbt:
+  type: bool
+  default: false
+  help: Do you want to generate Airflow dbt profile?
+
+setup_airflow_dag:
+  type: bool
+  default: false
+  help: Do you want to generate an Airflow sample DAG?
+
+setup_ci:
+  type: bool
+  default: false
+  help: Do you want to generate a sample CI workflow?
