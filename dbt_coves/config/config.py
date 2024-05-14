@@ -137,9 +137,14 @@ class SetupGitModel(BaseModel):
     no_prompt: Optional[bool] = False
 
 
+class SetupDatacovesModel(BaseModel):
+    no_prompt: Optional[bool] = False
+
+
 class SetupModel(BaseModel):
     ssh: Optional[SetupSshModel] = SetupSshModel()
     git: Optional[SetupGitModel] = SetupGitModel()
+    datacoves: Optional[SetupDatacovesModel] = SetupDatacovesModel()
 
 
 class RunDbtModel(BaseModel):
@@ -221,6 +226,7 @@ class DbtCovesConfig:
         "load.airbyte.secrets_key",
         "setup.ssh.open_ssl_public_key",
         "setup.git.no_prompt",
+        "setup.datacoves.no_prompt",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",

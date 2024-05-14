@@ -136,6 +136,7 @@ class DbtCovesFlags:
         self.setup = {
             "ssh": {"open_ssl_public_key": False},
             "git": {"no_prompt": False},
+            "datacoves": {"no_prompt": False},
         }
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
 
@@ -387,6 +388,11 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "SetupGitTask":
                 if self.args.no_prompt:
                     self.setup["git"]["no_prompt"] = self.args.no_prompt
+
+            # setup datacoves
+            if self.args.cls.__name__ == "SetupDatacovesTask":
+                if self.args.no_prompt:
+                    self.setup["datacoves"]["no_prompt"] = self.args.no_prompt
 
             # run dbt
             if self.args.cls.__name__ == "RunDbtTask":

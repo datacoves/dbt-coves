@@ -34,14 +34,27 @@ class SetupDatacovesTask(NonDbtBaseTask):
             parents=[base_subparser],
             help="Set up Datacoves CI, profiles and DAGs structure",
         )
+        subparser.add_argument(
+            "--no-prompt",
+            action="store_true",
+            help="Generate all Datacoves components without prompting for confirmation",
+            default=False,
+        )
         subparser.set_defaults(cls=cls, which="datacoves")
         return subparser
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+
+    def get_config_value(self, key):
+        return self.coves_config.integrated["setup"]["datacoves"][key]
 
     @trackable
     def run(self) -> int:
         try:
             self.repo_path = os.environ["DATACOVES__REPO_PATH"]
-            self.copier_context = {"datacoves_env": True}
+            self.copier_context = {"no_prompt": self.get_config_value("no_prompt")}
+
         except KeyError:
             raise DbtCovesException(
                 "This command is meant to be run in a Datacoves environment only"
@@ -53,18 +66,21 @@ class SetupDatacovesTask(NonDbtBaseTask):
 
     def setup_datacoves(self):
         # dbt profile data gathering
-
         airflow_profile_path = os.environ.get(
             "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", f"{self.repo_path}/automate/dbt"
         )
+        if not airflow_profile_path:
+            airflow_profile_path = f"{self.repo_path}/automate/dbt"
+
         self.copier_context["airflow_profile_path"] = self._get_path_rel_to_root(
             airflow_profile_path
         )
         self.copier_context["dbt_adapter"] = os.environ.get("DATACOVES__DBT_ADAPTER", "default")
         # sample DAG data
-        airflow_dags_path = os.environ.get(
-            "DATACOVES__AIRFLOW_DAGS_PATH", f"{self.repo_path}/orchestrate/dags"
-        )
+        airflow_dags_path = os.environ.get("DATACOVES__AIRFLOW_DAGS_PATH")
+        if not airflow_dags_path:
+            airflow_dags_path = f"{self.repo_path}/orchestrate/dags"
+
         self.copier_context["airflow_dags_path"] = self._get_path_rel_to_root(airflow_dags_path)
         copier.run_auto(
             src_path=str(Path(__file__).parent.joinpath("templates", "datacoves").resolve()),
