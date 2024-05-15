@@ -1,8 +1,8 @@
 import os
 
-from base import BaseDataSyncTask
-
 from dbt_coves.utils.tracking import trackable
+
+from .base import BaseDataSyncTask
 
 DLT_PREFIX = "DESTINATION__SNOWFLAKE__CREDENTIALS__"
 DATA_SYNC_PREFIX = "DATA_SYNC_SNOWFLAKE_"
