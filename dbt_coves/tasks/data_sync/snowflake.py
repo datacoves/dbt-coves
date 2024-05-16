@@ -25,7 +25,7 @@ class SnowflakeDestination(object):
         os.environ[f"{DLT_PREFIX}HOST"] = value
 
 
-class SnowflakeDestinationDataSyncTask(BaseDataSyncTask):
+class SnowflakeDataSyncTask(BaseDataSyncTask):
     """
     Task that extracts airbyte sources, connections and destinations and stores them as json files
     """
@@ -37,16 +37,21 @@ class SnowflakeDestinationDataSyncTask(BaseDataSyncTask):
             parents=[base_subparser],
             help="""Loads data into Snowflake""",
         )
+        subparser.add_argument("--tables", help="List of tables to dump", required=False)
         subparser.add_argument("--source", help="Source database name", required=True)
         subparser.set_defaults(cls=cls, which="snowflake")
         return subparser
 
+    def get_config_value(self, key):
+        return self.coves_config.integrated["data_sync"][self.args.task][key]
+
     @trackable
     def run(self):
+        self.tables = self.get_config_value("tables")
         self.get_source_connection_string()
         self.get_destination_instance()
         self.destination_instance.set_credentials()
-        self.load_entire_database()
+        self.perform_sync()
         return 0
 
     def get_destination_instance(self) -> None:
