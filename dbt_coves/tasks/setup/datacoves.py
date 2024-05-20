@@ -14,12 +14,6 @@ import copier
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
 
-SERVICES = {
-    "Airflow dbt profile": "airflow_dbt_profile",
-    "Airflow sample DAG": "airflow_sample_dag",
-    "Github CI workflow": "github_workflow",
-}
-
 
 class SetupDatacovesTask(NonDbtBaseTask):
     """
