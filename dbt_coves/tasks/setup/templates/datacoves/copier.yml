@@ -1,7 +1,3 @@
-airflow_profile_path:
-  type: str
-  help: Question
-
 setup_airflow_dbt:
   type: bool
   default: false

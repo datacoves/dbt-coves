@@ -1,22 +1,20 @@
+#### Pre-reqs ####
+# Set the correct container based on your data warehouse
+# Add all required environment variables/secrets in Github Actions
+# In the Datacoves environment settings enable the OBSERVE tab to see production docs
 name: Perform deployment to production
 
-on:  # yamllint disable-line rule:truthy
+on: # yamllint disable-line rule:truthy
   pull_request:
     types:
       - closed
     branches:
       - main
-    paths:
-      - .github/workflows/*
-      - automate/*
-      - transform/*
-      - transform/**/*
 
   # Allows you to run this workflow manually from the Actions tab
   workflow_dispatch:
 
 jobs:
-
   # Perform the deployment to Prod
   build:
     # Need to make sure that when the PR was closed, it was actually merged.
@@ -31,30 +29,42 @@ jobs:
     # Alternatively, You can define multiple ENV for different workflows.
     # https://github.com/<org>/<repo>/settings/environments
     # environment: PR_ENV
-    container: datacoves/ci-basic-dbt-snowflake:2
+    container: datacoves/ci-basic-dbt-snowflake:2.2
+    #container: datacoves/ci-basic-dbt-redshift:2.2
 
     defaults:
       run:
-        working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
+        # If your dbt project is at the root.
+        working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+
+        # # If your dbt project is inside a transform directory.
+        # working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
 
     env:
       DBT_PROFILES_DIR: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/automate/dbt
-      DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
+      # If your dbt project is at the root.
+      DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+      # # If your dbt project is inside a transform directory.
+      #   DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
 
-      DATACOVES__MAIN__ACCOUNT:   ${{ vars.DATACOVES__MAIN__ACCOUNT }}
+      ##### Snowflake #####
+      DATACOVES__MAIN__ACCOUNT: ${{ vars.DB_ACCOUNT }}
 
-      DATACOVES__MAIN__DATABASE:  ${{ vars.DATACOVES__MAIN__DATABASE }}
-      DATACOVES__MAIN__SCHEMA:    ${{ vars.DATACOVES__MAIN__SCHEMA }}
+      DATACOVES__PROD__DATABASE: ${{ vars.PROD_DATABASE }}
+      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}
 
-      DATACOVES__MAIN__ROLE:      ${{ vars.DATACOVES__MAIN__ROLE }}
-      DATACOVES__MAIN__WAREHOUSE: ${{ vars.DATACOVES__MAIN__WAREHOUSE }}
+      DATACOVES__MAIN__ROLE: ${{ vars.DB_ROLE }}
+      DATACOVES__MAIN__WAREHOUSE: ${{ vars.DB_WAREHOUSE }}
 
-      DATACOVES__MAIN__USER:      ${{ vars.DATACOVES__MAIN__USER }}
-      DATACOVES__MAIN__PASSWORD:  ${{ secrets.DATACOVES__MAIN__PASSWORD }}
+      DATACOVES__MAIN__USER: ${{ vars.DB_USER }}
+      DATACOVES__MAIN__PASSWORD: ${{ secrets.DB_PASSWORD }}
 
-      # This is used by datacoves to drop the staging database for blue/green
-      # deployments, most likely you don't want to set this, we use it for demos
-      DATACOVES__DROP_DB_ON_FAIL:  ${{ vars.DATACOVES__DROP_DB_ON_FAIL }}
+      ##### Redshift #####
+      # DATACOVES__MAIN__HOST: "{{ env_var('DB_HOST') }}"
+      # DATACOVES__MAIN__USER: "{{ env_var('DB_USER') }}"
+      # DATACOVES__MAIN__PASSWORD: "{{ env_var('DB_PASSWORD') }}"
+      # DATACOVES__MAIN__DATABASE: "{{ env_var('PROD_DATABASE') }}"
+      # DATACOVES__MAIN__SCHEMA: "{{ env_var('DB_SCHEMA') }}"
 
     steps:
       - name: Checkout branch
@@ -69,30 +79,8 @@ jobs:
       - name: Install dbt packages
         run: "dbt deps"
 
-      - name: Get prod manifest
-        id: prod-manifest
-        run: "../automate/dbt/get_artifacts.sh"
-
-      # this is needed bec our sample dynamic table is not getting refreshed
-      - name: Refresh dynamic tables before blue-green
-        run: "dbt run -s materialization config.materialized:dynamic_table --full-refresh"
-
-      - name: Run blue / green deployment
-        if: contains(github.event.pull_request.labels.*.name, 'full-refresh') != true
-        id: run-blue-green
-        env:
-          MANIFEST_FOUND: ${{ steps.prod-manifest.outputs.manifest_found }}
-        run: "../automate/blue_green_run.py --ci-cd-run"
-
-      - name: Run blue / green deployment with full-refresh
-        if: contains(github.event.pull_request.labels.*.name, 'full-refresh')
-        id: run-blue-green-full-refresh
-        env:
-          MANIFEST_FOUND: ${{ steps.prod-manifest.outputs.manifest_found }}
-        run: "../automate/blue_green_run.py --ci-cd-run --full-refresh"
-
-      - name: Drop orphaned relations in db that are no longer in dbt
-        run: "dbt run-operation drop_orphaned_relations --args '{\"dry_run\": false}'"
+      - name: dbt build
+        run: "dbt build"
 
       - name: Generate dbt documentation
         run: "dbt docs generate"
@@ -101,76 +89,4 @@ jobs:
         uses: JamesIves/github-pages-deploy-action@4.1.4
         with:
           branch: dbt-docs
-          folder: transform/target
-
-      - name: Deploy Streamlit App
-        run: "dbt run-operation deploy_streamlit_app --args \"{app_path: '../visualize/streamlit/loans-example', app_file: loans.py}\""
-
-      - name: Upload dbt artifacts
-        run: "dbt run-operation upload_artifacts"
-
-      - uses: fregante/setup-git-user@v2
-      - name: Bump dbt project and git project version
-        run: "../automate/dbt/bump_dbt_project.sh"
-
-      - name: Push version changes
-        uses: ad-m/github-push-action@v0.6.0
-        with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
-          branch: ${{ github.ref_name }}
-          tags: true
-
-      - name: Drop staging db on Failure
-        if: always() && (steps.run-blue-green.outcome == 'failure')
-        run: "dbt --no-write-json run-operation drop_staging_db --args 'db_name: ${{env.DATACOVES__STAGING__DATABASE}}'"  # yamllint disable-line rule:line-length
-
-  # Drops the temporary PR database
-  drop-pr-db-on-close:
-    name: Drop PR Database on Close
-    if: ${{ always() }}
-
-    runs-on: ubuntu-latest
-
-    # Set environment variables in
-    # https://github.com//<your org>/<your repo>/settings/variables/actions
-    #
-    # Alternatively, You can define multiple ENV for different workflows.
-    # https://github.com/<org>/<repo>/settings/environments
-    # environment: PR_ENV
-    container: datacoves/ci-basic-dbt-snowflake:2
-
-    defaults:
-      run:
-        working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
-
-    env:
-      DBT_PROFILES_DIR: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/automate/dbt
-      DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
-      DATACOVES__YAML_DAGS_FOLDER: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/schedule
-
-      DATACOVES__MAIN__ACCOUNT:   ${{ vars.DATACOVES__MAIN__ACCOUNT }}
-
-      DATACOVES__MAIN__DATABASE:  ${{ vars.DATACOVES__MAIN__DATABASE }}_PR_${{ github.event.number }}
-      DATACOVES__MAIN__SCHEMA:    ${{ vars.DATACOVES__MAIN__SCHEMA }}
-
-      DATACOVES__MAIN__ROLE:      ${{ vars.DATACOVES__MAIN__ROLE }}
-      DATACOVES__MAIN__WAREHOUSE: ${{ vars.DATACOVES__MAIN__WAREHOUSE }}
-
-      DATACOVES__MAIN__USER:      ${{ vars.DATACOVES__MAIN__USER }}
-      DATACOVES__MAIN__PASSWORD:  ${{ secrets.DATACOVES__MAIN__PASSWORD }}
-
-    steps:
-      - name: Checkout branch
-        uses: actions/checkout@v3.5.0
-        with:
-          fetch-depth: 0
-          ref: ${{ github.event.pull_request.head.sha }}
-
-      - name: Set Secure Directory
-        run: git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
-
-      - name: Install dbt packages
-        run: "dbt deps"
-
-      - name: Drop PR database
-        run: "dbt --no-write-json run-operation drop_recreate_db --args '{db_name: ${{env.DATACOVES__MAIN__DATABASE}}, recreate: False}'"  # yamllint disable-line rule:line-length
+          folder: /target
