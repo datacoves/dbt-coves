@@ -11,7 +11,6 @@ from pathlib import Path
 
 import copier
 
-from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
 
@@ -51,14 +50,8 @@ class SetupDatacovesTask(NonDbtBaseTask):
 
     @trackable
     def run(self) -> int:
-        try:
-            self.repo_path = os.environ["DATACOVES__REPO_PATH"]
-            self.copier_context = {"no_prompt": self.get_config_value("no_prompt")}
-
-        except KeyError:
-            raise DbtCovesException(
-                "This command is meant to be run in a Datacoves environment only"
-            )
+        self.repo_path = os.environ.get("DATACOVES__REPO_PATH", "/config/workspace")
+        self.copier_context = {"no_prompt": self.get_config_value("no_prompt")}
         return self.setup_datacoves()
 
     def _get_path_rel_to_root(self, path):
@@ -75,11 +68,15 @@ class SetupDatacovesTask(NonDbtBaseTask):
         self.copier_context["airflow_profile_path"] = self._get_path_rel_to_root(
             airflow_profile_path
         )
-        self.copier_context["dbt_adapter"] = os.environ.get("DATACOVES__DBT_ADAPTER", "default")
+
+        dbt_adapter = os.environ.get("DATACOVES__DBT_ADAPTER")
+        if dbt_adapter:
+            self.copier_context["dbt_adapter"] = dbt_adapter
+
         # sample DAG data
-        airflow_dags_path = os.environ.get("DATACOVES__AIRFLOW_DAGS_PATH")
-        if not airflow_dags_path:
-            airflow_dags_path = f"{self.repo_path}/orchestrate/dags"
+        airflow_dags_path = os.environ.get(
+            "DATACOVES__AIRFLOW_DAGS_PATH", f"{self.repo_path}/orchestrate/dags"
+        )
 
         self.copier_context["airflow_dags_path"] = self._get_path_rel_to_root(airflow_dags_path)
         copier.run_auto(
