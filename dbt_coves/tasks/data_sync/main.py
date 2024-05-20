@@ -2,7 +2,8 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import BaseTask
 
-from .snowflake import SnowflakeDestinationDataSyncTask
+from .redshift import RedshiftDataSyncTask
+from .snowflake import SnowflakeDataSyncTask
 
 console = Console()
 
@@ -23,6 +24,7 @@ class DataSyncTask(BaseTask):
         )
         subparser.set_defaults(cls=cls, which="data_sync")
         sub_parsers = subparser.add_subparsers(title="dbt-coves data-sync commands", dest="task")
-        SnowflakeDestinationDataSyncTask.register_parser(sub_parsers, base_subparser)
+        SnowflakeDataSyncTask.register_parser(sub_parsers, base_subparser)
+        RedshiftDataSyncTask.register_parser(sub_parsers, base_subparser)
         cls.arg_parser = subparser
         return subparser

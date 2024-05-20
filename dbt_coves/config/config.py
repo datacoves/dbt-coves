@@ -154,12 +154,26 @@ class RunDbtModel(BaseModel):
     cleanup: Optional[bool] = False
 
 
+class RedshiftDataSyncModel(BaseModel):
+    tables: Optional[List[str]] = []
+
+
+class SnowflakeDataSyncModel(BaseModel):
+    tables: Optional[List[str]] = []
+
+
+class DataSyncModel(BaseModel):
+    redshift: Optional[RedshiftDataSyncModel] = RedshiftDataSyncModel()
+    snowflake: Optional[SnowflakeDataSyncModel] = SnowflakeDataSyncModel()
+
+
 class ConfigModel(BaseModel):
     generate: Optional[GenerateModel] = GenerateModel()
     extract: Optional[ExtractModel] = ExtractModel()
     load: Optional[LoadModel] = LoadModel()
     setup: Optional[SetupModel] = SetupModel()
     dbt: Optional[RunDbtModel] = RunDbtModel()
+    data_sync: Optional[DataSyncModel] = DataSyncModel()
 
 
 class DbtCovesConfig:
@@ -246,6 +260,8 @@ class DbtCovesConfig:
         "load.fivetran.secrets_project",
         "load.fivetran.secrets_tags",
         "load.fivetran.secrets_key",
+        "data_sync.redshift.tables",
+        "data_sync.snowflake.tables",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

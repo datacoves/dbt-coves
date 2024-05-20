@@ -139,6 +139,7 @@ class DbtCovesFlags:
             "datacoves": {"no_prompt": False},
         }
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
+        self.data_sync = {"redshift": {"tables": []}, "snowflake": {"tables": []}}
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         args = sys.argv[1:]
@@ -404,3 +405,15 @@ class DbtCovesFlags:
                     self.dbt["virtualenv"] = self.args.virtualenv
                 if self.args.cleanup:
                     self.dbt["cleanup"] = self.args.cleanup
+
+            # data sync
+            if self.args.cls.__name__ == "RedshiftDataSyncTask":
+                if self.args.tables:
+                    self.data_sync["redshift"]["tables"] = [
+                        table.strip() for table in self.args.tables.split(",")
+                    ]
+            if self.args.cls.__name__ == "SnowflakeDataSyncTask":
+                if self.args.tables:
+                    self.data_sync["snowflake"]["tables"] = [
+                        table.strip() for table in self.args.tables.split(",")
+                    ]
