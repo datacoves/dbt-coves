@@ -129,21 +129,11 @@ class LoadModel(BaseModel):
     fivetran: Optional[LoadFivetranModel] = LoadFivetranModel()
 
 
-class SetupSshModel(BaseModel):
-    open_ssl_public_key: Optional[bool] = False
-
-
-class SetupGitModel(BaseModel):
-    no_prompt: Optional[bool] = False
-
-
 class SetupDatacovesModel(BaseModel):
     no_prompt: Optional[bool] = False
 
 
 class SetupModel(BaseModel):
-    ssh: Optional[SetupSshModel] = SetupSshModel()
-    git: Optional[SetupGitModel] = SetupGitModel()
     datacoves: Optional[SetupDatacovesModel] = SetupDatacovesModel()
 
 
@@ -238,8 +228,6 @@ class DbtCovesConfig:
         "load.airbyte.secrets_project",
         "load.airbyte.secrets_tags",
         "load.airbyte.secrets_key",
-        "setup.ssh.open_ssl_public_key",
-        "setup.git.no_prompt",
         "setup.datacoves.no_prompt",
         "dbt.command",
         "dbt.project_dir",

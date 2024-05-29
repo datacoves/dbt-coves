@@ -134,8 +134,6 @@ class DbtCovesFlags:
             "current-dir": False,
         }
         self.setup = {
-            "ssh": {"open_ssl_public_key": False},
-            "git": {"no_prompt": False},
             "datacoves": {"no_prompt": False},
         }
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
@@ -379,16 +377,6 @@ class DbtCovesFlags:
                     self.extract["fivetran"]["api_secret"] = self.args.api_secret
                 if self.args.credentials:
                     self.extract["fivetran"]["credentials"] = self.args.credentials
-
-            # setup ssh
-            if self.args.cls.__name__ == "SetupSSHTask":
-                if self.args.open_ssl_public_key:
-                    self.setup["ssh"]["open_ssl_public_key"] = self.args.open_ssl_public_key
-
-            # setup git
-            if self.args.cls.__name__ == "SetupGitTask":
-                if self.args.no_prompt:
-                    self.setup["git"]["no_prompt"] = self.args.no_prompt
 
             # setup datacoves
             if self.args.cls.__name__ == "SetupDatacovesTask":
