@@ -20,3 +20,9 @@ ci_provider:
     - gitlab
   when: "{% if 'setup_ci_cd' in services%}true{%endif%}"
   help: Which CI/CD provider are you using?
+
+dags_path:
+  type: str
+  when: "{% if 'setup_airflow_dag' in services%}true{%endif%}"
+  default: "{{airflow_dags_path}}"
+  help: Which CI/CD provider are you using?

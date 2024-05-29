@@ -1,0 +1,51 @@
+# .gitlab-ci.yml
+
+stages:
+  - deploy
+
+variables:
+  DBT_PROFILES_DIR: "/builds/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}/automate/dbt"
+  DATACOVES__DBT_HOME: "/builds/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}"
+  DATACOVES__MAIN__ACCOUNT: "${DB_ACCOUNT}"
+  DATACOVES__PROD__DATABASE: "${PROD_DATABASE}"
+  DATACOVES__MAIN__SCHEMA: "${DB_SCHEMA}"
+  DATACOVES__MAIN__ROLE: "${DB_ROLE}"
+  DATACOVES__MAIN__WAREHOUSE: "${DB_WAREHOUSE}"
+  DATACOVES__MAIN__USER: "${DB_USER}"
+  DATACOVES__MAIN__PASSWORD: "${DB_PASSWORD}"
+
+deploy:
+  stage: deploy
+  image: datacoves/ci-basic-dbt-snowflake:2.2
+  script:
+    - git config --global --add safe.directory /builds/${CI_PROJECT_NAMESPACE}/${CI_PROJECT_NAME}
+    - dbt deps
+    - dbt build
+    - dbt docs generate
+  artifacts:
+    paths:
+      - target/
+  only:
+    refs:
+      - main
+    changes:
+      - **/*
+
+pages:
+  stage: deploy
+  dependencies:
+    - deploy
+  script:
+    - mv target public
+  artifacts:
+    paths:
+      - public
+  only:
+    refs:
+      - main
+
+rules:
+  - if: '$CI_MERGE_REQUEST_ID && $CI_COMMIT_BRANCH == "main"'
+    when: always
+  - if: '$CI_PIPELINE_SOURCE == "web"'
+    when: manual

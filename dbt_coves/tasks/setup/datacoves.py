@@ -16,9 +16,9 @@ from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
 
 AVAILABLE_SERVICES = {
-    "Airflow sample DAG": "setup_airflow_dag",
-    "Automated dbt profile": "setup_dbt_profile",
-    "CI/CD": "setup_ci_cd",
+    "dbt profile for automated runs": "setup_dbt_profile",
+    "Initial CI/CD scripts": "setup_ci_cd",
+    "Sample Airflow DAG": "setup_airflow_dag",
 }
 
 
