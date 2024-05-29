@@ -1,9 +1,4 @@
-setup_airflow_dbt:
-  type: bool
-  default: false
-  when: "{% if not no_prompt %}true{% endif %}"
-  default_when_false: true
-  help: Do you want to generate Airflow dbt profile?
+
 
 dbt_adapter:
   type: str
@@ -16,18 +11,12 @@ dbt_adapter:
     - sqlite
     - duckdb
   help: What dbt adapter are you using?
-  when: "{{setup_airflow_dbt and not dbt_adapter}}"
+  when: "{{'setup_dbt_profile' in services and not dbt_adapter}}"
 
-setup_airflow_dag:
-  type: bool
-  default: false
-  when: "{% if not no_prompt %}true{% endif %}"
-  default_when_false: true
-  help: Do you want to generate an Airflow sample DAG?
-
-setup_ci:
-  type: bool
-  default: false
-  when: "{% if not no_prompt %}true{% endif %}"
-  default_when_false: true
-  help: Do you want to generate a sample CI workflow?
+ci_provider:
+  type: str
+  choices:
+    - github
+    - gitlab
+  when: "{% if 'setup_ci_cd' in services%}true{%endif%}"
+  help: Which CI/CD provider are you using?

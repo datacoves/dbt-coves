@@ -10,9 +10,16 @@ import os
 from pathlib import Path
 
 import copier
+import questionary
 
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
+
+AVAILABLE_SERVICES = {
+    "Airflow sample DAG": "setup_airflow_dag",
+    "Automated dbt profile": "setup_dbt_profile",
+    "CI/CD": "setup_ci_cd",
+}
 
 
 class SetupDatacovesTask(NonDbtBaseTask):
@@ -53,6 +60,11 @@ class SetupDatacovesTask(NonDbtBaseTask):
 
     def setup_datacoves(self):
         # dbt profile data gathering
+        choices = questionary.checkbox(
+            "What services would you like to set up?",
+            choices=list(AVAILABLE_SERVICES.keys()),
+        ).ask()
+        self.copier_context["services"] = [AVAILABLE_SERVICES[service] for service in choices]
         airflow_profile_path = os.environ.get(
             "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", f"{self.repo_path}/automate/dbt"
         )
