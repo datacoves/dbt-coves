@@ -71,7 +71,7 @@ class SetupDatacovesTask(NonDbtBaseTask):
             choices=list(AVAILABLE_SERVICES.keys()),
         ).ask()
         services = [AVAILABLE_SERVICES[service] for service in choices]
-        self.copier_context["services"] = services
+
         airflow_profile_path = os.environ.get(
             "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", f"{self.repo_path}/automate/dbt"
         )
@@ -94,11 +94,11 @@ class SetupDatacovesTask(NonDbtBaseTask):
         self.copier_context["airflow_dags_path"] = self._get_path_rel_to_root(airflow_dags_path)
         if "setup_precommit" in services:
             dbt_project_paths = get_dbt_projects(self.repo_path)
-            breakpoint()
             if not dbt_project_paths:
                 console.print(
-                    "Your repository doesn't contain any dbt project where to install pre-commit into"
+                    "Your repository doesn't contain any dbt project where to install [red]pre-commit[/red] into"
                 )
+                services.remove("setup_precommit")
             elif len(dbt_project_paths) == 1:
                 self.copier_context["dbt_project_dir"] = dbt_project_paths[0]
             else:
@@ -106,6 +106,7 @@ class SetupDatacovesTask(NonDbtBaseTask):
                     "In which dbt project would you like to install pre-commit?",
                     choices=dbt_project_paths,
                 ).ask()
+        self.copier_context["services"] = services
         copier.run_auto(
             src_path=str(Path(__file__).parent.joinpath("templates", "datacoves").resolve()),
             dst_path=self.repo_path,
