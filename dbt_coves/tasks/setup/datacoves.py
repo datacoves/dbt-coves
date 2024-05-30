@@ -11,15 +11,21 @@ from pathlib import Path
 
 import copier
 import questionary
+from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
 
+from .utils import get_dbt_projects
+
 AVAILABLE_SERVICES = {
     "dbt profile for automated runs": "setup_dbt_profile",
     "Initial CI/CD scripts": "setup_ci_cd",
+    "Linting with SQLFluff, dbt-checkpoint and/or YMLLint": "setup_precommit",
     "Sample Airflow DAG": "setup_airflow_dag",
 }
+
+console = Console()
 
 
 class SetupDatacovesTask(NonDbtBaseTask):
@@ -64,7 +70,8 @@ class SetupDatacovesTask(NonDbtBaseTask):
             "What services would you like to set up?",
             choices=list(AVAILABLE_SERVICES.keys()),
         ).ask()
-        self.copier_context["services"] = [AVAILABLE_SERVICES[service] for service in choices]
+        services = [AVAILABLE_SERVICES[service] for service in choices]
+        self.copier_context["services"] = services
         airflow_profile_path = os.environ.get(
             "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", f"{self.repo_path}/automate/dbt"
         )
@@ -85,6 +92,20 @@ class SetupDatacovesTask(NonDbtBaseTask):
         )
 
         self.copier_context["airflow_dags_path"] = self._get_path_rel_to_root(airflow_dags_path)
+        if "setup_precommit" in services:
+            dbt_project_paths = get_dbt_projects(self.repo_path)
+            breakpoint()
+            if not dbt_project_paths:
+                console.print(
+                    "Your repository doesn't contain any dbt project where to install pre-commit into"
+                )
+            elif len(dbt_project_paths) == 1:
+                self.copier_context["dbt_project_dir"] = dbt_project_paths[0]
+            else:
+                self.copier_context["dbt_project_dir"] = questionary.select(
+                    "In which dbt project would you like to install pre-commit?",
+                    choices=dbt_project_paths,
+                ).ask()
         copier.run_auto(
             src_path=str(Path(__file__).parent.joinpath("templates", "datacoves").resolve()),
             dst_path=self.repo_path,

@@ -1,18 +1,3 @@
-
-
-dbt_adapter:
-  type: str
-  choices:
-    - snowflake
-    - bigquery
-    - redshift
-    - postgres
-    - spark
-    - sqlite
-    - duckdb
-  help: What dbt adapter are you using?
-  when: "{{'setup_dbt_profile' in services and not dbt_adapter}}"
-
 ci_provider:
   type: str
   choices:
@@ -25,4 +10,46 @@ dags_path:
   type: str
   when: "{% if 'setup_airflow_dag' in services%}true{%endif%}"
   default: "{{airflow_dags_path}}"
-  help: Which CI/CD provider are you using?
+  help: Where do you want Airflow DAGs to be stored?
+
+use_dbt_checkpoint:
+  type: bool
+  default: false
+  when: "{% if 'setup_precommit' in services%}true{%endif%}"
+  help: Do you want to use dbt-checkpoint?
+
+use_sqlfluff:
+  type: bool
+  default: false
+  when: "{% if 'setup_precommit' in services%}true{%endif%}"
+  help: Do you want to use Sqlfluff?
+
+use_yamllint:
+  type: bool
+  default: false
+  when: "{% if 'setup_precommit' in services%}true{%endif%}"
+  help: Do you want to use Yamllint?
+
+dbt_adapter:
+  type: str
+  choices:
+    - snowflake
+    - bigquery
+    - redshift
+    - postgres
+    - spark
+    - sqlite
+    - duckdb
+  help: What dbt adapter are you using?
+  when: "{{not dbt_adapter and ('setup_dbt_profile' in services or use_sqlfluff)}}"
+
+comma_style:
+  type: str
+  choices:
+    - leading
+    - trailing
+  help: Where should commas be placed?
+  default: trailing
+  when: "{{use_sqlfluff}}"
+
+_answers_file: ".dbt-coves"
