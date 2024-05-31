@@ -201,16 +201,14 @@ base_subparser.add_argument(
     "--partial-parse-file-diff",
     action="store_true",
     default=False,
-    help="Allow for partial parsing by looking for and writing to a pickle file in the target directory. "
-    "This overrides the user configuration file.",
+    help="Internal flag for whether to compute a file diff during partial parsing.",
     dest="PARTIAL_PARSE_FILE_DIFF",
 )
 base_subparser.add_argument(
     "--require-names-without-spaces",
     action="store_true",
     default=False,
-    help="Allow for partial parsing by looking for and writing to a pickle file in the target directory. "
-    "This overrides the user configuration file.",
+    help="Show resource names without spaces",
     dest="REQUIRE_RESOURCE_NAMES_WITHOUT_SPACES",
 )
 
