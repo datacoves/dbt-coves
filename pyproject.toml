@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbt_coves"
-version = "1.7.9"
+version = "1.7.10"
 description = "CLI tool for dbt users adopting analytics engineering best practices."
 authors = ["Datacoves <hello@datacoves.com>"]
 license = "Apache 2.0"
@@ -47,10 +47,11 @@ gitpython = "^3.1.31"
 mixpanel = "^4.10.0"
 black = "^23"
 isort = "^5.12.0"
-dlt = {extras = ["postgres"], version = "^0.4.8"}
+dlt = {extras = ["redshift"], version = "^0.3"}
 psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
 pyyaml-include = "<2.0"
+enlighten = "^1.12.4"
 dbt-adapters = "^1.2.1"
 dbt-common = "^1.2.0"
 
