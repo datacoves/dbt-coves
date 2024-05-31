@@ -11,7 +11,6 @@ The Datacoves platform helps enterprises overcome their data delivery challenges
 
 Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com](https://datacoves.com/product).
 
-
 ## What is dbt-coves?
 
 dbt-coves is a CLI tool that automates certain tasks for [dbt](https://www.getdbt.com), making life simpler for the dbt user.
