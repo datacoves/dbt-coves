@@ -197,6 +197,23 @@ base_subparser.add_argument(
     default=False,
     help="Disable command usage tracking. We don't store any user information.",
 )
+base_subparser.add_argument(
+    "--partial-parse-file-diff",
+    action="store_true",
+    default=False,
+    help="Allow for partial parsing by looking for and writing to a pickle file in the target directory. "
+    "This overrides the user configuration file.",
+    dest="PARTIAL_PARSE_FILE_DIFF",
+)
+base_subparser.add_argument(
+    "--require-names-without-spaces",
+    action="store_true",
+    default=False,
+    help="Allow for partial parsing by looking for and writing to a pickle file in the target directory. "
+    "This overrides the user configuration file.",
+    dest="REQUIRE_RESOURCE_NAMES_WITHOUT_SPACES",
+)
+
 
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 
