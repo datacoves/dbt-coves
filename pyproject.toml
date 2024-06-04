@@ -16,7 +16,6 @@ classifiers = [
     "Programming Language :: Python :: 3.9",
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
-    "Programming Language :: Python :: 3.12",
 ]
 include = ["templates/*"]
 keywords = ["data engineering", "analytics engineering", "dbt", 'ETL', "data modelling"]
@@ -25,7 +24,7 @@ documentation = "https://github.com/datacoves/dbt-coves/blob/main/README.md"
 repository = "https://github.com/datacoves/dbt-coves"
 
 [tool.poetry.dependencies]
-python = ">=3.8.1,<3.13"
+python = ">=3.8.1,<3.12"
 luddite = "^1.0.1"
 packaging = ">=20.8"
 pretty-errors = "^1.2.19"
