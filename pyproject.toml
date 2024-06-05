@@ -52,8 +52,6 @@ psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
 pyyaml-include = "<2.0"
 enlighten = "^1.12.4"
-dbt-adapters = "^1.2.1"
-dbt-common = "^1.2.0"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
