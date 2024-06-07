@@ -17,7 +17,6 @@ Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com
 - [Installation](#installation)
 - [Usage](#usage)
 - [Contributing](#contributing)
-- [Acknowledgements](#acknowledgements)
 
 ## Introduction
 
@@ -82,18 +81,6 @@ dbt-coves <command> -h
 ## Contributing
 
 If you're interested in contributing to the development of dbt-coves, please refer to the [Contributing Guidelines](contributing.md). This document outlines the process for submitting bug reports, feature requests, and code contributions.
-
-## Acknowledgements
-
-### Thanks
-
-The project main structure was inspired by [dbt-sugar](https://github.com/bitpicky/dbt-sugar). Special thanks to [Bastien Boutonnet](https://github.com/bastienboutonnet) for the great work done.
-
-### Authors
-
-- Sebastian Sassi [\@sebasuy](https://twitter.com/sebasuy) -- [Datacoves](https://datacoves.com/)
-- Noel Gomez [\@noel_g](https://twitter.com/noel_g) -- [Datacoves](https://datacoves.com/)
-- Bruno Antonellini -- [Datacoves](https://datacoves.com/)
 
 # Metrics
 
