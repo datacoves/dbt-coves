@@ -16,9 +16,8 @@ Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com
 - [Introduction](#introduction)
 - [Installation](#installation)
 - [Usage](#usage)
-- [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
-- [License](#license)
+- [Acknowledgements](#acknowledgements)
 
 ## Introduction
 
