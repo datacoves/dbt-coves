@@ -1,4 +1,4 @@
-### Generate airflow-dags
+## dbt-coves generate airflow-dags
 
 ```console
 dbt-coves generate airflow-dags
@@ -18,7 +18,7 @@ The basic structure of these YMLs must consist of:
       - `dependencies`: whether the task is dependent on another one(s)
       - any `key:value` pair of [Operator arguments](https://airflow.apache.org/docs/apache-airflow/stable/_api/airflow/operators/index.html)
 
-#### Airflow DAG Generators
+### Airflow DAG Generators
 
 When a YML Dag `node` is of type `task_group`, **Generators** can be used instead of `Operators`.
 
@@ -36,7 +36,7 @@ We provide some prebuilt Generators:
   - `run_dbt_compile`: true/false
   - `run_dbt_deps`: true/false
 
-#### Basic YML DAG example:
+### Basic YML DAG example:
 
 ```yaml
 description: "dbt-coves DAG"
@@ -64,7 +64,7 @@ nodes:
     dependencies: ["airbyte_dbt"]
 ```
 
-##### Create your custom Generator
+### Create your custom Generator
 
 You can create your own DAG Generator. Any `key:value` specified in the YML DAG will be passed to it's constructor.
 
@@ -84,7 +84,7 @@ class PostgresGenerator():
         raise NotImplementedError
 ```
 
-### airflow-dags generation arguments
+### Arguments
 
 `dbt-coves generate airflow-dags` supports the following args:
 

@@ -8,15 +8,13 @@ dbt-coves generate sources --database raw
 
 Supports Jinja templates to adjust how the resources are generated. See below for examples.
 
-Every `dbt-coves generate <resource>` supports `--no-prompt` flag, which will silently generate all sources/models/properties/metadata without asking anything to the user.
-
-### Source Generation Arguments
-
 dbt-coves can be used to create the initial staging models. It will do the following:
 
 1. Create / Update the source yml file
 2. Create the initial staging model(sql) file and offer to flatten VARIANT(JSON) fields
 3. Create the staging model's property(yml) file.
+
+### Arguments
 
 `dbt-coves generate sources` supports the following args:
 

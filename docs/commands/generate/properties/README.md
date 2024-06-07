@@ -1,6 +1,8 @@
-### Properties Generation Arguments
+## dbt-coves generate properties
 
 You can use dbt-coves to generate and update the properties(yml) file for a given dbt model(sql) file.
+
+### Arguments
 
 `dbt-coves generate properties` supports the following args:
 
