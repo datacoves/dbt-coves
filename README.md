@@ -65,7 +65,7 @@ Thanks to dbt-coves, any analyst or developer can:
   - [dbt sources](docs/commands/generate/sources/): generate the dbt source configuration as well as the initial dbt staging model(s).
   - [dbt properties](docs/commands/generate/properties/): generate and/or update the properties(yml) file for a given dbt model(sql) file.
   - [dbt docs](docs/commands/generate/docs/): generate dbt docs with extra functionalities.
-  - [airflow dags](docs/commands/generate/airflow-dags/): generate Airflow DAGs from YML files.
+  - [airflow dags](docs/commands/generate/airflow%20dags/): generate Airflow DAGs from YML files.
 - [extract and load](docs/commands/extract%20and%20load/): save and restore your data replication provider configuration
   - [Airbyte](docs/commands/extract%20and%20load/airbyte)
   - [Fivetran](docs/commands/extract%20and%20load/fivetran)
