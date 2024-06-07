@@ -113,4 +113,4 @@ You can download a [sample csv file](sample_metadata.csv) as reference
 
 ### In Action
 
-https://www.loom.com/embed/28857aab6f13462c9cf8561d2ac982fc?sid=6c98d460-460d-438e-aef1-b24681589dae
+https://www.loom.com/share/28857aab6f13462c9cf8561d2ac982fc?sid=57527f93-778f-4d42-9f33-08256c518eb5
