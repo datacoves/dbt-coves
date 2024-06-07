@@ -110,3 +110,7 @@ You can download a [sample csv file](sample_metadata.csv) as reference
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  | Year | integer | Year of country population measurement          |
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  |      | variant | Airbyte data columns (VARIANT) in Snowflake     |
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_ab_id |      | varchar | Airbyte unique identifier used during data load |
+
+### In Action
+
+https://www.loom.com/embed/28857aab6f13462c9cf8561d2ac982fc?sid=6c98d460-460d-438e-aef1-b24681589dae
