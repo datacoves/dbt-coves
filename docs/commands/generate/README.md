@@ -16,8 +16,7 @@ dbt-coves generate <resource>
 
 Where `resource` could be:
 
-- [_sources_](http://google.com): generate dbt sources
-- [_properties_]: generate sources' YML schemas
-- [_docs_]: generate dbt docs
-- [_airflow-dags_]: generate Airflow DAGs for orchestration
-- [_metadata_]: generate dbt-coves metadata
+- [_sources_](sources/): generate dbt sources
+- [_properties_](properties/): generate sources' YML schemas
+- [_docs_](docs/): generate dbt docs
+- [_airflow-dags_](airflow-dags/): generate Airflow DAGs for orchestration

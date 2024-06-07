@@ -13,8 +13,6 @@ Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com
 
 - [Introduction](#introduction)
 - [Installation](#installation)
-  - [dbt versions](#dbt-versions)
-  - [dbt adapters](#dbt-adapters)
 - [Usage](#usage)
 - [Acknowledgements](#acknowledgements)
 - [Contributing](#contributing)
@@ -26,7 +24,7 @@ dbt-coves is a CLI tool that automates certain tasks for [dbt](https://www.getdb
 
 dbt-coves generates dbt sources, staging models and property(yml) files by analyzing information from the data warehouse and creating the necessary files (sql and yml). It can even generate Airflow DAGs based on YML input.
 
-Finally, dbt-coves includes functionality to bootstrap a dbt project and to extract and load configurations from Airbyte.
+Finally, dbt-coves includes functionality to bootstrap a dbt project and to extract and load configurations from data-replication providers.
 
 ## Installation
 

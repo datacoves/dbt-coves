@@ -1,6 +1,4 @@
-```console
-dbt-coves generate sources
-```
+## dbt-coves generate sources
 
 This command will generate the dbt source configuration as well as the initial dbt staging model(s). It will look in the database defined in your `profiles.yml` file or you can pass the `--database` argument or set up default configuration options (see below)
 
