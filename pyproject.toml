@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "dbt_coves"
-version = "1.7.9"
+version = "1.7.10"
 description = "CLI tool for dbt users adopting analytics engineering best practices."
 authors = ["Datacoves <hello@datacoves.com>"]
 license = "Apache 2.0"
@@ -37,7 +37,7 @@ click = "^8.0.3"
 rich = ">=10.4,<14.0"
 Jinja2 = ">2.11.2"
 python-slugify = "<9.0.0"
-dbt-core = ">=1.1,<1.8"
+dbt-core = ">=1.1,<1.9"
 bumpversion = "^0.6.0"
 typing_extensions = { version = "^4.0", python = "^3.7" }
 ruamel-yaml = "^0.17.21"
@@ -47,10 +47,11 @@ gitpython = "^3.1.31"
 mixpanel = "^4.10.0"
 black = "^23"
 isort = "^5.12.0"
-dlt = {extras = ["postgres"], version = "^0.4.8"}
+dlt = {extras = ["redshift"], version = "^0.3"}
 psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
 pyyaml-include = "<2.0"
+enlighten = "^1.12.4"
 
 [tool.poetry.dev-dependencies]
 pytest = "^7.2.0"
@@ -72,9 +73,9 @@ types-requests = "^2.28.11.5"
 flake8 = "^5.0.0"
 
 [tool.poetry.group.test.dependencies]
-dbt-redshift = ">=1.1,<1.8"
-dbt-bigquery = ">=1.1,<1.8"
-dbt-snowflake = ">=1.1,<1.8"
+dbt-redshift = ">=1.1,<1.9"
+dbt-bigquery = ">=1.1,<1.9"
+dbt-snowflake = ">=1.1,<1.9"
 redshift-connector = "^2.0.910"
 pytest-dependency = "^0.5.1"
 python-dotenv = "^0.21.1"
