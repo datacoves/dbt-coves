@@ -65,7 +65,6 @@ You can download a [sample csv file](sample_metadata.csv) as reference
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  |      | variant | Airbyte data columns (VARIANT) in Snowflake     |
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_ab_id |      | varchar | Airbyte unique identifier used during data load |
 
-
 ### In Action
 
 https://www.loom.com/share/1dc2e830896e48cbbd7495451d25b942?sid=367d3560-9c66-4d89-b7ba-eed7af015f10
