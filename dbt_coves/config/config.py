@@ -129,12 +129,8 @@ class LoadModel(BaseModel):
     fivetran: Optional[LoadFivetranModel] = LoadFivetranModel()
 
 
-class SetupDatacovesModel(BaseModel):
-    no_prompt: Optional[bool] = False
-
-
 class SetupModel(BaseModel):
-    datacoves: Optional[SetupDatacovesModel] = SetupDatacovesModel()
+    no_prompt: Optional[bool] = False
 
 
 class RunDbtModel(BaseModel):
@@ -228,7 +224,7 @@ class DbtCovesConfig:
         "load.airbyte.secrets_project",
         "load.airbyte.secrets_tags",
         "load.airbyte.secrets_key",
-        "setup.datacoves.no_prompt",
+        "setup.no_prompt",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",

@@ -134,7 +134,7 @@ class DbtCovesFlags:
             "current-dir": False,
         }
         self.setup = {
-            "datacoves": {"no_prompt": False},
+            "no_prompt": False,
         }
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
         self.data_sync = {"redshift": {"tables": []}, "snowflake": {"tables": []}}
@@ -378,10 +378,10 @@ class DbtCovesFlags:
                 if self.args.credentials:
                     self.extract["fivetran"]["credentials"] = self.args.credentials
 
-            # setup datacoves
-            if self.args.cls.__name__ == "SetupDatacovesTask":
+            # setup
+            if self.args.cls.__name__ == "SetupTask":
                 if self.args.no_prompt:
-                    self.setup["datacoves"]["no_prompt"] = self.args.no_prompt
+                    self.setup["no_prompt"] = self.args.no_prompt
 
             # run dbt
             if self.args.cls.__name__ == "RunDbtTask":
