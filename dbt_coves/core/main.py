@@ -197,6 +197,21 @@ base_subparser.add_argument(
     default=False,
     help="Disable command usage tracking. We don't store any user information.",
 )
+base_subparser.add_argument(
+    "--partial-parse-file-diff",
+    action="store_true",
+    default=False,
+    help="Internal flag for whether to compute a file diff during partial parsing.",
+    dest="PARTIAL_PARSE_FILE_DIFF",
+)
+base_subparser.add_argument(
+    "--require-names-without-spaces",
+    action="store_true",
+    default=False,
+    help="Show resource names without spaces",
+    dest="REQUIRE_RESOURCE_NAMES_WITHOUT_SPACES",
+)
+
 
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 
