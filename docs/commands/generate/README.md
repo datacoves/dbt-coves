@@ -20,3 +20,5 @@ Where `resource` could be:
 - [_properties_](properties/): generate sources' YML schemas
 - [_docs_](docs/): generate dbt docs
 - [_airflow-dags_](airflow%20dags/): generate Airflow DAGs for orchestration
+- [_templates_](templates/): generate dbt-coves config folder and templates
+- [_metadata_](metadata/): generate metadata for your database table(s)
