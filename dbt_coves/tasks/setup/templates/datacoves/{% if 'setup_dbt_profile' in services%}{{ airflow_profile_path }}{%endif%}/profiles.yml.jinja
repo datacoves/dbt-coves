@@ -3,7 +3,7 @@ default:
   outputs:
     default_target:
       type: {{ dbt_adapter }}
-      threads: 8
+      threads: 16
       client_session_keep_alive: true
 
       account: "{{ '{{ env_var(\'DATACOVES__MAIN__ACCOUNT\') }}' }}"
