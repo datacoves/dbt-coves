@@ -1,5 +1,9 @@
 ## dbt-coves generate properties
 
+### Overview
+
+https://www.loom.com/embed/1dc2e830896e48cbbd7495451d25b942?sid=531f7435-8f19-4083-8fa4-5225f5682146
+
 You can use dbt-coves to generate and update the properties(yml) file for a given dbt model(sql) file.
 
 ### Arguments
@@ -64,7 +68,3 @@ You can download a [sample csv file](sample_metadata.csv) as reference
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  | Year | integer | Year of country population measurement          |
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  |      | variant | Airbyte data columns (VARIANT) in Snowflake     |
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_ab_id |      | varchar | Airbyte unique identifier used during data load |
-
-### In Action
-
-https://www.loom.com/share/1dc2e830896e48cbbd7495451d25b942?sid=367d3560-9c66-4d89-b7ba-eed7af015f10

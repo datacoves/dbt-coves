@@ -1,5 +1,9 @@
 ## dbt-coves generate sources
 
+### Overview
+
+https://www.loom.com/embed/28857aab6f13462c9cf8561d2ac982fc?sid=4dd3e7ae-f4ac-4b21-868a-153d30b41453
+
 This command will generate the dbt source configuration as well as the initial dbt staging model(s). It will look in the database defined in your `profiles.yml` file or you can pass the `--database` argument or set up default configuration options (see below)
 
 ```console
@@ -110,7 +114,3 @@ You can download a [sample csv file](sample_metadata.csv) as reference
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  | Year | integer | Year of country population measurement          |
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_data  |      | variant | Airbyte data columns (VARIANT) in Snowflake     |
 | raw      | raw    | \_airbyte_raw_country_populations | \_airbyte_ab_id |      | varchar | Airbyte unique identifier used during data load |
-
-### In Action
-
-https://www.loom.com/share/28857aab6f13462c9cf8561d2ac982fc?sid=67c67903-45fc-4e93-a416-e9f1e179e36d

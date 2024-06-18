@@ -60,15 +60,17 @@ NOTE: Other database adapters may work, although we have not tested them. Feel f
 
 Thanks to dbt-coves, any analyst or developer can:
 
-- [generate](docs/commands/generate/):
-  - [dbt sources](docs/commands/generate/sources/): generate the dbt source configuration as well as the initial dbt staging model(s).
-  - [dbt properties](docs/commands/generate/properties/): generate and/or update the properties(yml) file for a given dbt model(sql) file.
-  - [dbt docs](docs/commands/generate/docs/): generate dbt docs with extra functionalities.
-  - [airflow dags](docs/commands/generate/airflow%20dags/): generate Airflow DAGs from YML files.
+- [dbt](docs/commands/dbt/): run dbt commands in special environments.
 - [extract and load](docs/commands/extract%20and%20load/): save and restore your data replication provider configuration
   - [Airbyte](docs/commands/extract%20and%20load/airbyte)
   - [Fivetran](docs/commands/extract%20and%20load/fivetran)
-- [dbt](docs/commands/dbt/): run dbt commands in special environments.
+- [generate](docs/commands/generate/):
+  - [airflow dags](docs/commands/generate/airflow%20dags/): generate Airflow DAGs from YML files.
+  - [dbt docs](docs/commands/generate/docs/): generate dbt docs with extra functionalities.
+  - [dbt sources](docs/commands/generate/sources/): generate the dbt source configuration as well as the initial dbt staging model(s).
+  - [dbt properties](docs/commands/generate/properties/): generate and/or update the properties(yml) file for a given dbt model(sql) file.
+  - [metadata](docs/commands/generate/metadata/): generate metadata
+  - [templates](docs/commands/generate/templates/): generate dbt-coves templates and configuration folder.
 - [setup](docs/commands/setup/): configure different components of your dbt ETL project.
 
 For a complete list of options, run:
