@@ -5,15 +5,15 @@ tags:
 default_args:
   start_date: 2023-01-01
 catchup: false
-callbacks:
+notifications:
   on_success_callback:
-    callback: time.sleep
+    notifier: notifiers.datacoves.ms_teams.MSTeamsNotifier
     args:
-      - 1
+      connection_id: DATACOVES_MS_TEAMS
   on_failure_callback:
     callback: time.sleep
     args:
-      - 1
+      connection_id: DATACOVES_MS_TEAMS
 nodes:
   transform:
     type: task
