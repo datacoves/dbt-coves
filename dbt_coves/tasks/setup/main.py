@@ -66,33 +66,31 @@ class SetupTask(NonDbtBaseTask):
         return str(Path(path).relative_to(self.repo_path))
 
     def setup_datacoves(self):
-        # dbt profile data gathering
         choices = questionary.checkbox(
             "What services would you like to set up?",
             choices=list(AVAILABLE_SERVICES.keys()),
         ).ask()
         services = [AVAILABLE_SERVICES[service] for service in choices]
 
-        airflow_profile_path = os.environ.get(
-            "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", f"{self.repo_path}/automate/dbt"
-        )
-        if not airflow_profile_path:
-            airflow_profile_path = f"{self.repo_path}/automate/dbt"
-
-        self.copier_context["airflow_profile_path"] = self._get_path_rel_to_root(
-            airflow_profile_path
-        )
+        # dbt profile data gathering
+        if "setup_dbt_profile" in services:
+            airflow_profile_path = os.environ.get(
+                "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", "automate/dbt"
+            )
+            if not airflow_profile_path:
+                airflow_profile_path = "automate/dbt"
+            self.copier_context["airflow_profile_path"] = airflow_profile_path
 
         dbt_adapter = os.environ.get("DATACOVES__DBT_ADAPTER")
         if dbt_adapter:
             self.copier_context["dbt_adapter"] = dbt_adapter
 
         # sample DAG data
-        airflow_dags_path = os.environ.get(
-            "DATACOVES__AIRFLOW_DAGS_PATH", f"{self.repo_path}/orchestrate/dags"
-        )
-
-        self.copier_context["airflow_dags_path"] = self._get_path_rel_to_root(airflow_dags_path)
+        if "setup_airflow_dag" in services:
+            self.copier_context["airflow_dags_path"] = os.environ.get(
+                "DATACOVES__AIRFLOW_DAGS_PATH", "orchestrate/dags"
+            )
+        # precommit
         if "setup_precommit" in services:
             dbt_project_paths = get_dbt_projects(self.repo_path)
             if not dbt_project_paths:

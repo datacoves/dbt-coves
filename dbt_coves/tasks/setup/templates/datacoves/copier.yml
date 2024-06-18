@@ -36,12 +36,9 @@ dbt_adapter:
     - snowflake
     - bigquery
     - redshift
-    - postgres
-    - spark
-    - sqlite
-    - duckdb
+    - databricks
   help: What dbt adapter are you using?
-  when: "{{not dbt_adapter and ('setup_dbt_profile' in services or use_sqlfluff)}}"
+  when: "{{not dbt_adapter and ('setup_dbt_profile' in services or 'setup_ci_cd' in services or use_sqlfluff)}}"
 
 comma_style:
   type: str
@@ -51,5 +48,3 @@ comma_style:
   help: Where should commas be placed?
   default: trailing
   when: "{{use_sqlfluff}}"
-
-_answers_file: ".dbt-coves"

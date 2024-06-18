@@ -29,52 +29,52 @@ jobs:
     # Alternatively, You can define multiple ENV for different workflows.
     # https://github.com/<org>/<repo>/settings/environments
     # environment: PR_ENV
+    {% if 'snowflake' in dbt_adapter %}
     container: datacoves/ci-basic-dbt-snowflake:2.2
-    #container: datacoves/ci-basic-dbt-redshift:2.2
-
+    {% elif 'redshift' in dbt_adapter %}
+    container: datacoves/ci-basic-dbt-redshift:2.2
+    {% endif %}
     defaults:
       run:
         # If your dbt project is at the root.
-        working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+        {% raw %}working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}{% endraw%}
 
         # # If your dbt project is inside a transform directory.
-        # working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
+        {% raw %}# working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform{% endraw%}
 
     env:
-      DBT_PROFILES_DIR: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/automate/dbt
+      {% raw %}DBT_PROFILES_DIR: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/automate/dbt{% endraw%}
       # If your dbt project is at the root.
-      DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+      {% raw %}DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}{% endraw%}
       # # If your dbt project is inside a transform directory.
-      #   DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform
+      {% raw %}#   DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform{% endraw%}
 
-      ##### Snowflake #####
-      DATACOVES__MAIN__ACCOUNT: ${{ vars.DB_ACCOUNT }}
-
+      {% if 'snowflake' in dbt_adapter %}
+      {% raw %}DATACOVES__MAIN__ACCOUNT: ${{ vars.DB_ACCOUNT }}
       DATACOVES__PROD__DATABASE: ${{ vars.PROD_DATABASE }}
       DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}
-
       DATACOVES__MAIN__ROLE: ${{ vars.DB_ROLE }}
       DATACOVES__MAIN__WAREHOUSE: ${{ vars.DB_WAREHOUSE }}
-
       DATACOVES__MAIN__USER: ${{ vars.DB_USER }}
-      DATACOVES__MAIN__PASSWORD: ${{ secrets.DB_PASSWORD }}
-
+      DATACOVES__MAIN__PASSWORD: ${{ secrets.DB_PASSWORD }}{%endraw%}
+      {% elif 'redshift' in dbt_adapter %}
       ##### Redshift #####
-      # DATACOVES__MAIN__HOST: "{{ env_var('DB_HOST') }}"
-      # DATACOVES__MAIN__USER: "{{ env_var('DB_USER') }}"
-      # DATACOVES__MAIN__PASSWORD: "{{ env_var('DB_PASSWORD') }}"
-      # DATACOVES__MAIN__DATABASE: "{{ env_var('PROD_DATABASE') }}"
-      # DATACOVES__MAIN__SCHEMA: "{{ env_var('DB_SCHEMA') }}"
+      {% raw %}DATACOVES__MAIN__HOST: ${{ vars.DB_HOST }}
+      DATACOVES__MAIN__USER: ${{ vars.DB_USER }}
+      DATACOVES__MAIN__PASSWORD: ${{ vars.DB_PASSWORD }}
+      DATACOVES__MAIN__DATABASE: ${{ vars.PROD_DATABASE }}
+      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}{%endraw%}
+      {% endif %}
 
     steps:
       - name: Checkout branch
         uses: actions/checkout@v2
         with:
-          ref: ${{ github.event.push.head.sha }}
+          {% raw %}ref: ${{ github.event.push.head.sha }}{% endraw%}
           fetch-depth: 0
 
       - name: Set Secure Directory
-        run: git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}
+        {% raw %}run: git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}{% endraw%}
 
       - name: Install dbt packages
         run: "dbt deps"

@@ -1,0 +1,86 @@
+#### TO DO ####
+# Set the correct DBT_PROFILES_DIR based on the location of your dbt project
+# Set the correct image based on your data warehouse
+# Add all required environment variables/secrets in your CI/CD preferences
+# Create the access token in user preferences and save it as a variable called GITLAB_PUSH_TOKEN in your CI/CD preferences.
+# In the Datacoves environment settings enable the OBSERVE tab to see production docs
+stages:
+  - build
+  - deploy
+variables:
+  DBT_PROFILES_DIR: $CI_PROJECT_DIR/automate/dbt
+  DATACOVES__DBT_HOME: $CI_PROJECT_DIR
+  # DATACOVES__DBT_HOME: $CI_PROJECT_DIR/transform
+
+  {% if 'snowflake' in dbt_adapter %}
+  DATACOVES__MAIN__ACCOUNT: $DB_ACCOUNT
+  DATACOVES__MAIN__DATABASE: $DB_DATABASE
+  DATACOVES__MAIN__SCHEMA: $DB_SCHEMA
+  DATACOVES__MAIN__ROLE: $DB_ROLE
+  DATACOVES__MAIN__WAREHOUSE: $DB_WAREHOUSE
+  DATACOVES__MAIN__USER: $DB_USER
+  DATACOVES__MAIN__PASSWORD: $DB_PASSWORD
+  {% elif 'redshift' in dbt_adapter %}
+  DATACOVES__MAIN__HOST: $DB_HOST
+  DATACOVES__MAIN__USER: $DB_USER
+  DATACOVES__MAIN__PASSWORD: $DB_PASSWORD
+  DATACOVES__MAIN__SCHEMA: $DB_SCHEMA
+  DATACOVES__MAIN__DATABASE: $DB_DATABASE
+  {% endif %}
+
+build_and_test:
+  {% if 'snowflake' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-snowflake:2.2
+  {% elif 'redshift' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-redshift:2.2
+  {% endif %}
+  before_script:
+    - git config --global --add safe.directory $CI_PROJECT_DIR
+    - cd $CI_PROJECT_DIR
+  stage: build
+  script:
+    - git fetch origin main
+    - git diff origin/main HEAD --name-status
+    - cd $DATACOVES__DBT_HOME
+    - dbt debug
+    - dbt deps
+    - dbt build --fail-fast
+    - cd $CI_PROJECT_DIR
+    - CHANGED_FILES=$(git diff --name-only origin/$CI_MERGE_REQUEST_TARGET_BRANCH_NAME HEAD)
+    - dbt docs generate
+    - pre-commit run --files $CHANGED_FILES --config .pre-commit-config.yaml
+  only:
+    - merge_requests
+  interruptible: true
+
+generate_and_deploy_docs:
+  stage: deploy
+  {% if 'snowflake' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-snowflake:2.2
+  {% elif 'redshift' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-redshift:2.2
+  {% endif %}
+  before_script:
+  - git config user.email $GITLAB_USER_EMAIL
+  - git config user.name $GITLAB_USER_NAME
+  - project_url=$(echo $CI_PROJECT_URL | sed 's/https:\/\///')
+  - git config pull.rebase false
+  script:
+    - cd $DATACOVES__DBT_HOME
+    - dbt deps
+    - dbt build
+    - dbt docs generate
+    - cp -r target/* $CI_PROJECT_DIR
+    - git update-ref -d refs/heads/dbt-docs
+    - git switch --orphan dbt-docs
+    - cd $CI_PROJECT_DIR
+    - git add catalog.json
+    - git add graph.gpickle
+    - git add index.html
+    - git add manifest.json
+    - git add run_results.json
+    - git commit -m "Update dbt documentation"
+    - git push --force https://oauth2:$GITLAB_PUSH_TOKEN@$project_url dbt-docs
+  only:
+    - main
+  interruptible: true

@@ -5,7 +5,7 @@ default:
       type: {{ dbt_adapter }}
       threads: 16
       client_session_keep_alive: true
-
+      {% if 'snowflake' in dbt_adapter %}
       account: "{{ '{{ env_var(\'DATACOVES__MAIN__ACCOUNT\') }}' }}"
       database: "{{ '{{ env_var(\'DATACOVES__MAIN__DATABASE\') }}' }}"
       schema: "{{ '{{ env_var(\'DATACOVES__MAIN__SCHEMA\') }}' }}"
@@ -13,3 +13,25 @@ default:
       password: "{{ '{{ env_var(\'DATACOVES__MAIN__PASSWORD\') }}' }}"
       role: "{{ '{{ env_var(\'DATACOVES__MAIN__ROLE\') }}' }}"
       warehouse: "{{ '{{ env_var(\'DATACOVES__MAIN__WAREHOUSE\') }}' }}"
+      {% elif 'redshift' in dbt_adapter %}
+      dbname: "{{ '{{ env_var(\'DATACOVES__MAIN__DATABASE\') }}' }}"
+      host: "{{ '{{ env_var(\'DATACOVES__MAIN__HOST\') }}' }}"
+      password: "{{ '{{ env_var(\'DATACOVES__MAIN__PASSWORD\') }}' }}"
+      port: "{{ '{{ env_var(\'DATACOVES__MAIN__PORT\') }}' }}"
+      schema: "{{ '{{ env_var(\'DATACOVES__MAIN__SCHEMA\') }}' }}"
+      user: "{{ '{{ env_var(\'DATACOVES__MAIN__USER\') }}' }}"
+      {% elif 'databricks' in dbt_adapter %}
+      host: "{{ '{{ env_var(\'DATACOVES__MAIN__HOST\') }}' }}"
+      http_path: "{{ '{{ env_var(\'DATACOVES__MAIN__HTTP_PATH\') }}' }}"
+      schema: "{{ '{{ env_var(\'DATACOVES__MAIN__SCHEMA\') }}' }}"
+      token: "{{ '{{ env_var(\'DATACOVES__MAIN__TOKEN\') }}' }}"
+      {% elif 'bigquery' in dbt_adapter %}
+      job_execution_timeout_seconds: 300
+      job_retries: 1
+      priority: interactive
+      method: service-account
+      dataset: tests
+      location: US
+      keyfile: "{{ '{{ env_var(\'DATACOVES__MAIN__KEYFILE_JSON\') }}' }}"
+      project: "{{ '{{ env_var(\'DATACOVES__MAIN__PROJECT\') }}' }}"
+      {% endif %}

@@ -43,9 +43,7 @@ def get_git_root(path=None):
         raise Exception(f"{path or 'current path'} doesn't belong to a git repository")
 
 
-def get_dbt_projects(path=None):
-    if not path:
-        path = os.getcwd()
+def get_dbt_projects(path=os.getcwd()):
     dbt_project_dirs = []
     for file in Path(path).rglob("dbt_project.yml"):
         if "dbt_packages" not in str(file):
