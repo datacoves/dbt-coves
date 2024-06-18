@@ -158,8 +158,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         dag_args = ""
         for key, value in yaml.items():
-            if "callbacks" in key:
-                for call in self.generate_notifiers(yaml["callbacks"]):
+            if "notifications" in key:
+                for call in self.generate_notifiers(yaml["notifications"]):
                     dag_args += f"{indent * ' '}{call},\n"
             else:
                 dag_value = (
@@ -174,24 +174,24 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         callback_output = []
         for callback, definition in notifiers.items():
-            full_callback = definition["callback"]
+            notifier = definition.get("notifier", definition.get("callback"))
+            if not notifier:
+                raise GenerateAirflowDagsException(
+                    "Could not find a notifier or callback in the Notifications settings."
+                )
             # Splitting into module and class
             # e.g. 'dbt_coves.notifications.slack.SlackNotifier'
-            split_callback = full_callback.split(".")
+            split_callback = notifier.split(".")
             module = ".".join(split_callback[:-1])
             callback_class = split_callback[-1]
-            args = definition.get("args", [])
+            callback_args = definition.get("args", {})
             self.dag_output["imports"].append(f"from {module} import {callback_class}\n")
-            callback_args = []
-            for arg in args:
-                if isinstance(arg, dict):
-                    for key, value in arg.items():
-                        if isinstance(value, str):
-                            value = f'"{value}"'
-                        callback_args.append(f"{key}={value}")
-                else:
-                    callback_args.append(str(arg))
-            callback_usage = f"{callback_class}({','.join(callback_args)})"
+            usage_args = []
+            for arg, value in callback_args.items():
+                if isinstance(value, str):
+                    value = f'"{value}"'
+                usage_args.append(f"{arg}={value}")
+            callback_usage = f"{callback_class}({','.join(usage_args)})"
             callback_output.append(f"{2 * ' '}{callback}={callback_usage}")
         return callback_output
 
