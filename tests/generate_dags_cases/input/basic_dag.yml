@@ -7,13 +7,13 @@ default_args:
 catchup: false
 notifications:
   on_success_callback:
-    notifier: notifiers.datacoves.ms_teams.MSTeamsNotifier
+    callback: time.sleep
     args:
-      connection_id: DATACOVES_MS_TEAMS
+      - 1
   on_failure_callback:
     callback: time.sleep
     args:
-      connection_id: DATACOVES_MS_TEAMS
+      - 1
 nodes:
   transform:
     type: task

@@ -184,13 +184,24 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             split_callback = notifier.split(".")
             module = ".".join(split_callback[:-1])
             callback_class = split_callback[-1]
-            callback_args = definition.get("args", {})
+            callback_args = definition.get("args")
             self.dag_output["imports"].append(f"from {module} import {callback_class}\n")
             usage_args = []
-            for arg, value in callback_args.items():
-                if isinstance(value, str):
-                    value = f'"{value}"'
-                usage_args.append(f"{arg}={value}")
+            if isinstance(callback_args, dict):
+                for arg, value in callback_args.items():
+                    if isinstance(value, str):
+                        value = f'"{value}"'
+                    usage_args.append(f"{arg}={value}")
+            if isinstance(callback_args, list):
+                breakpoint()
+                for arg in callback_args:
+                    if isinstance(arg, dict):
+                        arg = self.dag_args_to_string(arg, indent=4)
+                        usage_args.append(arg)
+                    if isinstance(arg, int):
+                        usage_args.append(f"{arg}")
+                    if isinstance(arg, str):
+                        usage_args.append(f'"{arg}"')
             callback_usage = f"{callback_class}({','.join(usage_args)})"
             callback_output.append(f"{2 * ' '}{callback}={callback_usage}")
         return callback_output
