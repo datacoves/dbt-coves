@@ -2,7 +2,7 @@
 
 ### Overview
 
-https://www.loom.com/embed/28857aab6f13462c9cf8561d2ac982fc?sid=4dd3e7ae-f4ac-4b21-868a-153d30b41453
+[![image](https://cdn.loom.com/sessions/thumbnails/28857aab6f13462c9cf8561d2ac982fc-with-play.gif)](https://www.loom.com/share/28857aab6f13462c9cf8561d2ac982fc?sid=02d6794d-d9cb-4975-be6e-8731810ebbe0)
 
 This command will generate the dbt source configuration as well as the initial dbt staging model(s). It will look in the database defined in your `profiles.yml` file or you can pass the `--database` argument or set up default configuration options (see below)
 

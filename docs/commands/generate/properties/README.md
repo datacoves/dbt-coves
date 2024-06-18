@@ -2,7 +2,7 @@
 
 ### Overview
 
-https://www.loom.com/embed/1dc2e830896e48cbbd7495451d25b942?sid=531f7435-8f19-4083-8fa4-5225f5682146
+[![image](https://cdn.loom.com/sessions/thumbnails/1dc2e830896e48cbbd7495451d25b942-with-play.gif)](https://www.loom.com/share/1dc2e830896e48cbbd7495451d25b942)
 
 You can use dbt-coves to generate and update the properties(yml) file for a given dbt model(sql) file.
 
