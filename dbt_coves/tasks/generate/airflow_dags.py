@@ -193,7 +193,6 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                         value = f'"{value}"'
                     usage_args.append(f"{arg}={value}")
             if isinstance(callback_args, list):
-                breakpoint()
                 for arg in callback_args:
                     if isinstance(arg, dict):
                         arg = self.dag_args_to_string(arg, indent=4)
