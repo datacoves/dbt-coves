@@ -22,7 +22,7 @@ You can use dbt-coves to generate and update the properties(yml) file for a give
 
 ```console
 -s --select
-# Filter model(s) to generate property file(s)
+# Filter model(s) for which to generate property file(s)
 ```
 
 ```console

@@ -1,10 +1,8 @@
 ## dbt-coves generate metadata
 
-This command will generate a `dbt-coves metadata` file from your database table(s).
+This command will generate a `dbt-coves metadata` CSV file for your database table(s). This can then be used to collect descriptions from stakeholders and later used as an input to other dbt-coves commands such as `dbt-coves generate sources`
 
-`Metadata` consists of comma-separated values in which the user can specify column(s) keys and descriptions
-
-It is particularly useful for providing descriptions to your YML schema files at [generate sources](../sources/README.md#metadata) or [generate properties](../properties/README.md#metadata) time.
+The`Metadata` file consists of comma-separated values in which the user can specify column(s) keys and descriptions and is particularly useful for working with stakeholders to get descriptions for dbt YML files when [generate sources](../sources/README.md#metadata) or [generate properties](../properties/README.md#metadata) is used.
 
 ### Arguments
 
@@ -12,7 +10,7 @@ It is particularly useful for providing descriptions to your YML schema files at
 
 ```console
 --database DATABASE
-# Database where source relations live, if different than target
+# Database where source relations live, if different than the dbt target
 ```
 
 ```console
@@ -22,7 +20,7 @@ It is particularly useful for providing descriptions to your YML schema files at
 
 ```console
 --select-relations SELECT_RELATIONS
-# Comma separated list of relations where raw data resides, i.e. 'RAW_HUBSPOT_PRODUCTS,RAW_SALESFORCE_USERS'
+# Comma separated list of relations where raw data resides, i.e. 'hubspot_products,salesforce_users'
 ```
 
 ```console
@@ -32,7 +30,7 @@ It is particularly useful for providing descriptions to your YML schema files at
 
 ```console
 --destination DESTINATION
-# Generated metadata destination path
+# Generated metadata file destination path
 ```
 
 ```console

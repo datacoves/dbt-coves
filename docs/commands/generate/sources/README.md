@@ -2,7 +2,7 @@
 
 ### Overview
 
-[![image](https://cdn.loom.com/sessions/thumbnails/28857aab6f13462c9cf8561d2ac982fc-with-play.gif)](https://www.loom.com/share/28857aab6f13462c9cf8561d2ac982fc?sid=02d6794d-d9cb-4975-be6e-8731810ebbe0)
+[![image](https://cdn.loom.com/sessions/thumbnails/28857aab6f13462c9cf8561d2ac982fc-with-play.gif)](https://www.loom.com/share/28857aab6f13462c9cf8561d2ac982fc?sid=3e54cb5e-2346-4216-9aa5-6934ac58d932)
 
 This command will generate the dbt source configuration as well as the initial dbt staging model(s). It will look in the database defined in your `profiles.yml` file or you can pass the `--database` argument or set up default configuration options (see below)
 
@@ -17,6 +17,8 @@ dbt-coves can be used to create the initial staging models. It will do the follo
 1. Create / Update the source yml file
 2. Create the initial staging model(sql) file and offer to flatten VARIANT(JSON) fields
 3. Create the staging model's property(yml) file.
+
+**NOTE:** While there is no current option to skip source or staging model generation, if you don't want the source.yml or staging models, you can update the path in the dbt-coves config file to point to a static location such as `/tmp/not_needed.sql` and  `/tmp/not_needed.yml`
 
 ### Arguments
 
@@ -65,7 +67,7 @@ dbt-coves generate sources -h
 
 ```console
 --update-strategy
-# Action to perform when a property file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
+# Action to perform when a file already exists: 'update', 'recreate', 'fail', 'ask' (per file)
 ```
 
 ```console
@@ -85,7 +87,7 @@ dbt-coves generate sources -h
 
 ```console
 --overwrite-staging-models
-# Flag: overwrite existent staging (SQL) files
+# Flag: overwrite existing staging (SQL) files
 ```
 
 ```console

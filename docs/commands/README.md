@@ -19,8 +19,8 @@ This structure allows you to easily navigate and find the documentation for the 
 
 ## Usage Examples
 
-Throughout the command documentation, you'll find usage examples that demonstrate how to use each command and its various options. These examples are designed to help you understand the command's functionality and provide a starting point for incorporating it into your data engineering workflows.
+Throughout the command documentation, you'll find usage examples that demonstrate how to use each command and its various options. These examples are designed to help you understand the command's functionality and provide a starting point for incorporating it into your data engineering workflow.
 
 ## Contributing
 
-If you find any issues or have suggestions for improving the command documentation, please refer to the [Contributing Guidelines](../contributing.md) for information on how to submit your feedback or contributions.
+If you find any issue or have suggestions for improving the command documentation, please refer to the [Contributing Guidelines](../contributing.md) for information on how to submit your feedback or contributions.

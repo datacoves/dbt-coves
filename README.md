@@ -1,6 +1,6 @@
 # dbt-coves
 
-## Brough to you by your friends at Datacoves
+## Brought to you by your friends at Datacoves
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/datacoves-dark.png">
@@ -20,9 +20,9 @@ Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com
 
 ## Introduction
 
-dbt-coves is a CLI tool that automates certain tasks for [dbt](https://www.getdbt.com), making life simpler for the dbt user.
+dbt-coves is a CLI tool that automates and simplifies development and release tasks for [dbt](https://www.getdbt.com).
 
-dbt-coves generates dbt sources, staging models and property(yml) files by analyzing information from the data warehouse and creating the necessary files (sql and yml). It can even generate Airflow DAGs based on YML input.
+In addition to other functions listed below, dbt-coves generates dbt sources, staging models and property(yml) files by analyzing information from the data warehouse and creating the necessary files (sql and yml). It can even generate Airflow DAGs based on YML input.
 
 Finally, dbt-coves includes functionality to bootstrap a dbt project and to extract and load configurations from data-replication providers.
 
@@ -54,24 +54,24 @@ Patch suffix (1.4.X) is exclusive to our continuous development and does not ref
 | source model (sql) generation     | ✅ Tested | ✅ Tested | ✅ Tested |
 | model properties (yml) generation | ✅ Tested | ✅ Tested | ✅ Tested |
 
-NOTE: Other database adapters may work, although we have not tested them. Feel free to try them and let us know so we can update the table above.
+**NOTE:** Other database adapters may work, although we have not tested them. Feel free to try them and let us know so we can update the table above.
 
 ## Usage
 
-Thanks to dbt-coves, any analyst or developer can:
+dbt-coves, supports the following functions:
 
-- [dbt](docs/commands/dbt/): run dbt commands in special environments.
-- [extract and load](docs/commands/extract%20and%20load/): save and restore your data replication provider configuration
+- [dbt](docs/commands/dbt/): run dbt commands in CI and Airflow environments.
+- [extract and load](docs/commands/extract%20and%20load/): save and restore your configuration from:
   - [Airbyte](docs/commands/extract%20and%20load/airbyte)
   - [Fivetran](docs/commands/extract%20and%20load/fivetran)
 - [generate](docs/commands/generate/):
   - [airflow dags](docs/commands/generate/airflow%20dags/): generate Airflow DAGs from YML files.
-  - [dbt docs](docs/commands/generate/docs/): generate dbt docs with extra functionalities.
-  - [dbt sources](docs/commands/generate/sources/): generate the dbt source configuration as well as the initial dbt staging model(s).
+  - [dbt docs](docs/commands/generate/docs/): generate dbt docs by merging production catalog.json, useful in combination with [dbt-checkpoint](https://github.com/dbt-checkpoint/dbt-checkpoint) and when using Slim CI
+  - [dbt sources](docs/commands/generate/sources/): generate the dbt source configuration as well as the initial dbt staging model(s) and their corresponding property(yml) files.
   - [dbt properties](docs/commands/generate/properties/): generate and/or update the properties(yml) file for a given dbt model(sql) file.
-  - [metadata](docs/commands/generate/metadata/): generate metadata
-  - [templates](docs/commands/generate/templates/): generate dbt-coves templates and configuration folder.
-- [setup](docs/commands/setup/): configure different components of your dbt ETL project.
+  - [metadata](docs/commands/generate/metadata/): generate metadata extract(CSV file) that can be used to collect column types and descriptions and then provided as input inthe the `generate sources` or `generate properties` command
+  - [templates](docs/commands/generate/templates/): generate the dbt-coves templates that dbt-coves utilizes with other dbt-coves commands 
+- [setup](docs/commands/setup/): used configure different components of a dbt project.
 
 For a complete list of options, run:
 

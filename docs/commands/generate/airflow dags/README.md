@@ -22,7 +22,7 @@ The basic structure of these YMLs must consist of:
 
 When a YML Dag `node` is of type `task_group`, **Generators** can be used instead of `Operators`.
 
-They are custom classes that receive YML `key:value` pairs and return one or more tasks for the respective task group. Any pair specified other than `type: task_group` will be passed to the specified `generator`, and it has the responsibility of returning N amount of `task_name = Operator(params)`.
+Generators are custom classes that receive YML `key:value` pairs and return one or more tasks for the respective task group. Any pair specified other than `type: task_group` will be passed to the specified `generator`, and it has the responsibility of returning N amount of `task_name = Operator(params)`.
 
 We provide some prebuilt Generators:
 
@@ -32,9 +32,9 @@ We provide some prebuilt Generators:
   - It must receive Fivetran's `api_key`, `api_secret` and a `connection_ids` list of Fivetran Connectors to Sync.
 - `AirbyteDbtGenerator` and `FivetranDbtGenerator`: instead of passing them Airbyte or Fivetran connections, they use dbt to discover those IDs. Apart from their parent Generators mandatory fields, they can receive:
   - `dbt_project_path`: dbt/project/folder
-  - `virtualenv_path`: path to a virtualenv in case dbt has to be ran with another Python executable
-  - `run_dbt_compile`: true/false
-  - `run_dbt_deps`: true/false
+  - `virtualenv_path`: path to a virtualenv in case dbt within a specific virtual env
+  - `run_dbt_compile`: true/false always run the dbt compile command
+  - `run_dbt_deps`: true/false always run the dbt deps command
 
 ### Basic YML DAG example:
 
@@ -55,11 +55,11 @@ nodes:
     port: 8000
     dbt_project_path: /path/to/dbt_project
     virtualenv_path: /virtualenvs/dbt_160
-    run_dbt_compile: true
+    run_dbt_compile: false
     run_dbt_deps: false
     airbyte_conn_id: airbyte_connection
   task_1:
-    operator: airflow.operators.bash.BashOperator
+    operator: airflow.operators.bash.DatacovesBashOperator
     bash_command: "echo 'This runs after airbyte tasks'"
     dependencies: ["airbyte_dbt"]
 ```

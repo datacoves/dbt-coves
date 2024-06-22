@@ -1,6 +1,6 @@
 ## dbt-coves generate templates
 
-Create dbt-coves templates inside of your `.dbt_coves` config folder
+Create dbt-coves templates inside of your `.dbt_coves` config folder. These files contain the template used in generate commands such as `generate sources` and `generate properties`. Use these files to override the default behavior such as to add a `metadata:` key when generating property files.
 
 ### In Action
 
