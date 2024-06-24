@@ -14,12 +14,12 @@ default:
       role: "{{ '{{ env_var(\'DATACOVES__MAIN__ROLE\') }}' }}"
       warehouse: "{{ '{{ env_var(\'DATACOVES__MAIN__WAREHOUSE\') }}' }}"
       {% elif 'redshift' in dbt_adapter %}
-      dbname: "{{ '{{ env_var(\'DATACOVES__MAIN__DATABASE\') }}' }}"
       host: "{{ '{{ env_var(\'DATACOVES__MAIN__HOST\') }}' }}"
-      password: "{{ '{{ env_var(\'DATACOVES__MAIN__PASSWORD\') }}' }}"
-      port: "{{ '{{ env_var(\'DATACOVES__MAIN__PORT\') }}' }}"
-      schema: "{{ '{{ env_var(\'DATACOVES__MAIN__SCHEMA\') }}' }}"
       user: "{{ '{{ env_var(\'DATACOVES__MAIN__USER\') }}' }}"
+      password: "{{ '{{ env_var(\'DATACOVES__MAIN__PASSWORD\') }}' }}"
+      dbname: "{{ '{{ env_var(\'DATACOVES__MAIN__DATABASE\') }}' }}"
+      schema: "{{ '{{ env_var(\'DATACOVES__MAIN__SCHEMA\') }}' }}"
+      port: "{{ '{{ env_var(\'DATACOVES__MAIN__PORT\') }}' }}"
       {% elif 'databricks' in dbt_adapter %}
       host: "{{ '{{ env_var(\'DATACOVES__MAIN__HOST\') }}' }}"
       http_path: "{{ '{{ env_var(\'DATACOVES__MAIN__HTTP_PATH\') }}' }}"

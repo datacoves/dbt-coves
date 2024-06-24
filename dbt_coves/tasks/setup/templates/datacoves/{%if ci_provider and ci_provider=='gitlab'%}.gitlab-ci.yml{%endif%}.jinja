@@ -26,6 +26,14 @@ variables:
   DATACOVES__MAIN__PASSWORD: $DB_PASSWORD
   DATACOVES__MAIN__SCHEMA: $DB_SCHEMA
   DATACOVES__MAIN__DATABASE: $DB_DATABASE
+  {% elif 'databricks' in dbt_adapter %}
+  DATACOVES__MAIN__HOST: $DB_HOST
+  DATACOVES__MAIN__HTTP_PATH: $DB_HTTP_PATH
+  DATACOVES__MAIN__SCHEMA: $DB_SCHEMA
+  DATACOVES__MAIN__TOKEN: $DB_TOKEN
+  {% elif 'bigquery' in dbt_adapter %}
+  DATACOVES__MAIN__KEYFILE_JSON: $DB_KEYFILE_JSON
+  DATACOVES__MAIN__PROJECT: $DB_PROJECT
   {% endif %}
 
 build_and_test:
@@ -33,6 +41,10 @@ build_and_test:
   image: datacoves/ci-basic-dbt-snowflake:2.2
   {% elif 'redshift' in dbt_adapter %}
   image: datacoves/ci-basic-dbt-redshift:2.2
+  {% elif 'databricks' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-databricks:2.2
+  {% elif 'bigquery' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-bigquery:2.2
   {% endif %}
   before_script:
     - git config --global --add safe.directory $CI_PROJECT_DIR
@@ -59,6 +71,10 @@ generate_and_deploy_docs:
   image: datacoves/ci-basic-dbt-snowflake:2.2
   {% elif 'redshift' in dbt_adapter %}
   image: datacoves/ci-basic-dbt-redshift:2.2
+  {% elif 'databricks' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-databricks:2.2
+  {% elif 'bigquery' in dbt_adapter %}
+  image: datacoves/ci-basic-dbt-bigquery:2.2
   {% endif %}
   before_script:
   - git config user.email $GITLAB_USER_EMAIL

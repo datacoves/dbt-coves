@@ -63,7 +63,17 @@ jobs:
       DATACOVES__MAIN__USER: ${{ vars.DB_USER }}
       DATACOVES__MAIN__PASSWORD: ${{ vars.DB_PASSWORD }}
       DATACOVES__MAIN__DATABASE: ${{ vars.PROD_DATABASE }}
-      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}{%endraw%}
+      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}
+      DATACOVES__MAIN__PORT: ${{ vars.DB_PORT }}{%endraw%}
+      {% elif 'databricks' in dbt_adapter %}
+      {%raw %}DATACOVES__MAIN__HOST: ${{ vars.DB_HOST }}
+      DATACOVES__MAIN__HTTP_PATH: ${{ vars.DB_HTTP_PATH }}
+      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}
+      DATACOVES__MAIN__TOKEN: ${{ vars.DB_TOKEN }}{%endraw%}
+      {% elif 'bigquery' in dbt_adapter %}
+      {% raw %}DATACOVES__MAIN__KEYFILE_JSON: ${{ vars.DB_KEYFILE_JSON }}
+      DATACOVES__MAIN__PROJECT: ${{ vars.DB_PROJECT }}
+      {% endraw %}
       {% endif %}
 
     steps:
