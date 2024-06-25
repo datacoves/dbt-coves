@@ -139,6 +139,17 @@ class DbtCovesFlags:
         }
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
         self.data_sync = {"redshift": {"tables": []}, "snowflake": {"tables": []}}
+        self.blue_green = {
+            "production_database": None,
+            "staging_database": None,
+            "staging_suffix": None,
+            "drop_staging_db": False,
+            "drop_staging_db_after": None,
+            "drop_staging_db_on_failure": False,
+            "dbt_selector": None,
+            "defer": False,
+            "full_refresh": False,
+        }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
         args = sys.argv[1:]
@@ -411,3 +422,26 @@ class DbtCovesFlags:
                     self.data_sync["snowflake"]["tables"] = [
                         table.strip() for table in self.args.tables.split(",")
                     ]
+
+            # blue green
+            if self.args.cls.__name__ == "BlueGreenTask":
+                if self.args.production_database:
+                    self.blue_green["production_database"] = self.args.production_database
+                if self.args.staging_database:
+                    self.blue_green["staging_database"] = self.args.staging_database
+                if self.args.staging_suffix:
+                    self.blue_green["staging_suffix"] = self.args.staging_suffix
+                if self.args.drop_staging_db:
+                    self.blue_green["drop_staging_db"] = self.args.drop_staging_db
+                if self.args.drop_staging_db_after:
+                    self.blue_green["drop_staging_db_after"] = self.args.drop_staging_db_after
+                if self.args.drop_staging_db_on_failure:
+                    self.blue_green[
+                        "drop_staging_db_on_failure"
+                    ] = self.args.drop_staging_db_on_failure
+                if self.args.dbt_selector:
+                    self.blue_green["dbt_selector"] = self.args.dbt_selector.split(" ")
+                if self.args.defer:
+                    self.blue_green["defer"] = self.args.defer
+                if self.args.full_refresh:
+                    self.blue_green["full_refresh"] = self.args.full_refresh

@@ -14,6 +14,7 @@ from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
 from dbt_coves.tasks.base import BaseTask
+from dbt_coves.tasks.blue_green.main import BlueGreenTask
 from dbt_coves.tasks.data_sync.main import DataSyncTask
 from dbt_coves.tasks.dbt.main import RunDbtTask
 from dbt_coves.tasks.extract.main import ExtractTask
@@ -218,7 +219,15 @@ sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 # Register subcommands
 [
     task.register_parser(sub_parsers, base_subparser)
-    for task in [GenerateTask, SetupTask, ExtractTask, LoadTask, RunDbtTask, DataSyncTask]
+    for task in [
+        GenerateTask,
+        SetupTask,
+        ExtractTask,
+        LoadTask,
+        RunDbtTask,
+        DataSyncTask,
+        BlueGreenTask,
+    ]
 ]
 
 
