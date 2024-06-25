@@ -184,6 +184,11 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
                     green_exists = self._check_if_database_exists()
                     if not green_exists:
                         break
+                    if green_exists and i == self.drop_staging_db_after - 1:
+                        raise DbtCovesException(
+                            f"Green database {self.staging_database} still exists"
+                            f"after {self.drop_staging_db_after} minutes"
+                        )
             print(f"Dropping database {self.staging_database}.")
             self.cdb.drop_database()
             green_exists = False
