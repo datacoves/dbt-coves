@@ -11,6 +11,10 @@ The Datacoves platform helps enterprises overcome their data delivery challenges
 
 Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com](https://datacoves.com/product).
 
+## Overview
+
+[![image](https://cdn.loom.com/sessions/thumbnails/7d5341f5d5b149ed8895fe1187e338c5-with-play.gif)](https://www.loom.com/share/7d5341f5d5b149ed8895fe1187e338c5)
+
 ## Table of contents
 
 - [Introduction](#introduction)
@@ -70,7 +74,7 @@ dbt-coves, supports the following functions:
   - [dbt sources](docs/commands/generate/sources/): generate the dbt source configuration as well as the initial dbt staging model(s) and their corresponding property(yml) files.
   - [dbt properties](docs/commands/generate/properties/): generate and/or update the properties(yml) file for a given dbt model(sql) file.
   - [metadata](docs/commands/generate/metadata/): generate metadata extract(CSV file) that can be used to collect column types and descriptions and then provided as input inthe the `generate sources` or `generate properties` command
-  - [templates](docs/commands/generate/templates/): generate the dbt-coves templates that dbt-coves utilizes with other dbt-coves commands 
+  - [templates](docs/commands/generate/templates/): generate the dbt-coves templates that dbt-coves utilizes with other dbt-coves commands
 - [setup](docs/commands/setup/): used configure different components of a dbt project.
 
 For a complete list of options, run:

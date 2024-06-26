@@ -18,7 +18,7 @@ dbt-coves can be used to create the initial staging models. It will do the follo
 2. Create the initial staging model(sql) file and offer to flatten VARIANT(JSON) fields
 3. Create the staging model's property(yml) file.
 
-**NOTE:** While there is no current option to skip source or staging model generation, if you don't want the source.yml or staging models, you can update the path in the dbt-coves config file to point to a static location such as `/tmp/not_needed.sql` and  `/tmp/not_needed.yml`
+**NOTE:** While there is no current option to skip source or staging model generation, if you don't want the source.yml or staging models, you can update the path in the dbt-coves config file to point to a static location such as `/tmp/not_needed.sql` and `/tmp/not_needed.yml`
 
 ### Arguments
 
