@@ -77,10 +77,10 @@ generate_and_deploy_docs:
   image: datacoves/ci-basic-dbt-bigquery:2.2
   {% endif %}
   before_script:
-  - git config user.email $GITLAB_USER_EMAIL
-  - git config user.name $GITLAB_USER_NAME
-  - project_url=$(echo $CI_PROJECT_URL | sed 's/https:\/\///')
-  - git config pull.rebase false
+    - git config user.email $GITLAB_USER_EMAIL
+    - git config user.name $GITLAB_USER_NAME
+    - project_url=$(echo $CI_PROJECT_URL | sed 's/https:\/\///')
+    - git config pull.rebase false
   script:
     - cd $DATACOVES__DBT_HOME
     - dbt deps

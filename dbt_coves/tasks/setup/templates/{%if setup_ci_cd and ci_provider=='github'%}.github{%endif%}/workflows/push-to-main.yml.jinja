@@ -1,0 +1,106 @@
+#### Pre-reqs ####
+# Set the correct container based on your data warehouse
+# Add all required environment variables/secrets in Github Actions
+# In the Datacoves environment settings enable the OBSERVE tab to see production docs
+name: Perform deployment to production
+
+on: # yamllint disable-line rule:truthy
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+  # Allows you to run this workflow manually from the Actions tab
+  workflow_dispatch:
+
+jobs:
+  # Perform the deployment to Prod
+  build:
+    # Need to make sure that when the PR was closed, it was actually merged.
+    if: github.event.pull_request.merged == true && github.event.pull_request.base.ref == 'main'
+
+    name: Deployment Script
+    runs-on: ubuntu-latest
+
+    # Set environment variables in
+    # https://github.com//<your org>/<your repo>/settings/variables/actions
+    #
+    # Alternatively, You can define multiple ENV for different workflows.
+    # https://github.com/<org>/<repo>/settings/environments
+    # environment: PR_ENV
+    {% if 'snowflake' in dbt_adapter %}
+    container: datacoves/ci-basic-dbt-snowflake:2.2
+    {% elif 'redshift' in dbt_adapter %}
+    container: datacoves/ci-basic-dbt-redshift:2.2
+    {% elif 'databricks' in dbt_adapter %}
+    container: datacoves/ci-basic-dbt-databricks:2.2
+    {% elif 'bigquery' in dbt_adapter %}
+    container: datacoves/ci-basic-dbt-bigquery:2.2
+    {% endif %}
+    defaults:
+      run:
+        # If your dbt project is at the root.
+        {% raw %}working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}{% endraw%}
+
+        # # If your dbt project is inside a transform directory.
+        {% raw %}# working-directory: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform{% endraw%}
+
+    env:
+      {% raw %}DBT_PROFILES_DIR: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/automate/dbt{% endraw%}
+      # If your dbt project is at the root.
+      {% raw %}DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}{% endraw%}
+      # # If your dbt project is inside a transform directory.
+      {% raw %}#   DATACOVES__DBT_HOME: /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}/transform{% endraw%}
+
+      {% if 'snowflake' in dbt_adapter %}
+      {% raw %}DATACOVES__MAIN__ACCOUNT: ${{ vars.DB_ACCOUNT }}
+      DATACOVES__PROD__DATABASE: ${{ vars.PROD_DATABASE }}
+      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}
+      DATACOVES__MAIN__ROLE: ${{ vars.DB_ROLE }}
+      DATACOVES__MAIN__WAREHOUSE: ${{ vars.DB_WAREHOUSE }}
+      DATACOVES__MAIN__USER: ${{ vars.DB_USER }}
+      DATACOVES__MAIN__PASSWORD: ${{ secrets.DB_PASSWORD }}{%endraw%}
+      {% elif 'redshift' in dbt_adapter %}
+      ##### Redshift #####
+      {% raw %}DATACOVES__MAIN__HOST: ${{ vars.DB_HOST }}
+      DATACOVES__MAIN__USER: ${{ vars.DB_USER }}
+      DATACOVES__MAIN__PASSWORD: ${{ vars.DB_PASSWORD }}
+      DATACOVES__MAIN__DATABASE: ${{ vars.PROD_DATABASE }}
+      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}
+      DATACOVES__MAIN__PORT: ${{ vars.DB_PORT }}{%endraw%}
+      {% elif 'databricks' in dbt_adapter %}
+      {%raw %}DATACOVES__MAIN__HOST: ${{ vars.DB_HOST }}
+      DATACOVES__MAIN__HTTP_PATH: ${{ vars.DB_HTTP_PATH }}
+      DATACOVES__MAIN__SCHEMA: ${{ vars.DB_SCHEMA }}
+      DATACOVES__MAIN__TOKEN: ${{ vars.DB_TOKEN }}{%endraw%}
+      {% elif 'bigquery' in dbt_adapter %}
+      {% raw %}DATACOVES__MAIN__KEYFILE_JSON: ${{ vars.DB_KEYFILE_JSON }}
+      DATACOVES__MAIN__PROJECT: ${{ vars.DB_PROJECT }}
+      {% endraw %}
+      {% endif %}
+
+    steps:
+      - name: Checkout branch
+        uses: actions/checkout@v2
+        with:
+          {% raw %}ref: ${{ github.event.push.head.sha }}{% endraw%}
+          fetch-depth: 0
+
+      - name: Set Secure Directory
+        {% raw %}run: git config --global --add safe.directory /__w/${{ github.event.repository.name }}/${{ github.event.repository.name }}{% endraw%}
+
+      - name: Install dbt packages
+        run: "dbt deps"
+
+      - name: dbt build
+        run: "dbt build"
+
+      - name: Generate dbt documentation
+        run: "dbt docs generate"
+
+      - name: Deploy docs 🚀
+        uses: JamesIves/github-pages-deploy-action@4.1.4
+        with:
+          branch: dbt-docs
+          folder: /target

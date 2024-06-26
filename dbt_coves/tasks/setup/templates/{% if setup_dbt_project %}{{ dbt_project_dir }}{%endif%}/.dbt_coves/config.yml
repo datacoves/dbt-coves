@@ -1,0 +1,46 @@
+generate:
+  sources:
+    database: RAW  # Database where to look for source tables
+    sources_destination: "models/L1_staging/{{schema}}/_{{schema}}.yml"  # Where sources yml files will be generated
+    models_destination: "models/L1_staging/{{schema}}/{{relation}}.sql"  # Where models sql files will be generated
+    model_props_destination: "models/L1_staging/{{schema}}/{{relation}}.yml"  # Where models yml files will be generated
+    update_strategy: update # Action to perform when a property file exists. Options: update, recreate, fail, ask
+    templates_folder: ".dbt_coves/templates"  # Folder where source generation jinja templates are located.
+    flatten_json_fields: "no" # Action to perform when VARIANT / JSON field is encountered
+
+  properties:
+    destination: "{{model_folder_path}}/{{model_file_name}}.yml"  # Where models yml files will be generated
+    # You can specify a different path by declaring it explicitly, i.e.: "models/staging/{{model_file_name}}.yml"
+    update_strategy: ask  # Action to perform when a property file already exists. Options: update, recreate, fail, ask
+    models: "models/"  # Model(s) path where 'generate properties' will look for models for generation
+
+  metadata:
+    database: RAW
+    # destination: "metadata.csv"
+
+  airflow_dags:
+
+    yml_path: "/config/workspace/{{ env_var('DATACOVES__AIRFLOW_DAGS_YML_PATH') }}"
+    dags_path: "/config/workspace/{{ env_var('DATACOVES__AIRFLOW_DAGS_PATH') }}"
+
+    generators_params:
+      AirbyteDbtGenerator:
+
+        host: "{{ env_var('DATACOVES__AIRBYTE_HOST_NAME') }}"
+        port: "{{ env_var('DATACOVES__AIRBYTE_PORT') }}"
+        airbyte_conn_id: airbyte_connection
+
+        dbt_project_path: "{{ env_var('DATACOVES__DBT_HOME') }}"
+        run_dbt_compile: false
+        run_dbt_deps: false
+
+      AirbyteGenerator:
+        host: "{{ env_var('DATACOVES__AIRBYTE_HOST_NAME') }}"
+        port: "{{ env_var('DATACOVES__AIRBYTE_PORT') }}"
+        airbyte_conn_id: airbyte_connection
+
+extract:
+  airbyte:
+    path: /config/workspace/load/airbyte
+    host: "{{ env_var('DATACOVES__AIRBYTE_HOST_NAME') }}"
+    port: "{{ env_var('DATACOVES__AIRBYTE_PORT') }}"

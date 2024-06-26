@@ -1,0 +1,51 @@
+ci_provider:
+  type: str
+  choices:
+    - github
+    - gitlab
+  when: "{{setup_ci_cd}}"
+  default: github
+  help: CI/CD provider
+
+dags_path:
+  type: str
+  when: "{{airflow_dags_confirm_path}}"
+  # when: "{% if airflow_dags_confirm_path %}true{%endif%}"
+  default: "{{tentative_dags_path}}"
+  help: Airflow DAGs path
+
+yml_dags_path:
+  type: str
+  when: "{{yml_dags_confirm_path}}"
+  # when: "{% if yml_dags_confirm_path %}true{%endif%}"
+  default: "{{tentative_yml_dags_path}}"
+  help: Airflow YML Dags path
+
+use_dbt_checkpoint:
+  type: bool
+  default: false
+  when: "{{setup_precommit}}"
+  help: use dbt-checkpoint?
+
+use_sqlfluff:
+  type: bool
+  default: false
+  when: "{{setup_precommit}}"
+  help: use Sqlfluff?
+
+use_yamllint:
+  type: bool
+  default: false
+  when: "{{setup_precommit}}"
+  help: use Yamllint?
+
+dbt_adapter:
+  type: str
+  choices:
+    - snowflake
+    - bigquery
+    - redshift
+    - databricks
+  help: What dbt adapter are you using?
+  when: "{{not dbt_adapter and (setup_dbt_profile or setup_ci_cd or setup_sqlfluff)}}"
+  default: snowflake
