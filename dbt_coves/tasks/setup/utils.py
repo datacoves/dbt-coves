@@ -6,6 +6,8 @@ from git.exc import InvalidGitRepositoryError
 from rich.console import Console
 from rich.table import Table
 
+from dbt_coves.utils.yaml import open_yaml
+
 console = Console()
 
 KEY_COLUMN_WIDTH = 50
@@ -44,8 +46,11 @@ def get_git_root(path=None):
 
 
 def get_dbt_projects(path=os.getcwd()):
-    dbt_project_dirs = []
+    dbt_projects = []
     for file in Path(path).rglob("dbt_project.yml"):
         if "dbt_packages" not in str(file):
-            dbt_project_dirs.append(str(file.relative_to(path).parent))
-    return dbt_project_dirs
+            project_name = open_yaml(file)["name"]
+            project_path = str(file.relative_to(path).parent)
+            dbt_projects.append({"path": project_path, "name": project_name})
+
+    return dbt_projects

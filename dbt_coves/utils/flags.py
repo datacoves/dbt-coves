@@ -382,6 +382,8 @@ class DbtCovesFlags:
             if self.args.cls.__name__ == "SetupTask":
                 if self.args.no_prompt:
                     self.setup["no_prompt"] = self.args.no_prompt
+                if self.args.quiet:
+                    self.setup["quiet"] = self.args.quiet
 
             # run dbt
             if self.args.cls.__name__ == "RunDbtTask":

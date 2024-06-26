@@ -11,10 +11,11 @@ from dbt_coves.utils.tracking import trackable
 from .utils import get_dbt_projects
 
 AVAILABLE_SERVICES = {
+    "dbt project": "setup_dbt_project",
     "dbt profile for automated runs": "setup_dbt_profile",
     "Initial CI/CD scripts": "setup_ci_cd",
     "Linting with SQLFluff, dbt-checkpoint and/or YMLLint": "setup_precommit",
-    "Sample Airflow DAG": "setup_airflow_dag",
+    "Sample Airflow DAGs": "setup_airflow_dag",
 }
 
 console = Console()
@@ -38,12 +39,18 @@ class SetupTask(NonDbtBaseTask):
         ext_subparser = sub_parsers.add_parser(
             "setup",
             parents=[base_subparser],
-            help="Set up project components (sqlfluff, CI, pre-commit, etc)",
+            help="Set up dbt project components (dbt project, CI, pre-commit, Airflow DAGs)",
         )
         ext_subparser.add_argument(
             "--no-prompt",
             action="store_true",
             help="Generate all Datacoves components without prompting for confirmation",
+            default=False,
+        )
+        ext_subparser.add_argument(
+            "--quiet",
+            action="store_true",
+            help="Skip rendering results",
             default=False,
         )
         ext_subparser.set_defaults(cls=cls, which="setup")
@@ -58,12 +65,9 @@ class SetupTask(NonDbtBaseTask):
 
     @trackable
     def run(self) -> int:
-        self.repo_path = os.environ.get("DATACOVES__REPO_PATH", "/config/workspace")
+        self.repo_path = os.environ.get("DATACOVES__REPO_PATH", Path().resolve())
         self.copier_context = {"no_prompt": self.get_config_value("no_prompt")}
         return self.setup_datacoves()
-
-    def _get_path_rel_to_root(self, path):
-        return str(Path(path).relative_to(self.repo_path))
 
     def setup_datacoves(self):
         choices = questionary.checkbox(
@@ -71,6 +75,38 @@ class SetupTask(NonDbtBaseTask):
             choices=list(AVAILABLE_SERVICES.keys()),
         ).ask()
         services = [AVAILABLE_SERVICES[service] for service in choices]
+        # dbt project
+        dbt_projects = get_dbt_projects(self.repo_path)
+        if not dbt_projects:
+            if "setup_dbt_project" in services:
+                project_dir = questionary.select(
+                    "Where should the dbt project be created?",
+                    choices=["current directory", "transform"],
+                ).ask()
+                if "current directory" in project_dir:
+                    project_dir = "."
+                self.copier_context["dbt_project_dir"] = project_dir
+                self.copier_context["dbt_project_name"] = questionary.text(
+                    "What is the name of the dbt project?"
+                ).ask()
+            elif "setup_precommit" in services:
+                raise DbtCovesSetupException(
+                    "No dbt project found in the current directory."
+                    "Please create one before setting up dbt components."
+                )
+            self.copier_context["is_new_project"] = True
+        elif len(dbt_projects) == 1:
+            self.copier_context["dbt_project_dir"] = dbt_projects[0].get("path")
+            self.copier_context["dbt_project_name"] = dbt_projects[0].get("name")
+        else:
+            project_dir = questionary.select(
+                "In which dbt project would you like to perform setup?",
+                choices=[prj.get("path") for prj in dbt_projects],
+            ).ask()
+            self.copier_context["dbt_project_dir"] = project_dir
+            self.copier_context["dbt_project_name"] = [
+                prj.get("name") for prj in dbt_projects if prj.get("path") == project_dir
+            ][0]
 
         # dbt profile data gathering
         if "setup_dbt_profile" in services:
@@ -87,28 +123,25 @@ class SetupTask(NonDbtBaseTask):
 
         # sample DAG data
         if "setup_airflow_dag" in services:
-            self.copier_context["airflow_dags_path"] = os.environ.get(
-                "DATACOVES__AIRFLOW_DAGS_PATH", "orchestrate/dags"
-            )
-        # precommit
-        if "setup_precommit" in services:
-            dbt_project_paths = get_dbt_projects(self.repo_path)
-            if not dbt_project_paths:
-                console.print(
-                    "Your repository doesn't contain any dbt project where to install [red]pre-commit[/red] into"
-                )
-                services.remove("setup_precommit")
-            elif len(dbt_project_paths) == 1:
-                self.copier_context["dbt_project_dir"] = dbt_project_paths[0]
+            dags_path = os.environ.get("DATACOVES__AIRFLOW_DAGS_PATH")
+            if not dags_path:
+                self.copier_context["airflow_dags_confirm_path"] = True
+                self.copier_context["tentative_dags_path"] = "orchestrate/dags"
             else:
-                self.copier_context["dbt_project_dir"] = questionary.select(
-                    "In which dbt project would you like to install pre-commit?",
-                    choices=dbt_project_paths,
-                ).ask()
-        self.copier_context["services"] = services
+                self.copier_context["dags_path"] = dags_path
+
+            yml_dags_path = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
+            if not yml_dags_path:
+                self.copier_context["yml_dags_confirm_path"] = True
+                self.copier_context["tentative_yml_dags_path"] = "orchestrate/dag_yml_definitions"
+            else:
+                self.copier_context["yml_dags_path"] = yml_dags_path
+        for service in services:
+            self.copier_context[service] = True
         copier.run_auto(
-            src_path=str(Path(__file__).parent.joinpath("templates", "datacoves").resolve()),
+            src_path="https://github.com/datacoves/setup_template.git",
             dst_path=self.repo_path,
             data=self.copier_context,
+            quiet=self.get_config_value("quiet"),
         )
         return 0

@@ -131,6 +131,7 @@ class LoadModel(BaseModel):
 
 class SetupModel(BaseModel):
     no_prompt: Optional[bool] = False
+    quiet: Optional[bool] = False
 
 
 class RunDbtModel(BaseModel):
@@ -225,6 +226,7 @@ class DbtCovesConfig:
         "load.airbyte.secrets_tags",
         "load.airbyte.secrets_key",
         "setup.no_prompt",
+        "setup.quiet",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",
