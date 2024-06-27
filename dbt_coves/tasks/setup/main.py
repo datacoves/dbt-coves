@@ -139,7 +139,8 @@ class SetupTask(NonDbtBaseTask):
         for service in services:
             self.copier_context[service] = True
         copier.run_auto(
-            src_path=str(Path(__file__).parent.joinpath("templates").resolve()),
+            # src_path=str(Path(__file__).parent.joinpath("templates").resolve()),
+            src_path="git@github.com:datacoves/setup_template.git",
             dst_path=self.repo_path,
             data=self.copier_context,
             quiet=self.get_config_value("quiet"),
