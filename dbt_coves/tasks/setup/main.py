@@ -11,7 +11,7 @@ from dbt_coves.utils.tracking import trackable
 from .utils import get_dbt_projects
 
 AVAILABLE_SERVICES = {
-    "dbt project": "setup_dbt_project",
+    "Base dbt project": "setup_dbt_project",
     "dbt profile for automated runs": "setup_dbt_profile",
     "Initial CI/CD scripts": "setup_ci_cd",
     "Linting with SQLFluff, dbt-checkpoint and/or YMLLint": "setup_precommit",
@@ -139,7 +139,6 @@ class SetupTask(NonDbtBaseTask):
         for service in services:
             self.copier_context[service] = True
         copier.run_auto(
-            # src_path=str(Path(__file__).parent.joinpath("templates").resolve()),
             src_path="git@github.com:datacoves/setup_template.git",
             dst_path=self.repo_path,
             data=self.copier_context,
