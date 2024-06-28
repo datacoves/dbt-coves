@@ -109,13 +109,10 @@ class SetupTask(NonDbtBaseTask):
             ][0]
 
         # dbt profile data gathering
-        if "setup_dbt_profile" in services:
-            airflow_profile_path = os.environ.get(
-                "DATACOVES__AIRFLOW_DBT_PROFILE_PATH", "automate/dbt"
-            )
-            if not airflow_profile_path:
-                airflow_profile_path = "automate/dbt"
-            self.copier_context["airflow_profile_path"] = airflow_profile_path
+        airflow_profile_path = os.environ.get("DATACOVES__AIRFLOW_DBT_PROFILE_PATH", "automate/dbt")
+        if not airflow_profile_path:
+            airflow_profile_path = "automate/dbt"
+        self.copier_context["airflow_profile_path"] = airflow_profile_path
 
         dbt_adapter = os.environ.get("DATACOVES__DBT_ADAPTER")
         if dbt_adapter:
