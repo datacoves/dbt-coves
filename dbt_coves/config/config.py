@@ -161,6 +161,7 @@ class ConfigModel(BaseModel):
     setup: Optional[SetupModel] = SetupModel()
     dbt: Optional[RunDbtModel] = RunDbtModel()
     data_sync: Optional[DataSyncModel] = DataSyncModel()
+    disable_tracking: Optional[bool] = False
 
 
 class DbtCovesConfig:
@@ -279,6 +280,10 @@ class DbtCovesConfig:
             if source.get(key):
                 target[key] = source[key]
         return config_copy
+
+    @property
+    def disable_tracking(self):
+        return self._config.disable_tracking
 
     def load_and_validate_config_yaml(self) -> None:
         if self._config_path:
