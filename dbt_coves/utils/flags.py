@@ -134,8 +134,7 @@ class DbtCovesFlags:
             "current-dir": False,
         }
         self.setup = {
-            "ssh": {"open_ssl_public_key": False},
-            "git": {"no_prompt": False},
+            "no_prompt": False,
         }
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
         self.data_sync = {"redshift": {"tables": []}, "snowflake": {"tables": []}}
@@ -379,15 +378,12 @@ class DbtCovesFlags:
                 if self.args.credentials:
                     self.extract["fivetran"]["credentials"] = self.args.credentials
 
-            # setup ssh
-            if self.args.cls.__name__ == "SetupSSHTask":
-                if self.args.open_ssl_public_key:
-                    self.setup["ssh"]["open_ssl_public_key"] = self.args.open_ssl_public_key
-
-            # setup git
-            if self.args.cls.__name__ == "SetupGitTask":
+            # setup
+            if self.args.cls.__name__ == "SetupTask":
                 if self.args.no_prompt:
-                    self.setup["git"]["no_prompt"] = self.args.no_prompt
+                    self.setup["no_prompt"] = self.args.no_prompt
+                if self.args.quiet:
+                    self.setup["quiet"] = self.args.quiet
 
             # run dbt
             if self.args.cls.__name__ == "RunDbtTask":
