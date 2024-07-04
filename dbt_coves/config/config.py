@@ -129,17 +129,9 @@ class LoadModel(BaseModel):
     fivetran: Optional[LoadFivetranModel] = LoadFivetranModel()
 
 
-class SetupSshModel(BaseModel):
-    open_ssl_public_key: Optional[bool] = False
-
-
-class SetupGitModel(BaseModel):
-    no_prompt: Optional[bool] = False
-
-
 class SetupModel(BaseModel):
-    ssh: Optional[SetupSshModel] = SetupSshModel()
-    git: Optional[SetupGitModel] = SetupGitModel()
+    no_prompt: Optional[bool] = False
+    quiet: Optional[bool] = False
 
 
 class RunDbtModel(BaseModel):
@@ -181,6 +173,7 @@ class ConfigModel(BaseModel):
     setup: Optional[SetupModel] = SetupModel()
     dbt: Optional[RunDbtModel] = RunDbtModel()
     data_sync: Optional[DataSyncModel] = DataSyncModel()
+    disable_tracking: Optional[bool] = False
     blue_green: Optional[BlueGreenModel] = BlueGreenModel()
 
 
@@ -246,8 +239,8 @@ class DbtCovesConfig:
         "load.airbyte.secrets_project",
         "load.airbyte.secrets_tags",
         "load.airbyte.secrets_key",
-        "setup.ssh.open_ssl_public_key",
-        "setup.git.no_prompt",
+        "setup.no_prompt",
+        "setup.quiet",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",
@@ -309,6 +302,10 @@ class DbtCovesConfig:
             if source.get(key):
                 target[key] = source[key]
         return config_copy
+
+    @property
+    def disable_tracking(self):
+        return self._config.disable_tracking
 
     def load_and_validate_config_yaml(self) -> None:
         if self._config_path:

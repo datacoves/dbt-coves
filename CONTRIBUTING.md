@@ -4,9 +4,8 @@ Thanks for looking into making `dbt-coves` better! We have some loosely defined 
 
 ## How can you contribute?
 
-- It **usually starts with creating an issue** (reporting a bug, or discussing a feature). In fact, even if you don't know how to code it or don't have the time, you're already helping out by pointing out potential issues or functionality that you would like to see implemented.
-- **Creating an issue is not necessary!**
-  - See an already published issue that you think you can tackle? Drop a line on it and get cracking or ask questions on how you can help, it's generally a good way to make sure you'll hit home right away. It's not fun to do a lot of work and then find out the proposed change doesn't fit with the maintainer's goals.
+- Contributing **usually starts with creating an issue** (reporting a bug, or discussing a feature). In fact, even if you don't know how to code it or don't have the time, you're already helping out by pointing out potential issues or functionality that you would like to see implemented.
+- See an already published issue that you think you can tackle? Create an issue for it and ask questions on how your idea and how you can help, it's generally a good way to make sure you'll hit the ground running quickly. It's not fun to do a lot of work and then find out the proposed change doesn't fit with the maintainer's goals.
 
 ## Advised Process/Conventions
 
@@ -75,7 +74,7 @@ Here's a quick guide:
 For official guidelines check the [GitHub documentation](https://docs.github.com/en/free-pro-team@latest/github/getting-started-with-github/fork-a-repo)
 
 1. Create a fork from this repo in your accout by clicking the "Fork" button
-2. Clone the fork on your machine via ssh or http depending on how you like to authenticate and all that. For example:
+2. Clone the fork on your machine via ssh or http depending on how you like to authenticate. For example:
 
    ```bash
    git clone git@github.com:<your_username>/dbt-coves.git
@@ -122,7 +121,7 @@ If you don't want to bother, that's also OK because we also have [pre-commit.ci]
 
 #### Type Hinting
 
-- It is recommended to use Type Hinting and have [`mypy`](http://mypy-lang.org/) enabled as your linter. Most IDE's have an extension or a way to help with this. Typing isn't necessary but **really, really** preferred. The mainteners might therefore make suggestions on how to implement typing or will enfore it for you directly in your branch.
+- It is recommended to use Type Hinting and have [`mypy`](http://mypy-lang.org/) enabled as your linter. Most IDE's have an extension or a way to help with this. Typing isn't necessary but **really, really** preferred. The maintainers might therefore make suggestions on how to implement typing or will enforce it for you directly in your branch.
 - Mypy is also part of our `pre-commit` and it should alert you if you have any issues with type hints.
 
 ### Development
