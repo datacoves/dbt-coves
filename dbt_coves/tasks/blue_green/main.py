@@ -121,7 +121,9 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             # run dbt build
             dbt_build_command: list = self.get_dbt_build_command()
             console.print("Running dbt build")
-            RunDbtTask(self.args, self.coves_config).run_dbt(command=dbt_build_command)
+            RunDbtTask(self.args, self.coves_config).run_dbt(
+                command=dbt_build_command, project_dir=self.args.project_dir or None
+            )
             # copy db grants from production db
             self.cdb.clone_database_grants(self.production_database, self.staging_database)
             # Swaps databases: Snowflake sql `alter database {blue} swap with {green}`

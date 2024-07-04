@@ -1,0 +1,8 @@
+version: 2
+
+models:
+  - name: test_model_2
+    description: "A starter dbt model"
+    columns:
+      - name: id
+        description: "The primary key for this table"
