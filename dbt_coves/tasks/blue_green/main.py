@@ -89,7 +89,6 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         production_database = self.get_config_value("production_database")
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
-        breakpoint()
         if staging_database and staging_suffix:
             raise DbtCovesException("Cannot specify both staging_database and staging_suffix")
         elif not staging_database and not staging_suffix:
