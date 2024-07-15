@@ -436,7 +436,7 @@ class DbtCovesFlags:
                         "drop_staging_db_on_failure"
                     ] = self.args.drop_staging_db_on_failure
                 if self.args.dbt_selector:
-                    self.blue_green["dbt_selector"] = self.args.dbt_selector.split(" ")
+                    self.blue_green["dbt_selector"] = self.args.dbt_selector
                 if self.args.defer:
                     self.blue_green["defer"] = self.args.defer
                 if self.args.full_refresh:

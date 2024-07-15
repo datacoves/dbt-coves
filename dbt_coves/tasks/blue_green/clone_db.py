@@ -114,7 +114,7 @@ class CloneDB:
         self.time_check = time.time()
         # Copy grants from Blue DB schemas
         console.print(
-            f"Cloning [u]schema grants[/u] from [blue]{self.blue_database}[/blue] to"
+            f"Cloning [u]schema grants[/u] from [blue]{self.blue_database}[/blue] to "
             f"[green]{self.green_database}[/green]"
         )
         for schema in schemas:

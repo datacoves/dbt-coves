@@ -89,6 +89,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         production_database = self.get_config_value("production_database")
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
+        breakpoint()
         if staging_database and staging_suffix:
             raise DbtCovesException("Cannot specify both staging_database and staging_suffix")
         elif not staging_database and not staging_suffix:
@@ -141,13 +142,13 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         """
         Returns the dbt build command to be run.
         """
-        dbt_selector = self.get_config_value("dbt_selector") or []  # []
+        dbt_selector: str = self.get_config_value("dbt_selector")
         is_deferral = self.get_config_value("defer")
         dbt_build_command = ["build", "--fail-fast"]
         if is_deferral:
             dbt_build_command.extend(["--defer", "--state", "logs", "-s", "state:modified+"])
         else:
-            dbt_build_command.extend(dbt_selector)
+            dbt_build_command.extend(dbt_selector.split())
         if self.get_config_value("full_refresh"):
             dbt_build_command.append("--full-refresh")
         if self.args.target:
