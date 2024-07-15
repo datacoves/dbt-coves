@@ -29,7 +29,7 @@ test_dbt_coves_snowflake:
     dev:
       account: {{ env_var('ACCOUNT_SNOWFLAKE')}}
       database: {{ env_var('DATABASE_SNOWFLAKE')}}
-      password: {{ env_var('PASSWORD_SNOWFLAKE')}}
+      password: {%raw%}"{{ env_var('PASSWORD_SNOWFLAKE')}}"{%endraw%}
       role: {{ env_var('ROLE_SNOWFLAKE')}}
       schema: {{ env_var('SCHEMA_SNOWFLAKE')}}
       threads: 1
