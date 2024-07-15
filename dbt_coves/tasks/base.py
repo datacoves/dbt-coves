@@ -80,6 +80,10 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
         if (__dbt_major_version__, __dbt_minor_version__) < (1, 8):
             config = cls.ConfigType.from_args(args)
         else:
+            from dbt_common.clients.system import get_env
+            from dbt_common.context import set_invocation_context
+
+            set_invocation_context(get_env())
             config = RuntimeConfig.from_args(args)
         try:
             return cls(args, config)
