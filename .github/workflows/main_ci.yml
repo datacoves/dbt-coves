@@ -69,6 +69,14 @@ jobs:
           SERVICE_ACCOUNT_GCP: op://Engineering - dbt-coves/dbt-coves-tests/SERVICE_ACCOUNT_GCP
           PROJECT_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROJECT_BIGQUERY
           DATASET_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/DATASET_BIGQUERY
+          # Blue green
+          DATACOVES__DBT_COVES_TEST__ACCOUNT: op://Engineering - dbt-coves/dbt-coves-tests/DATACOVES__DBT_COVES_TEST__ACCOUNT
+          DATACOVES__DBT_COVES_TEST__USER: op://Engineering - dbt-coves/dbt-coves-tests/DATACOVES__DBT_COVES_TEST__USER
+          DATACOVES__DBT_COVES_TEST__PASSWORD: op://Engineering - dbt-coves/dbt-coves-tests/DATACOVES__DBT_COVES_TEST__PASSWORD
+          DATACOVES__DBT_COVES_TEST__WAREHOUSE: op://Engineering - dbt-coves/dbt-coves-tests/DATACOVES__DBT_COVES_TEST__WAREHOUSE
+          DATACOVES__DBT_COVES_TEST__DATABASE: op://Engineering - dbt-coves/dbt-coves-tests/DATACOVES__DBT_COVES_TEST__DATABASE
+          DATACOVES__DBT_COVES_TEST__SCHEMA: op://Engineering - dbt-coves/dbt-coves-tests/DATACOVES__DBT_COVES_TEST__SCHEMA
+          DATACOVES__DBT_COVES_TEST__ROLE: op://Engineering - dbt-coves/dbt-coves-tests/DATACOVES__DBT_COVES_TEST__ROLE
 
       - name: Create profiles
         run: |
