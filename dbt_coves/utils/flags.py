@@ -139,7 +139,7 @@ class DbtCovesFlags:
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
         self.data_sync = {"redshift": {"tables": []}, "snowflake": {"tables": []}}
         self.blue_green = {
-            "production_database": None,
+            "service_connection_name": None,
             "staging_database": None,
             "staging_suffix": None,
             "drop_staging_db_at_start": False,
@@ -421,8 +421,8 @@ class DbtCovesFlags:
 
             # blue green
             if self.args.cls.__name__ == "BlueGreenTask":
-                if self.args.production_database:
-                    self.blue_green["production_database"] = self.args.production_database
+                if self.args.service_connection_name:
+                    self.blue_green["service_connection_name"] = self.args.service_connection_name
                 if self.args.staging_database:
                     self.blue_green["staging_database"] = self.args.staging_database
                 if self.args.staging_suffix:

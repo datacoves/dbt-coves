@@ -31,9 +31,9 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         ext_subparser.set_defaults(cls=cls, which="blue-green")
         cls.arg_parser = ext_subparser
         ext_subparser.add_argument(
-            "--production-database",
+            "--service-connection-name",
             type=str,
-            help="Blue database",
+            help="Snowflake service connection name",
         )
         ext_subparser.add_argument(
             "--staging-database",
@@ -78,16 +78,21 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
 
     @trackable
     def run(self) -> int:
-        production_database = self.get_config_value("production_database")
+        self.service_connection_name = self.get_config_value("service_connection_name")
+        try:
+            self.production_database = os.environ[
+                f"DATACOVES__{self.service_connection_name}__DATABASE"
+            ]
+        except KeyError:
+            raise DbtCovesException(
+                f"There is no Database defined for Service Connection {self.service_connection_name}"
+            )
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
         if staging_database and staging_suffix:
             raise DbtCovesException("Cannot specify both staging_database and staging_suffix")
         elif not staging_database and not staging_suffix:
             staging_suffix = "STAGING"
-        self.production_database = production_database or os.environ.get(
-            "DATACOVES__MAIN__DATABASE"
-        )
         self.staging_database = staging_database or f"{self.production_database}_{staging_suffix}"
         if self.production_database == self.staging_database:
             raise DbtCovesException(
@@ -177,13 +182,13 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
     def snowflake_connection(self):
         try:
             return snowflake.connector.connect(
-                account=os.environ.get(f"DATACOVES__{self.production_database}__ACCOUNT"),
-                warehouse=os.environ.get(f"DATACOVES__{self.production_database}__WAREHOUSE"),
-                database=os.environ.get(f"DATACOVES__{self.production_database}__DATABASE"),
-                role=os.environ.get(f"DATACOVES__{self.production_database}__ROLE"),
-                schema=os.environ.get(f"DATACOVES__{self.production_database}__SCHEMA"),
-                user=os.environ.get(f"DATACOVES__{self.production_database}__USER"),
-                password=os.environ.get(f"DATACOVES__{self.production_database}__PASSWORD"),
+                account=os.environ.get(f"DATACOVES__{self.service_connection_name}__ACCOUNT"),
+                warehouse=os.environ.get(f"DATACOVES__{self.service_connection_name}__WAREHOUSE"),
+                database=os.environ.get(f"DATACOVES__{self.service_connection_name}__DATABASE"),
+                role=os.environ.get(f"DATACOVES__{self.service_connection_name}__ROLE"),
+                schema=os.environ.get(f"DATACOVES__{self.service_connection_name}__SCHEMA"),
+                user=os.environ.get(f"DATACOVES__{self.service_connection_name}__USER"),
+                password=os.environ.get(f"DATACOVES__{self.service_connection_name}__PASSWORD"),
                 session_parameters={
                     "QUERY_TAG": "blue_green_swap",
                 },

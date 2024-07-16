@@ -155,7 +155,7 @@ class DataSyncModel(BaseModel):
 
 
 class BlueGreenModel(BaseModel):
-    production_database: Optional[str] = ""
+    service_connection_name: Optional[str] = ""
     staging_database: Optional[str] = ""
     staging_suffix: Optional[str] = ""
     drop_staging_db_at_start: Optional[bool] = False
@@ -262,7 +262,7 @@ class DbtCovesConfig:
         "load.fivetran.secrets_key",
         "data_sync.redshift.tables",
         "data_sync.snowflake.tables",
-        "blue_green.production_database",
+        "blue_green.service_connection_name",
         "blue_green.staging_database",
         "blue_green.staging_suffix",
         "blue_green.drop_staging_db_at_start",

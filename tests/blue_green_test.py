@@ -103,7 +103,7 @@ class TestBlueGreen:
             str(FIXTURE_DIR),
             "--profiles-dir",
             str(FIXTURE_DIR),
-            "--production-database",
+            "--service-connection-name",
             self.production_database,
             "--keep-staging-db-on-success",
         ]
