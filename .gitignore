@@ -151,4 +151,3 @@ cython_debug/
 **.vim**
 .gitsecret/keys/random_seed
 !*.secret
-profiles.yml
