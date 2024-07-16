@@ -158,13 +158,12 @@ class BlueGreenModel(BaseModel):
     production_database: Optional[str] = ""
     staging_database: Optional[str] = ""
     staging_suffix: Optional[str] = ""
-    drop_staging_db_if_exists: Optional[bool] = False
-    drop_staging_db_after: Optional[int] = None
+    drop_staging_db_at_start: Optional[bool] = False
+    keep_staging_db_on_success: Optional[bool] = False
     drop_staging_db_on_failure: Optional[bool] = False
     dbt_selector: Optional[str] = ""
     defer: Optional[bool] = False
     full_refresh: Optional[bool] = False
-    is_test: Optional[bool] = False
 
 
 class ConfigModel(BaseModel):
@@ -266,13 +265,12 @@ class DbtCovesConfig:
         "blue_green.production_database",
         "blue_green.staging_database",
         "blue_green.staging_suffix",
-        "blue_green.drop_staging_db_if_exists",
-        "blue_green.drop_staging_db_after",
+        "blue_green.drop_staging_db_at_start",
         "blue_green.drop_staging_db_on_failure",
         "blue_green.dbt_selector",
         "blue_green.defer",
         "blue_green.full_refresh",
-        "blue_green.is_test",
+        "blue_green.keep_staging_db_on_success",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:

@@ -1,5 +1,4 @@
 import os
-import time
 
 import snowflake.connector
 from rich.console import Console
@@ -47,19 +46,19 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             help="Green database suffix",
         )
         ext_subparser.add_argument(
-            "--drop-staging-db-if-exists",
+            "--drop-staging-db-at-start",
             action="store_true",
-            help="Drop staging db after swap",
-        )
-        ext_subparser.add_argument(
-            "--drop-staging-db-after",
-            type=int,
-            help="Drop staging db after X minutes",
+            help="Drop staging db at start if it already exists",
         )
         ext_subparser.add_argument(
             "--drop-staging-db-on-failure",
             action="store_true",
             help="Drop staging db if blue-green fails",
+        )
+        ext_subparser.add_argument(
+            "--keep-staging-db-on-success",
+            action="store_true",
+            help="",
         )
         ext_subparser.add_argument(
             "--dbt-selector",
@@ -72,11 +71,6 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             help="Perform a full dbt build",
         )
         ext_subparser.add_argument("--defer", action="store_true", help="Run in deferral")
-        ext_subparser.add_argument(
-            "--is-test",
-            action="store_true",
-            help="",
-        )
         return ext_subparser
 
     def get_config_value(self, key):
@@ -84,13 +78,6 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
 
     @trackable
     def run(self) -> int:
-        """
-        - deployment_settings:
-            drop_staging_db: true (default false)
-            drop_pre_prodcution_db_after: 30 (default is 0)
-            production_db_name: balboa (or what is in MAIN service cred)
-            pre_production_db_suffix: _staging
-        """
         production_database = self.get_config_value("production_database")
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
@@ -107,8 +94,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
                 f"Production database {self.production_database} cannot be the same as staging database "
                 f"{self.staging_database}"
             )
-        self.drop_staging_db_if_exists = self.get_config_value("drop_staging_db_if_exists")
-        self.drop_staging_db_after = self.get_config_value("drop_staging_db_after")
+        self.drop_staging_db_at_start = self.get_config_value("drop_staging_db_at_start")
         self.con = self.snowflake_connection()
 
         self.cdb = CloneDB(
@@ -135,7 +121,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             # Swaps databases: Snowflake sql `alter database {blue} swap with {green}`
             self._swap_databases()
             # drops pre_production (ex production)
-            if not self.get_config_value("is_test"):
+            if not self.get_config_value("keep_staging_db_on_success"):
                 self.cdb.drop_database()
         except Exception as e:
             if self.get_config_value("drop_staging_db_on_failure"):
@@ -181,26 +167,8 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             None
         """
         green_exists = self._check_if_database_exists()
-        if green_exists and self.drop_staging_db_if_exists:
-            if self.drop_staging_db_after:
-                console.print(
-                    f"Green database {self.staging_database} exists."
-                    f"Waiting {self.drop_staging_db_after} minutes before dropping it"
-                )
-                for i in range(self.drop_staging_db_after):
-                    console.print(f"Waiting {i} minutes")
-                    time.sleep(60)
-                    green_exists = self._check_if_database_exists()
-                    if not green_exists:
-                        break
-                    if green_exists and i == self.drop_staging_db_after - 1:
-                        raise DbtCovesException(
-                            f"Green database {self.staging_database} still exists"
-                            f"after {self.drop_staging_db_after} minutes"
-                        )
-            print(f"Dropping database {self.staging_database}.")
+        if green_exists and self.drop_staging_db_at_start:
             self.cdb.drop_database()
-            green_exists = False
         elif green_exists:
             raise DbtCovesException(
                 f"Green database {self.staging_database} already exists. Please either drop it or use a different name."

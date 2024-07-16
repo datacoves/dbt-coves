@@ -105,10 +105,10 @@ class TestBlueGreen:
             str(FIXTURE_DIR),
             "--production-database",
             self.production_database,
-            "--is-test",
+            "--keep-staging-db-on-success",
         ]
-        if DBT_COVES_SETTINGS.get("drop_staging_db_if_exists"):
-            command.append("--drop-staging-db-if-exists")
+        if DBT_COVES_SETTINGS.get("drop_staging_db_at_start"):
+            command.append("--drop-staging-db-at-start")
         if DBT_COVES_SETTINGS.get("dbt_selector"):
             command.extend(["--dbt-selector", DBT_COVES_SETTINGS["dbt_selector"]])
         if DBT_COVES_SETTINGS.get("staging_suffix"):

@@ -142,13 +142,12 @@ class DbtCovesFlags:
             "production_database": None,
             "staging_database": None,
             "staging_suffix": None,
-            "drop_staging_db_if_exists": False,
-            "drop_staging_db_after": None,
+            "drop_staging_db_at_start": False,
             "drop_staging_db_on_failure": False,
             "dbt_selector": None,
             "defer": False,
             "full_refresh": False,
-            "is_test": False,
+            "keep_staging_db_on_success": False,
         }
 
     def parse_args(self, cli_args: List[str] = list()) -> None:
@@ -428,12 +427,8 @@ class DbtCovesFlags:
                     self.blue_green["staging_database"] = self.args.staging_database
                 if self.args.staging_suffix:
                     self.blue_green["staging_suffix"] = self.args.staging_suffix
-                if self.args.drop_staging_db_if_exists:
-                    self.blue_green[
-                        "drop_staging_db_if_exists"
-                    ] = self.args.drop_staging_db_if_exists
-                if self.args.drop_staging_db_after:
-                    self.blue_green["drop_staging_db_after"] = self.args.drop_staging_db_after
+                if self.args.drop_staging_db_at_start:
+                    self.blue_green["drop_staging_db_at_start"] = self.args.drop_staging_db_at_start
                 if self.args.drop_staging_db_on_failure:
                     self.blue_green[
                         "drop_staging_db_on_failure"
@@ -444,5 +439,7 @@ class DbtCovesFlags:
                     self.blue_green["defer"] = self.args.defer
                 if self.args.full_refresh:
                     self.blue_green["full_refresh"] = self.args.full_refresh
-                if self.args.is_test:
-                    self.blue_green["is_test"] = self.args.is_test
+                if self.args.keep_staging_db_on_success:
+                    self.blue_green[
+                        "keep_staging_db_on_success"
+                    ] = self.args.keep_staging_db_on_success

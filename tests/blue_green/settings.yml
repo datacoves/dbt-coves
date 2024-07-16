@@ -6,4 +6,4 @@ database: "DBT_COVES_TEST"
 blue_green:
   production_database: DBT_COVES_TEST
   staging_suffix: "STG"
-  drop_staging_db_if_exists: True
+  drop_staging_db_at_start: True

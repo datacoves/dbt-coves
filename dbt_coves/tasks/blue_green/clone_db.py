@@ -39,8 +39,7 @@ class CloneDB:
 
     def drop_database(self):
         """
-        Utility function to drop the green database. This is used by the primary build script when the --drop-staging-db
-        flag is set to True.
+        Utility function to drop the green database.
 
         Returns:
             None
