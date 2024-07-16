@@ -47,7 +47,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             help="Green database suffix",
         )
         ext_subparser.add_argument(
-            "--drop-staging-db",
+            "--drop-staging-db-if-exists",
             action="store_true",
             help="Drop staging db after swap",
         )
@@ -72,6 +72,11 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             help="Perform a full dbt build",
         )
         ext_subparser.add_argument("--defer", action="store_true", help="Run in deferral")
+        ext_subparser.add_argument(
+            "--is-test",
+            action="store_true",
+            help="",
+        )
         return ext_subparser
 
     def get_config_value(self, key):
@@ -102,7 +107,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
                 f"Production database {self.production_database} cannot be the same as staging database "
                 f"{self.staging_database}"
             )
-        self.drop_staging_db = self.get_config_value("drop_staging_db")
+        self.drop_staging_db_if_exists = self.get_config_value("drop_staging_db_if_exists")
         self.drop_staging_db_after = self.get_config_value("drop_staging_db_after")
         self.con = self.snowflake_connection()
 
@@ -111,6 +116,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             self.staging_database,
             self.con,
         )
+
         self._check_and_drop_staging_db()
 
         try:
@@ -129,7 +135,8 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             # Swaps databases: Snowflake sql `alter database {blue} swap with {green}`
             self._swap_databases()
             # drops pre_production (ex production)
-            self.cdb.drop_database()
+            if not self.get_config_value("is_test"):
+                self.cdb.drop_database()
         except Exception as e:
             if self.get_config_value("drop_staging_db_on_failure"):
                 self.cdb.drop_database()
@@ -174,7 +181,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             None
         """
         green_exists = self._check_if_database_exists()
-        if green_exists and self.drop_staging_db:
+        if green_exists and self.drop_staging_db_if_exists:
             if self.drop_staging_db_after:
                 console.print(
                     f"Green database {self.staging_database} exists."

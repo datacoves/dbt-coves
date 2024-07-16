@@ -1,4 +1,4 @@
-{{ config(materialized='table', schema="BLUE_GREEN") }}
+{{ config(materialized='table') }}
 
 with source_data as (
 

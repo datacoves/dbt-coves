@@ -39,17 +39,19 @@ except KeyError:
 @pytest.fixture(scope="class")
 def snowflake_connection(request):
     # Check env vars
-    assert "USER_SNOWFLAKE" in os.environ
-    assert "PASSWORD_SNOWFLAKE" in os.environ
-    assert "ACCOUNT_SNOWFLAKE" in os.environ
-    assert "WAREHOUSE_SNOWFLAKE" in os.environ
-    assert "ROLE_SNOWFLAKE" in os.environ
+    assert "DATACOVES__DBT_COVES_TEST__USER" in os.environ
+    assert "DATACOVES__DBT_COVES_TEST__PASSWORD" in os.environ
+    assert "DATACOVES__DBT_COVES_TEST__ACCOUNT" in os.environ
+    assert "DATACOVES__DBT_COVES_TEST__WAREHOUSE" in os.environ
+    assert "DATACOVES__DBT_COVES_TEST__ROLE" in os.environ
 
-    user = os.environ["USER_SNOWFLAKE"]
-    password = os.environ["PASSWORD_SNOWFLAKE"]
-    account = os.environ["ACCOUNT_SNOWFLAKE"]
-    role = os.environ["ROLE_SNOWFLAKE"]
-    warehouse = os.environ["WAREHOUSE_SNOWFLAKE"]
+    user = os.environ["DATACOVES__DBT_COVES_TEST__USER"]
+    password = os.environ["DATACOVES__DBT_COVES_TEST__PASSWORD"]
+    account = os.environ["DATACOVES__DBT_COVES_TEST__ACCOUNT"]
+    role = os.environ["DATACOVES__DBT_COVES_TEST__ROLE"]
+    warehouse = os.environ["DATACOVES__DBT_COVES_TEST__WAREHOUSE"]
+    database = os.environ["DATACOVES__DBT_COVES_TEST__DATABASE"]
+    schema = "TESTS_BLUE_GREEN"
 
     conn = snowflake.connector.connect(
         user=user,
@@ -61,8 +63,8 @@ def snowflake_connection(request):
 
     request.cls.conn = conn
     request.cls.warehouse = warehouse
-    request.cls.schema = SETTINGS["schema"]
-    request.cls.production_database = SETTINGS["database"]
+    request.cls.schema = schema
+    request.cls.production_database = database
     request.cls.staging_database = (
         f"{request.cls.production_database}_{DBT_COVES_SETTINGS.get('staging_suffix', 'staging')}"
     )
@@ -98,12 +100,15 @@ class TestBlueGreen:
             "../../dbt_coves/core/main.py",
             "blue-green",
             "--project-dir",
-            FIXTURE_DIR,
+            str(FIXTURE_DIR),
+            "--profiles-dir",
+            str(FIXTURE_DIR),
             "--production-database",
             self.production_database,
+            "--is-test",
         ]
-        if DBT_COVES_SETTINGS.get("drop_staging_db"):
-            command.append("--drop-staging-db")
+        if DBT_COVES_SETTINGS.get("drop_staging_db_if_exists"):
+            command.append("--drop-staging-db-if-exists")
         if DBT_COVES_SETTINGS.get("dbt_selector"):
             command.extend(["--dbt-selector", DBT_COVES_SETTINGS["dbt_selector"]])
         if DBT_COVES_SETTINGS.get("staging_suffix"):
