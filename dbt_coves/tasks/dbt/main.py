@@ -65,7 +65,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         self.run_dbt(project_dir, command)
         return 0
 
-    def run_dbt(self, project_dir: str = None, command: list = []):
+    def run_dbt(self, project_dir: str = None, command: list = [], env=os.environ.copy()):
         """
         Run dbt command on a specific directory
         """
@@ -89,7 +89,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 )
                 subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=False)
             try:
-                self._run_dbt(command, cwd=tmp_dir)
+                self._run_dbt(command, cwd=tmp_dir, env=env)
             finally:
                 if self.get_config_value("cleanup"):
                     console.print("Removing cloned read-write copy.")
@@ -99,11 +99,11 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                     with open(path_file, "w") as f:
                         f.write(tmp_dir)
         else:
-            self._run_dbt(command, cwd=project_dir)
+            self._run_dbt(command, cwd=project_dir, env=env)
 
         return 0
 
-    def _run_dbt(self, cmd_args: list, cwd: str):
+    def _run_dbt(self, cmd_args: list, cwd: str, env=os.environ.copy()):
         """
         Run dbt command on a specific directory passing received arguments.
         Runs dbt deps if missing packages
@@ -114,7 +114,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             console.print("[red]Missing dbt packages[/red]")
             self.run_command("dbt deps", cwd=cwd)
         str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in cmd_args])
-        self.run_command(f"dbt {str_args}", cwd=cwd)
+        self.run_command(f"dbt {str_args}", cwd=cwd, env=env)
 
     def is_readonly(self, folder: str) -> bool:
         """Returns True if `folder` is readonly"""
@@ -125,11 +125,11 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         self,
         command: str,
         cwd=None,
+        env=os.environ.copy(),
     ):
         """Activates a python environment if found and runs a command using it"""
         env_path = None
         virtualenv = self.get_config_value("virtualenv")
-        env = os.environ.copy()
         if virtualenv:
             # Ensure it's a Path to avoid
             # conflicts with trailing / at later concatenation

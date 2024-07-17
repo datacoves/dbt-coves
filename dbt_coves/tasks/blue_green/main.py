@@ -109,18 +109,14 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         )
 
         self._check_and_drop_staging_db()
-
+        env = os.environ.copy()
         try:
             # create staging db
             self.cdb.create_database(self.staging_database)
             # clones schemas and schema grants from production to pre_production
             self.cdb.clone_database_schemas(self.production_database, self.staging_database)
             # run dbt build
-            dbt_build_command: list = self.get_dbt_build_command()
-            console.print("Running dbt build")
-            RunDbtTask(self.args, self.coves_config).run_dbt(
-                command=dbt_build_command, project_dir=self.args.project_dir or None
-            )
+            self._run_dbt_build(env)
             # copy db grants from production db
             self.cdb.clone_database_grants(self.production_database, self.staging_database)
             # Swaps databases: Snowflake sql `alter database {blue} swap with {green}`
@@ -128,6 +124,8 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             # drops pre_production (ex production)
             if not self.get_config_value("keep_staging_db_on_success"):
                 self.cdb.drop_database()
+            # run dbt compile
+            self._run_dbt_compile(env)
         except Exception as e:
             if self.get_config_value("drop_staging_db_on_failure"):
                 self.cdb.drop_database()
@@ -135,22 +133,45 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
 
         return 0
 
-    def get_dbt_build_command(self):
+    def _run_dbt_compile(self, env):
+        # dbt_compile_command: list = self._get_dbt_compile_command()
+        dbt_compile_command = ["compile"]
+        env[f"DATACOVES__{self.service_connection_name}__DATABASE"] = self.production_database
+        console.print("Running dbt compile")
+        RunDbtTask(self.args, self.coves_config).run_dbt(
+            command=dbt_compile_command, project_dir=self.args.project_dir or None, env=env
+        )
+
+    def _run_dbt_build(self, env):
+        dbt_build_command: list = self._get_dbt_build_command()
+        env[f"DATACOVES__{self.service_connection_name}__DATABASE"] = self.staging_database
+        console.print("Running dbt build")
+        RunDbtTask(self.args, self.coves_config).run_dbt(
+            command=dbt_build_command, project_dir=self.args.project_dir or None, env=env
+        )
+
+    def _get_dbt_command(self, command):
         """
         Returns the dbt build command to be run.
         """
         dbt_selector: str = self.get_config_value("dbt_selector")
         is_deferral = self.get_config_value("defer")
-        dbt_build_command = ["build", "--fail-fast"]
+        dbt_command = [command, "--fail-fast"]
         if is_deferral:
-            dbt_build_command.extend(["--defer", "--state", "logs", "-s", "state:modified+"])
+            dbt_command.extend(["--defer", "--state", "logs", "-s", "state:modified+"])
         else:
-            dbt_build_command.extend(dbt_selector.split())
+            dbt_command.extend(dbt_selector.split())
         if self.get_config_value("full_refresh"):
-            dbt_build_command.append("--full-refresh")
+            dbt_command.append("--full-refresh")
         if self.args.target:
-            dbt_build_command.extend(["-t", self.args.target])
-        return dbt_build_command
+            dbt_command.extend(["-t", self.args.target])
+        return dbt_command
+
+    def _get_dbt_compile_command(self):
+        return self._get_dbt_command("compile")
+
+    def _get_dbt_build_command(self):
+        return self._get_dbt_command("build")
 
     def _swap_databases(self):
         """
