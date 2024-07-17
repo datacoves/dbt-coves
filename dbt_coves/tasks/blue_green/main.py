@@ -124,23 +124,12 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
             # drops pre_production (ex production)
             if not self.get_config_value("keep_staging_db_on_success"):
                 self.cdb.drop_database()
-            # run dbt compile
-            self._run_dbt_compile(env)
         except Exception as e:
             if self.get_config_value("drop_staging_db_on_failure"):
                 self.cdb.drop_database()
             raise e
 
         return 0
-
-    def _run_dbt_compile(self, env):
-        # dbt_compile_command: list = self._get_dbt_compile_command()
-        dbt_compile_command = ["compile"]
-        env[f"DATACOVES__{self.service_connection_name}__DATABASE"] = self.production_database
-        console.print("Running dbt compile")
-        RunDbtTask(self.args, self.coves_config).run_dbt(
-            command=dbt_compile_command, project_dir=self.args.project_dir or None, env=env
-        )
 
     def _run_dbt_build(self, env):
         dbt_build_command: list = self._get_dbt_build_command()
@@ -157,7 +146,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         dbt_selector: str = self.get_config_value("dbt_selector")
         is_deferral = self.get_config_value("defer")
         dbt_command = [command, "--fail-fast"]
-        if is_deferral:
+        if is_deferral or os.environ.get("MANIFEST_FOUND"):
             dbt_command.extend(["--defer", "--state", "logs", "-s", "state:modified+"])
         else:
             dbt_command.extend(dbt_selector.split())
