@@ -78,7 +78,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
 
     @trackable
     def run(self) -> int:
-        self.service_connection_name = self.get_config_value("service_connection_name")
+        self.service_connection_name = self.get_config_value("service_connection_name").upper()
         try:
             self.production_database = os.environ[
                 f"DATACOVES__{self.service_connection_name}__DATABASE"
