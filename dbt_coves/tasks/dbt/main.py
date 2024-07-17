@@ -61,21 +61,13 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
     @trackable
     def run(self) -> int:
         project_dir = self.get_config_value("project_dir")
-        command = self.get_config_value("command")
-        self.run_dbt(project_dir, command)
-        return 0
-
-    def run_dbt(self, project_dir: str = None, command: list = [], env=os.environ.copy()):
-        """
-        Run dbt command on a specific directory
-        """
         if not project_dir:
             project_dir = os.environ.get("DBT_PROJECT_DIR", os.environ.get("DATACOVES__DBT_HOME"))
         if not project_dir:
             console.print("[red]No dbt project specified[/red].")
             return -1
-        if not command:
-            command = self.get_config_value("command")
+
+        command = self.get_config_value("command")
         if self.is_readonly(project_dir):
             path_file = Path("/tmp/dbt_coves_dbt_clone_path.txt")
             tmp_dir = None
@@ -89,7 +81,7 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 )
                 subprocess.run(["cp", "-rf", f"{project_dir}/", tmp_dir], check=False)
             try:
-                self._run_dbt(command, cwd=tmp_dir, env=env)
+                self.run_dbt(command, cwd=tmp_dir)
             finally:
                 if self.get_config_value("cleanup"):
                     console.print("Removing cloned read-write copy.")
@@ -99,11 +91,11 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                     with open(path_file, "w") as f:
                         f.write(tmp_dir)
         else:
-            self._run_dbt(command, cwd=project_dir, env=env)
+            self.run_dbt(command, cwd=project_dir)
 
         return 0
 
-    def _run_dbt(self, cmd_args: list, cwd: str, env=os.environ.copy()):
+    def run_dbt(self, args: list, cwd: str):
         """
         Run dbt command on a specific directory passing received arguments.
         Runs dbt deps if missing packages
@@ -113,8 +105,8 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         ):
             console.print("[red]Missing dbt packages[/red]")
             self.run_command("dbt deps", cwd=cwd)
-        str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in cmd_args])
-        self.run_command(f"dbt {str_args}", cwd=cwd, env=env)
+        str_args = " ".join([arg if " " not in arg else f"'{arg}'" for arg in args])
+        self.run_command(f"dbt {str_args}", cwd=cwd)
 
     def is_readonly(self, folder: str) -> bool:
         """Returns True if `folder` is readonly"""
@@ -125,11 +117,11 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
         self,
         command: str,
         cwd=None,
-        env=os.environ.copy(),
     ):
         """Activates a python environment if found and runs a command using it"""
         env_path = None
         virtualenv = self.get_config_value("virtualenv")
+        env = os.environ.copy()
         if virtualenv:
             # Ensure it's a Path to avoid
             # conflicts with trailing / at later concatenation

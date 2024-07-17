@@ -1,11 +1,12 @@
 import os
+import subprocess
 
 import snowflake.connector
 from rich.console import Console
+from rich.text import Text
 
 from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
-from dbt_coves.tasks.dbt.main import RunDbtTask
 from dbt_coves.utils.tracking import trackable
 
 from .clone_db import CloneDB
@@ -134,10 +135,21 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
     def _run_dbt_build(self, env):
         dbt_build_command: list = self._get_dbt_build_command()
         env[f"DATACOVES__{self.service_connection_name}__DATABASE"] = self.staging_database
-        console.print("Running dbt build")
-        RunDbtTask(self.args, self.coves_config).run_dbt(
-            command=dbt_build_command, project_dir=self.args.project_dir or None, env=env
-        )
+        self._run_command(dbt_build_command, env=env)
+
+    def _run_command(self, command: list, env=os.environ.copy()):
+        command_string = " ".join(command)
+        console.print(f"Running [b][i]{command_string}[/i][/b]")
+        try:
+            output = subprocess.check_output(command, env=env, stderr=subprocess.PIPE)
+            console.print(
+                f"{Text.from_ansi(output.decode())}\n"
+                f"[green]{command_string} :heavy_check_mark:[/green]"
+            )
+        except subprocess.CalledProcessError as e:
+            formatted = f"{Text.from_ansi(e.stderr.decode()) if e.stderr else Text.from_ansi(e.stdout.decode())}"
+            e.stderr = f"An error has occurred running [red]{command_string}[/red]:\n{formatted}"
+            raise
 
     def _get_dbt_command(self, command):
         """
@@ -145,7 +157,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         """
         dbt_selector: str = self.get_config_value("dbt_selector")
         is_deferral = self.get_config_value("defer")
-        dbt_command = [command, "--fail-fast"]
+        dbt_command = ["dbt", command, "--fail-fast"]
         if is_deferral or os.environ.get("MANIFEST_FOUND"):
             dbt_command.extend(["--defer", "--state", "logs", "-s", "state:modified+"])
         else:
@@ -155,9 +167,6 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         if self.args.target:
             dbt_command.extend(["-t", self.args.target])
         return dbt_command
-
-    def _get_dbt_compile_command(self):
-        return self._get_dbt_command("compile")
 
     def _get_dbt_build_command(self):
         return self._get_dbt_command("build")
