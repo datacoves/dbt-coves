@@ -1,0 +1,8 @@
+# Test and dbt-coves command settings
+table: "TEST_MODEL"
+schema: "TESTS_BLUE_GREEN"
+database: "DBT_COVES_TEST"
+
+blue_green:
+  production_database: DBT_COVES_TEST
+  drop_staging_db_at_start: True

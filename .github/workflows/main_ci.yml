@@ -69,6 +69,14 @@ jobs:
           SERVICE_ACCOUNT_GCP: op://Engineering - dbt-coves/dbt-coves-tests/SERVICE_ACCOUNT_GCP
           PROJECT_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/PROJECT_BIGQUERY
           DATASET_BIGQUERY: op://Engineering - dbt-coves/dbt-coves-tests/DATASET_BIGQUERY
+          # Blue green
+          DATACOVES__DBT_COVES_TEST__ACCOUNT: op://Engineering - dbt-coves/dbt-coves-tests/ACCOUNT_SNOWFLAKE
+          DATACOVES__DBT_COVES_TEST__USER: op://Engineering - dbt-coves/dbt-coves-tests/USER_SNOWFLAKE
+          DATACOVES__DBT_COVES_TEST__PASSWORD: op://Engineering - dbt-coves/dbt-coves-tests/PASSWORD_SNOWFLAKE
+          DATACOVES__DBT_COVES_TEST__WAREHOUSE: op://Engineering - dbt-coves/dbt-coves-tests/WAREHOUSE_SNOWFLAKE
+          DATACOVES__DBT_COVES_TEST__DATABASE: op://Engineering - dbt-coves/dbt-coves-tests/DATABASE_SNOWFLAKE
+          DATACOVES__DBT_COVES_TEST__SCHEMA: op://Engineering - dbt-coves/dbt-coves-tests/SCHEMA_SNOWFLAKE
+          DATACOVES__DBT_COVES_TEST__ROLE: op://Engineering - dbt-coves/dbt-coves-tests/ROLE_SNOWFLAKE
 
       - name: Create profiles
         run: |

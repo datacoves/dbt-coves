@@ -1,0 +1,13 @@
+default:
+  outputs:
+    dev:
+      account: "{{ env_var('DATACOVES__DBT_COVES_TEST__ACCOUNT') }}"
+      database: DBT_COVES_TEST_STG
+      password: "{{ env_var('DATACOVES__DBT_COVES_TEST__PASSWORD') }}"
+      role: "{{ env_var('DATACOVES__DBT_COVES_TEST__ROLE') }}"
+      schema: TESTS_BLUE_GREEN
+      threads: 2
+      type: snowflake
+      user: "{{ env_var('DATACOVES__DBT_COVES_TEST__USER') }}"
+      warehouse: "{{ env_var('DATACOVES__DBT_COVES_TEST__WAREHOUSE') }}"
+  target: dev

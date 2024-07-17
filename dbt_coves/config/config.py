@@ -154,6 +154,18 @@ class DataSyncModel(BaseModel):
     snowflake: Optional[SnowflakeDataSyncModel] = SnowflakeDataSyncModel()
 
 
+class BlueGreenModel(BaseModel):
+    service_connection_name: Optional[str] = ""
+    staging_database: Optional[str] = ""
+    staging_suffix: Optional[str] = ""
+    drop_staging_db_at_start: Optional[bool] = False
+    keep_staging_db_on_success: Optional[bool] = False
+    drop_staging_db_on_failure: Optional[bool] = False
+    dbt_selector: Optional[str] = ""
+    defer: Optional[bool] = False
+    full_refresh: Optional[bool] = False
+
+
 class ConfigModel(BaseModel):
     generate: Optional[GenerateModel] = GenerateModel()
     extract: Optional[ExtractModel] = ExtractModel()
@@ -162,6 +174,7 @@ class ConfigModel(BaseModel):
     dbt: Optional[RunDbtModel] = RunDbtModel()
     data_sync: Optional[DataSyncModel] = DataSyncModel()
     disable_tracking: Optional[bool] = False
+    blue_green: Optional[BlueGreenModel] = BlueGreenModel()
 
 
 class DbtCovesConfig:
@@ -249,6 +262,15 @@ class DbtCovesConfig:
         "load.fivetran.secrets_key",
         "data_sync.redshift.tables",
         "data_sync.snowflake.tables",
+        "blue_green.service_connection_name",
+        "blue_green.staging_database",
+        "blue_green.staging_suffix",
+        "blue_green.drop_staging_db_at_start",
+        "blue_green.drop_staging_db_on_failure",
+        "blue_green.dbt_selector",
+        "blue_green.defer",
+        "blue_green.full_refresh",
+        "blue_green.keep_staging_db_on_success",
     ]
 
     def __init__(self, flags: DbtCovesFlags) -> None:
