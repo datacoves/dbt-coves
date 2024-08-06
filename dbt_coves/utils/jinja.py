@@ -29,8 +29,13 @@ def get_render_output(name, context, templates_folder=".dbt_coves/templates"):
         loader=ChoiceLoader([FileSystemLoader(templates_folder), PackageLoader("dbt_coves")]),
         keep_trailing_newline=True,
     )
+    env.globals["is_mixed_case"] = is_mixed_case
     template = env.get_template(name)
     context_with_env_vars = add_env_vars(context)
     output = template.render(**context_with_env_vars)
 
     return output
+
+
+def is_mixed_case(string):
+    return any(char.islower() for char in string) and any(char.isupper() for char in string)

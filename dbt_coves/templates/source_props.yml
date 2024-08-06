@@ -1,10 +1,10 @@
 version: 2
 
 sources:
-  - name: {{ relation.schema.lower() }}
+  - name: {% if is_mixed_case(relation.schema) %}{{ relation.schema }}{% else %}{{ relation.schema.lower() }}{% endif %}
 {%- if source_database %}
     database: {{ source_database }}
 {%- endif %}
     tables:
-      - name: {{ relation.name.lower() }}
+      - name: {% if is_mixed_case(relation.name) %}{{ relation.name }}{% else %}{{ relation.name.lower() }}{% endif %}
         description: ""
