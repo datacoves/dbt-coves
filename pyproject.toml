@@ -47,7 +47,7 @@ gitpython = "^3.1.31"
 mixpanel = "^4.10.0"
 black = "^23"
 isort = "^5.12.0"
-dlt = {extras = ["redshift"], version = "^0.3"}
+dlt = {extras = ["redshift"], version = "<1.0"}
 psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
 pyyaml-include = "<2.0"
