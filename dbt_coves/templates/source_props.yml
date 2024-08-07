@@ -1,10 +1,10 @@
 version: 2
 
 sources:
-  - name: {{ relation.schema.lower() }}
+  - name: {% if not relation.schema.isupper() and not relation.schema.islower() %}{{ relation.schema }}{% else %}{{ relation.schema.lower() }}{% endif %}
 {%- if source_database %}
     database: {{ source_database }}
 {%- endif %}
     tables:
-      - name: {{ relation.name.lower() }}
+      - name: {% if not relation.name.isupper() and not relation.name.islower() %}{{ relation.name }}{% else %}{{ relation.name.lower() }}{% endif %}
         description: ""
