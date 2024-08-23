@@ -212,6 +212,15 @@ base_subparser.add_argument(
     help="Show resource names without spaces",
     dest="REQUIRE_RESOURCE_NAMES_WITHOUT_SPACES",
 )
+base_subparser.add_argument(
+    "--indirect-selection",
+    type=str,
+    default="eager",
+    help="Choose which tests to select that are adjacent to selected resources. "
+    "Eager is most inclusive, cautious is most exclusive, and buildable is in between. "
+    "Empty includes no tests at all.",
+    dest="INDIRECT_SELECTION",
+)
 
 
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
