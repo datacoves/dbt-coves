@@ -6,7 +6,7 @@ from rich.console import Console
 from rich.text import Text
 
 from dbt_coves.core.exceptions import DbtCovesException
-from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
+from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.utils.tracking import trackable
 
 from .clone_db import CloneDB
@@ -14,7 +14,7 @@ from .clone_db import CloneDB
 console = Console()
 
 
-class BlueGreenTask(NonDbtBaseConfiguredTask):
+class BlueGreenTask(BaseConfiguredTask):
     """
     Task that performs a blue-green deployment
     """
@@ -80,14 +80,8 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
     @trackable
     def run(self) -> int:
         self.service_connection_name = self.get_config_value("service_connection_name").upper()
-        try:
-            self.production_database = os.environ[
-                f"DATACOVES__{self.service_connection_name}__DATABASE"
-            ]
-        except KeyError:
-            raise DbtCovesException(
-                f"There is no Database defined for Service Connection {self.service_connection_name}"
-            )
+        self.con = self.snowflake_connection()
+        self.production_database = self.con.database
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
         if staging_database and staging_suffix:
@@ -101,7 +95,6 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
                 f"{self.staging_database}"
             )
         self.drop_staging_db_at_start = self.get_config_value("drop_staging_db_at_start")
-        self.con = self.snowflake_connection()
 
         self.cdb = CloneDB(
             self.production_database,
@@ -198,20 +191,62 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
                 f"Green database {self.staging_database} already exists. Please either drop it or use a different name."
             )
 
-    def snowflake_connection(self):
-        try:
-            return snowflake.connector.connect(
-                account=os.environ.get(f"DATACOVES__{self.service_connection_name}__ACCOUNT"),
-                warehouse=os.environ.get(f"DATACOVES__{self.service_connection_name}__WAREHOUSE"),
-                database=os.environ.get(f"DATACOVES__{self.service_connection_name}__DATABASE"),
-                role=os.environ.get(f"DATACOVES__{self.service_connection_name}__ROLE"),
-                schema=os.environ.get(f"DATACOVES__{self.service_connection_name}__SCHEMA"),
-                user=os.environ.get(f"DATACOVES__{self.service_connection_name}__USER"),
-                password=os.environ.get(f"DATACOVES__{self.service_connection_name}__PASSWORD"),
-                session_parameters={
-                    "QUERY_TAG": "blue_green_swap",
-                },
+    def _get_snowflake_credentials_from_env(self):
+        return {
+            "account": os.environ.get(f"DATACOVES__{self.service_connection_name}__ACCOUNT"),
+            "warehouse": os.environ.get(f"DATACOVES__{self.service_connection_name}__WAREHOUSE"),
+            "database": os.environ.get(f"DATACOVES__{self.service_connection_name}__DATABASE"),
+            "role": os.environ.get(f"DATACOVES__{self.service_connection_name}__ROLE"),
+            "schema": os.environ.get(f"DATACOVES__{self.service_connection_name}__SCHEMA"),
+            "user": os.environ.get(f"DATACOVES__{self.service_connection_name}__USER"),
+            "password": os.environ.get(f"DATACOVES__{self.service_connection_name}__PASSWORD"),
+            "session_parameters": {
+                "QUERY_TAG": "blue_green_swap",
+            },
+        }
+
+    def _get_snowflake_credentials_from_dbt_adapter(self):
+        connection_dict = {
+            "account": self.config.credentials.account,
+            "warehouse": self.config.credentials.warehouse,
+            "database": self.config.credentials.database,
+            "role": self.config.credentials.role,
+            "schema": self.config.credentials.schema,
+            "user": self.config.credentials.user,
+            "session_parameters": {
+                "QUERY_TAG": "blue_green_swap",
+            },
+        }
+        if self.config.credentials.password:
+            connection_dict["password"] = self.config.credentials.password
+        else:
+            connection_dict["private_key"] = self._get_snowflake_private_key()
+
+        return connection_dict
+
+    def _get_snowflake_private_key(self):
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives import serialization
+
+        with open(self.config.credentials.private_key_path, "rb") as key_file:
+            private_key = serialization.load_pem_private_key(
+                key_file.read(), password=None, backend=default_backend()
             )
+
+        # Convert the private key to the required format
+        return private_key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+
+    def snowflake_connection(self):
+        if self.service_connection_name:
+            connection_dict = self._get_snowflake_credentials_from_env()
+        else:
+            connection_dict = self._get_snowflake_credentials_from_dbt_adapter()
+        try:
+            return snowflake.connector.connect(**connection_dict)
         except Exception as e:
             raise DbtCovesException(
                 f"Couldn't establish Snowflake connection with {self.production_database}: {e}"
