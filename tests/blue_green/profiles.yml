@@ -2,7 +2,7 @@ default:
   outputs:
     dev:
       account: "{{ env_var('DATACOVES__DBT_COVES_TEST__ACCOUNT') }}"
-      database: DBT_COVES_TEST_STAGING
+      database: "{{ env_var('DATACOVES__DBT_COVES_TEST__DATABASE') }}"
       password: "{{ env_var('DATACOVES__DBT_COVES_TEST__PASSWORD') }}"
       role: "{{ env_var('DATACOVES__DBT_COVES_TEST__ROLE') }}"
       schema: TESTS_BLUE_GREEN

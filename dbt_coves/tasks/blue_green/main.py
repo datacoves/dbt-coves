@@ -32,7 +32,7 @@ class BlueGreenTask(BaseConfiguredTask):
         ext_subparser.set_defaults(cls=cls, which="blue-green")
         cls.arg_parser = ext_subparser
         ext_subparser.add_argument(
-            "--service-connection-name",
+            "--prod-db-env-var",
             type=str,
             help="Snowflake service connection name",
         )
@@ -79,9 +79,14 @@ class BlueGreenTask(BaseConfiguredTask):
 
     @trackable
     def run(self) -> int:
-        self.service_connection_name = self.get_config_value("service_connection_name").upper()
+        self.prod_db_env_var = self.get_config_value("prod_db_env_var").upper()
+        try:
+            self.production_database = os.environ[self.prod_db_env_var]
+        except KeyError:
+            raise DbtCovesException(
+                f"Environment variable {self.prod_db_env_var} not found. Please provide a production database"
+            )
         self.con = self.snowflake_connection()
-        self.production_database = self.con.database
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
         if staging_database and staging_suffix:
@@ -127,7 +132,7 @@ class BlueGreenTask(BaseConfiguredTask):
 
     def _run_dbt_build(self, env):
         dbt_build_command: list = self._get_dbt_build_command()
-        env[f"DATACOVES__{self.service_connection_name}__DATABASE"] = self.staging_database
+        env[self.prod_db_env_var] = self.staging_database
         self._run_command(dbt_build_command, env=env)
 
     def _run_command(self, command: list, env=os.environ.copy()):
@@ -191,20 +196,6 @@ class BlueGreenTask(BaseConfiguredTask):
                 f"Green database {self.staging_database} already exists. Please either drop it or use a different name."
             )
 
-    def _get_snowflake_credentials_from_env(self):
-        return {
-            "account": os.environ.get(f"DATACOVES__{self.service_connection_name}__ACCOUNT"),
-            "warehouse": os.environ.get(f"DATACOVES__{self.service_connection_name}__WAREHOUSE"),
-            "database": os.environ.get(f"DATACOVES__{self.service_connection_name}__DATABASE"),
-            "role": os.environ.get(f"DATACOVES__{self.service_connection_name}__ROLE"),
-            "schema": os.environ.get(f"DATACOVES__{self.service_connection_name}__SCHEMA"),
-            "user": os.environ.get(f"DATACOVES__{self.service_connection_name}__USER"),
-            "password": os.environ.get(f"DATACOVES__{self.service_connection_name}__PASSWORD"),
-            "session_parameters": {
-                "QUERY_TAG": "blue_green_swap",
-            },
-        }
-
     def _get_snowflake_credentials_from_dbt_adapter(self):
         connection_dict = {
             "account": self.config.credentials.account,
@@ -241,10 +232,7 @@ class BlueGreenTask(BaseConfiguredTask):
         )
 
     def snowflake_connection(self):
-        if self.service_connection_name:
-            connection_dict = self._get_snowflake_credentials_from_env()
-        else:
-            connection_dict = self._get_snowflake_credentials_from_dbt_adapter()
+        connection_dict = self._get_snowflake_credentials_from_dbt_adapter()
         try:
             return snowflake.connector.connect(**connection_dict)
         except Exception as e:
