@@ -132,6 +132,7 @@ class LoadModel(BaseModel):
 class SetupModel(BaseModel):
     no_prompt: Optional[bool] = False
     quiet: Optional[bool] = False
+    setup_template_url: Optional[str] = "https://github.com/datacoves/setup_template.git"
 
 
 class RunDbtModel(BaseModel):
@@ -241,6 +242,7 @@ class DbtCovesConfig:
         "load.airbyte.secrets_key",
         "setup.no_prompt",
         "setup.quiet",
+        "setup.setup_template_url",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",
