@@ -53,6 +53,10 @@ class SetupTask(NonDbtBaseTask):
             help="Skip rendering results",
             default=False,
         )
+        ext_subparser.add_argument(
+            "--template-url",
+            help="URL to the setup template repository",
+        )
         ext_subparser.set_defaults(cls=cls, which="setup")
         cls.arg_parser = ext_subparser
         return ext_subparser
@@ -136,7 +140,7 @@ class SetupTask(NonDbtBaseTask):
         for service in services:
             self.copier_context[service] = True
         copier.run_auto(
-            src_path="git@github.com:datacoves/setup_template.git",
+            src_path=self.get_config_value("template_url"),
             dst_path=self.repo_path,
             data=self.copier_context,
             quiet=self.get_config_value("quiet"),

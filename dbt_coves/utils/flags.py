@@ -133,9 +133,7 @@ class DbtCovesFlags:
             "template": "https://github.com/datacoves/cookiecutter-dbt.git",
             "current-dir": False,
         }
-        self.setup = {
-            "no_prompt": False,
-        }
+        self.setup = {"no_prompt": False, "template_url": None}
         self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
         self.data_sync = {"redshift": {"tables": []}, "snowflake": {"tables": []}}
         self.blue_green = {
@@ -395,6 +393,8 @@ class DbtCovesFlags:
                     self.setup["no_prompt"] = self.args.no_prompt
                 if self.args.quiet:
                     self.setup["quiet"] = self.args.quiet
+                if self.args.template_url:
+                    self.setup["template_url"] = self.args.template_url
 
             # run dbt
             if self.args.cls.__name__ == "RunDbtTask":
