@@ -295,7 +295,8 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
             console.print(
                 "[red]The process was killed by the OS due to running out of memory.[/red]"
             )
-        console.print(f"[red]:cross_mark:[/red] {cpe.stderr}")
+        if cpe.stderr:
+            console.print(f"[red]:cross_mark:[/red] {cpe.stderr}")
 
         return cpe.returncode
     except Exception as ex:

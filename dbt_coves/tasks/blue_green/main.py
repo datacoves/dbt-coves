@@ -3,10 +3,9 @@ import subprocess
 
 import snowflake.connector
 from rich.console import Console
-from rich.text import Text
 
 from dbt_coves.core.exceptions import DbtCovesException
-from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
+from dbt_coves.tasks.base import BaseConfiguredTask
 from dbt_coves.utils.tracking import trackable
 
 from .clone_db import CloneDB
@@ -14,7 +13,7 @@ from .clone_db import CloneDB
 console = Console()
 
 
-class BlueGreenTask(NonDbtBaseConfiguredTask):
+class BlueGreenTask(BaseConfiguredTask):
     """
     Task that performs a blue-green deployment
     """
@@ -32,7 +31,7 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
         ext_subparser.set_defaults(cls=cls, which="blue-green")
         cls.arg_parser = ext_subparser
         ext_subparser.add_argument(
-            "--service-connection-name",
+            "--prod-db-env-var",
             type=str,
             help="Snowflake service connection name",
         )
@@ -79,15 +78,14 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
 
     @trackable
     def run(self) -> int:
-        self.service_connection_name = self.get_config_value("service_connection_name").upper()
+        self.prod_db_env_var = self.get_config_value("prod_db_env_var").upper()
         try:
-            self.production_database = os.environ[
-                f"DATACOVES__{self.service_connection_name}__DATABASE"
-            ]
+            self.production_database = os.environ[self.prod_db_env_var]
         except KeyError:
             raise DbtCovesException(
-                f"There is no Database defined for Service Connection {self.service_connection_name}"
+                f"Environment variable {self.prod_db_env_var} not found. Please provide a production database"
             )
+        self.con = self.snowflake_connection()
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
         if staging_database and staging_suffix:
@@ -101,7 +99,6 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
                 f"{self.staging_database}"
             )
         self.drop_staging_db_at_start = self.get_config_value("drop_staging_db_at_start")
-        self.con = self.snowflake_connection()
 
         self.cdb = CloneDB(
             self.production_database,
@@ -134,21 +131,21 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
 
     def _run_dbt_build(self, env):
         dbt_build_command: list = self._get_dbt_build_command()
-        env[f"DATACOVES__{self.service_connection_name}__DATABASE"] = self.staging_database
+        env[self.prod_db_env_var] = self.staging_database
         self._run_command(dbt_build_command, env=env)
 
     def _run_command(self, command: list, env=os.environ.copy()):
         command_string = " ".join(command)
         console.print(f"Running [b][i]{command_string}[/i][/b]")
         try:
-            output = subprocess.check_output(command, env=env, stderr=subprocess.PIPE)
-            console.print(
-                f"{Text.from_ansi(output.decode())}\n"
-                f"[green]{command_string} :heavy_check_mark:[/green]"
+            subprocess.run(
+                command,
+                env=env,
+                check=True,
             )
+            console.print(f"[green]{command_string} :heavy_check_mark:[/green]")
         except subprocess.CalledProcessError as e:
-            formatted = f"{Text.from_ansi(e.stderr.decode()) if e.stderr else Text.from_ansi(e.stdout.decode())}"
-            e.stderr = f"An error has occurred running [red]{command_string}[/red]:\n{formatted}"
+            console.print(f"Error running [red]{e.cmd}[/red], see stack above for details")
             raise
 
     def _get_dbt_command(self, command):
@@ -198,20 +195,46 @@ class BlueGreenTask(NonDbtBaseConfiguredTask):
                 f"Green database {self.staging_database} already exists. Please either drop it or use a different name."
             )
 
-    def snowflake_connection(self):
-        try:
-            return snowflake.connector.connect(
-                account=os.environ.get(f"DATACOVES__{self.service_connection_name}__ACCOUNT"),
-                warehouse=os.environ.get(f"DATACOVES__{self.service_connection_name}__WAREHOUSE"),
-                database=os.environ.get(f"DATACOVES__{self.service_connection_name}__DATABASE"),
-                role=os.environ.get(f"DATACOVES__{self.service_connection_name}__ROLE"),
-                schema=os.environ.get(f"DATACOVES__{self.service_connection_name}__SCHEMA"),
-                user=os.environ.get(f"DATACOVES__{self.service_connection_name}__USER"),
-                password=os.environ.get(f"DATACOVES__{self.service_connection_name}__PASSWORD"),
-                session_parameters={
-                    "QUERY_TAG": "blue_green_swap",
-                },
+    def _get_snowflake_credentials_from_dbt_adapter(self):
+        connection_dict = {
+            "account": self.config.credentials.account,
+            "warehouse": self.config.credentials.warehouse,
+            "database": self.config.credentials.database,
+            "role": self.config.credentials.role,
+            "schema": self.config.credentials.schema,
+            "user": self.config.credentials.user,
+            "session_parameters": {
+                "QUERY_TAG": "blue_green_swap",
+            },
+        }
+        if self.config.credentials.password:
+            connection_dict["password"] = self.config.credentials.password
+        else:
+            connection_dict["private_key"] = self._get_snowflake_private_key()
+            connection_dict["login_timeout"] = 10
+
+        return connection_dict
+
+    def _get_snowflake_private_key(self):
+        from cryptography.hazmat.backends import default_backend
+        from cryptography.hazmat.primitives import serialization
+
+        with open(self.config.credentials.private_key_path, "rb") as key_file:
+            private_key = serialization.load_pem_private_key(
+                key_file.read(), password=None, backend=default_backend()
             )
+
+        # Convert the private key to the required format
+        return private_key.private_bytes(
+            encoding=serialization.Encoding.DER,
+            format=serialization.PrivateFormat.PKCS8,
+            encryption_algorithm=serialization.NoEncryption(),
+        )
+
+    def snowflake_connection(self):
+        connection_dict = self._get_snowflake_credentials_from_dbt_adapter()
+        try:
+            return snowflake.connector.connect(**connection_dict)
         except Exception as e:
             raise DbtCovesException(
                 f"Couldn't establish Snowflake connection with {self.production_database}: {e}"

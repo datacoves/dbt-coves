@@ -39,7 +39,7 @@ except KeyError:
 @pytest.fixture(scope="class")
 def snowflake_connection(request):
     # Check env vars
-    assert "DATACOVES__DBT_COVES_TEST__USER" in os.environ
+    assert "DATACOVES__DBT_COVES_TEST__DATABASE" in os.environ
     assert "DATACOVES__DBT_COVES_TEST__PASSWORD" in os.environ
     assert "DATACOVES__DBT_COVES_TEST__ACCOUNT" in os.environ
     assert "DATACOVES__DBT_COVES_TEST__WAREHOUSE" in os.environ
@@ -103,8 +103,8 @@ class TestBlueGreen:
             str(FIXTURE_DIR),
             "--profiles-dir",
             str(FIXTURE_DIR),
-            "--service-connection-name",
-            self.production_database,
+            "--prod-db-env-var",
+            "DATACOVES__DBT_COVES_TEST__DATABASE",
             "--keep-staging-db-on-success",
         ]
         if DBT_COVES_SETTINGS.get("drop_staging_db_at_start"):
