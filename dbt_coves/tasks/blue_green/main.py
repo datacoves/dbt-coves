@@ -3,7 +3,6 @@ import subprocess
 
 import snowflake.connector
 from rich.console import Console
-from rich.text import Text
 
 from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base import BaseConfiguredTask
@@ -139,14 +138,14 @@ class BlueGreenTask(BaseConfiguredTask):
         command_string = " ".join(command)
         console.print(f"Running [b][i]{command_string}[/i][/b]")
         try:
-            output = subprocess.check_output(command, env=env, stderr=subprocess.PIPE)
-            console.print(
-                f"{Text.from_ansi(output.decode())}\n"
-                f"[green]{command_string} :heavy_check_mark:[/green]"
+            subprocess.run(
+                command,
+                env=env,
+                check=True,
             )
+            console.print(f"[green]{command_string} :heavy_check_mark:[/green]")
         except subprocess.CalledProcessError as e:
-            formatted = f"{Text.from_ansi(e.stderr.decode()) if e.stderr else Text.from_ansi(e.stdout.decode())}"
-            e.stderr = f"An error has occurred running [red]{command_string}[/red]:\n{formatted}"
+            console.print(f"Error running [red]{e.cmd}[/red], see stack above for details")
             raise
 
     def _get_dbt_command(self, command):
@@ -212,6 +211,7 @@ class BlueGreenTask(BaseConfiguredTask):
             connection_dict["password"] = self.config.credentials.password
         else:
             connection_dict["private_key"] = self._get_snowflake_private_key()
+            connection_dict["login_timeout"] = 10
 
         return connection_dict
 
