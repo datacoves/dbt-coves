@@ -123,7 +123,7 @@ class CloneDB:
                 grants = dict_cursor.fetchall()
                 for grant in grants:
                     sql = (
-                        f"GRANT {grant['privilege']} ON {grant['granted_on']} {green_database}.{schema['name']}"
+                        f"GRANT {grant['privilege']} ON {grant['granted_on']} {green_database}.{schema['name']} "
                         f"TO ROLE {grant['grantee_name']};"
                     )
                     # Load SQL into the threaded commands to run.
