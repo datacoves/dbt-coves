@@ -117,7 +117,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         console.print(f"Generating [b][i]{yml_filepath.stem}[/i][/b]")
         try:
             if self.dags_path:
-                dag_destination = self.dags_path.joinpath(f"{yml_filepath.stem}.py")
+                yml_relpath = yml_filepath.relative_to(self.ymls_path)
+                dag_destination = self.dags_path.joinpath(yml_relpath).with_suffix(".py")
+                dag_destination.parent.mkdir(parents=True, exist_ok=True)
             else:
                 dag_destination = yml_filepath.with_suffix(".py")
             self.build_dag_file(
@@ -146,7 +148,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.dags_path = Path(dags_path).resolve()
         self.dags_path.mkdir(exist_ok=True, parents=True)
         if self.ymls_path.is_dir():
-            for yml_filepath in glob(f"{self.ymls_path}/*.yml"):
+            for yml_filepath in glob(f"{self.ymls_path}/**/*.yml", recursive=True):
                 self._generate_dag(Path(yml_filepath))
         else:
             self._generate_dag(self.ymls_path)
