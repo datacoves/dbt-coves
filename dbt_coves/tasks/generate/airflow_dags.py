@@ -118,7 +118,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         try:
             if self.dags_path:
                 yml_relpath = yml_filepath.relative_to(self.ymls_path)
-                dag_destination = self.dags_path.joinpath(yml_relpath).with_suffix(".py")
+                dag_destination = (
+                    Path(self.dags_path).resolve().joinpath(yml_relpath).with_suffix(".py")
+                )
                 dag_destination.parent.mkdir(parents=True, exist_ok=True)
             else:
                 dag_destination = yml_filepath.with_suffix(".py")
@@ -133,9 +135,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
     @trackable
     def run(self):
         ymls_path = self.get_config_value("yml_path")
-        dags_path = self.get_config_value("dags_path")
-        if not (ymls_path and dags_path):
-            raise MissingArgumentException(["--yml-path", "--dags-path"], self.coves_config)
+        self.dags_path = self.get_config_value("dags_path")
+        if not (ymls_path):
+            raise MissingArgumentException(["--yml-path"], self.coves_config)
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
@@ -145,8 +147,6 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
         self.ymls_path = Path(ymls_path).resolve()
-        self.dags_path = Path(dags_path).resolve()
-        self.dags_path.mkdir(exist_ok=True, parents=True)
         if self.ymls_path.is_dir():
             for yml_filepath in glob(f"{self.ymls_path}/**/*.yml", recursive=True):
                 self._generate_dag(Path(yml_filepath))
