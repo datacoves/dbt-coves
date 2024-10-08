@@ -16,6 +16,7 @@ AVAILABLE_SERVICES = {
     "Initial CI/CD scripts": "setup_ci_cd",
     "Linting with SQLFluff, dbt-checkpoint and/or YMLLint": "setup_precommit",
     "Sample Airflow DAGs": "setup_airflow_dag",
+    "dbt-coves' config and/or templates": "setup_dbt_coves",
 }
 
 console = Console()
@@ -95,9 +96,11 @@ class SetupTask(NonDbtBaseTask):
                 ).ask()
             elif "setup_precommit" in services:
                 raise DbtCovesSetupException(
-                    "No dbt project found in the current directory."
+                    "No dbt project found in the current directory. "
                     "Please create one before setting up dbt components."
                 )
+            else:
+                self.copier_context["dbt_project_dir"] = "."
             self.copier_context["is_new_project"] = True
         elif len(dbt_projects) == 1:
             self.copier_context["dbt_project_dir"] = dbt_projects[0].get("path")
