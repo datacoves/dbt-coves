@@ -96,7 +96,7 @@ class SetupTask(NonDbtBaseTask):
                 ).ask()
             elif "setup_precommit" in services:
                 raise DbtCovesSetupException(
-                    "No dbt project found in the current directory."
+                    "No dbt project found in the current directory. "
                     "Please create one before setting up dbt components."
                 )
             else:

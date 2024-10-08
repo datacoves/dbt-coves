@@ -1,5 +1,6 @@
 import datetime
 import importlib
+import os
 import textwrap
 from glob import glob
 from pathlib import Path
@@ -117,13 +118,19 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         console.print(f"Generating [b][i]{yml_filepath.stem}[/i][/b]")
         try:
             if self.dags_path:
-                yml_relpath = yml_filepath.relative_to(self.ymls_path)
+                if yml_filepath != self.ymls_path:
+                    yml_relpath = yml_filepath.relative_to(self.ymls_path)
+                else:
+                    yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH", "")
+                    yml_relpath = yml_filepath.relative_to(
+                        Path(f"/config/workspace/{yml_dags_path_env}")
+                    )
                 dag_destination = (
                     Path(self.dags_path).resolve().joinpath(yml_relpath).with_suffix(".py")
                 )
-                dag_destination.parent.mkdir(parents=True, exist_ok=True)
             else:
                 dag_destination = yml_filepath.with_suffix(".py")
+            dag_destination.parent.mkdir(parents=True, exist_ok=True)
             self.build_dag_file(
                 destination_path=dag_destination,
                 dag_name=yml_filepath.stem,
