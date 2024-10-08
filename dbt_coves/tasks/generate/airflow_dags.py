@@ -120,11 +120,12 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             if self.dags_path:
                 if yml_filepath != self.ymls_path:
                     yml_relpath = yml_filepath.relative_to(self.ymls_path)
-                else:
-                    yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH", "")
+                elif self.yml_dags_path_env:
                     yml_relpath = yml_filepath.relative_to(
-                        Path(f"/config/workspace/{yml_dags_path_env}")
+                        Path(f"/config/workspace/{self.yml_dags_path_env}")
                     )
+                else:
+                    yml_relpath = yml_filepath.name
                 dag_destination = (
                     Path(self.dags_path).resolve().joinpath(yml_relpath).with_suffix(".py")
                 )
@@ -148,6 +149,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
+        self.yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
+
         self.generated_groups = {}
         if self.secrets_path and self.secrets_manager:
             raise GenerateAirflowDagsException(
