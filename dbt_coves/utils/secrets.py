@@ -51,13 +51,22 @@ def replace_secrets(secrets_list, dictionary):
     for key, value in dictionary.items():
         if isinstance(value, dict):
             replace_secrets(secrets_list, value)
-        elif isinstance(value, str) and SECRET_PATTERN.search(value):
-            secret_found = False
-            for secret in secrets_list:
-                if secret.get("slug", "").lower() == SECRET_PATTERN.search(value).group(1).lower():
-                    secret_found = True
-                    dictionary[key] = secret.get("value")
-            if not secret_found:
-                raise DbtCovesException(
-                    f"Secret {SECRET_PATTERN.search(value).group(1)} not found in secrets"
-                )
+        elif isinstance(value, str):
+            value_secret = SECRET_PATTERN.search(value)
+            if value_secret:
+                secret_key = value_secret.group(1)
+                secret_found = False
+                for secret in secrets_list:
+                    # fivetran_api_key
+                    # datacoves X
+                    if secret.get("slug", "").lower() == secret_key.lower():
+                        if secret.get("slug", "") == secret_key:
+                            secret_found = True
+                            dictionary[key] = secret.get("value")
+                        else:
+                            raise DbtCovesException(
+                                f"Secret [red]{secret_key}[/red] not found in secrets, "
+                                f"found case-unmatching [red]{secret.get('slug')}[/red]"
+                            )
+                if not secret_found:
+                    raise DbtCovesException(f"Secret {secret_key} not found in secrets")
