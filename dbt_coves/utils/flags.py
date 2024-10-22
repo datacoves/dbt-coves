@@ -84,7 +84,7 @@ class DbtCovesFlags:
                 "secrets_manager": None,
                 "secrets_url": None,
                 "secrets_token": None,
-                "secrets_project": None,
+                "secrets_environment": None,
                 "secrets_tags": None,
                 "secrets_key": None,
             },
@@ -111,7 +111,7 @@ class DbtCovesFlags:
                 "secrets_manager": None,
                 "secrets_url": None,
                 "secrets_token": None,
-                "secrets_project": None,
+                "secrets_environment": None,
                 "secrets_tags": None,
                 "secrets_key": None,
             },
@@ -124,7 +124,7 @@ class DbtCovesFlags:
                 "secrets_manager": None,
                 "secrets_url": None,
                 "secrets_token": None,
-                "secrets_project": None,
+                "secrets_environment": None,
                 "secrets_tags": None,
                 "secrets_key": None,
             },
@@ -309,8 +309,10 @@ class DbtCovesFlags:
                     self.generate["airflow_dags"]["secrets_url"] = self.args.secrets_url
                 if self.args.secrets_token:
                     self.generate["airflow_dags"]["secrets_token"] = self.args.secrets_token
-                if self.args.secrets_project:
-                    self.generate["airflow_dags"]["secrets_project"] = self.args.secrets_project
+                if self.args.secrets_environment:
+                    self.generate["airflow_dags"][
+                        "secrets_environment"
+                    ] = self.args.secrets_environment
                 if self.args.secrets_tags:
                     self.generate["airflow_dags"]["secrets_tags"] = self.args.secrets_tags
                 if self.args.secrets_key:
@@ -332,8 +334,8 @@ class DbtCovesFlags:
                     self.load["airbyte"]["secrets_url"] = self.args.secrets_url
                 if self.args.secrets_token:
                     self.load["airbyte"]["secrets_token"] = self.args.secrets_token
-                if self.args.secrets_project:
-                    self.load["airbyte"]["secrets_project"] = self.args.secrets_project
+                if self.args.secrets_environment:
+                    self.load["airbyte"]["secrets_environment"] = self.args.secrets_environment
                 if self.args.secrets_tags:
                     self.load["airbyte"]["secrets_tags"] = [
                         tag.strip() for tag in self.args.secrets_tags.split(",")
@@ -359,8 +361,8 @@ class DbtCovesFlags:
                     self.load["fivetran"]["secrets_url"] = self.args.secrets_url
                 if self.args.secrets_token:
                     self.load["fivetran"]["secrets_token"] = self.args.secrets_token
-                if self.args.secrets_project:
-                    self.load["fivetran"]["secrets_project"] = self.args.secrets_project
+                if self.args.secrets_environment:
+                    self.load["fivetran"]["secrets_environment"] = self.args.secrets_environment
                 if self.args.secrets_tags:
                     self.load["fivetran"]["secrets_tags"] = [
                         tag.strip() for tag in self.args.secrets_tags.split(",")
