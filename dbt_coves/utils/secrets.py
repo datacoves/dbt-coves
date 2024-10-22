@@ -69,4 +69,4 @@ def replace_secrets(secrets_list, dictionary):
                                 f"found case-unmatching [red]{secret.get('slug')}[/red]"
                             )
                 if not secret_found:
-                    raise DbtCovesException(f"Secret {secret_key} not found in secrets")
+                    raise DbtCovesException(f"Secret [red]{secret_key}[/red] not found in secrets")
