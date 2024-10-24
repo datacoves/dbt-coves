@@ -56,8 +56,6 @@ def replace_secrets(secrets_list, dictionary, errors: set = set()):
                 secret_key = value_secret.group(1)
                 secret_found = False
                 for secret in secrets_list:
-                    # fivetran_api_key
-                    # datacoves X
                     if secret.get("slug", "").lower() == secret_key.lower():
                         secret_found = True
                         if secret.get("slug", "") == secret_key:
