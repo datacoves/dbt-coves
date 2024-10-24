@@ -13,7 +13,7 @@ from rich.console import Console
 
 from dbt_coves.core.exceptions import MissingArgumentException
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils.secrets import load_secret_manager_data
+from dbt_coves.utils.secrets import load_secret_manager_data, replace_secrets
 from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import deep_merge
 
@@ -94,7 +94,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         subparser.add_argument(
             "--secrets-token", type=str, help="Secret credentials provider token"
         )
-        subparser.add_argument("--secrets-project", type=str, help="Secret credentials project")
+        subparser.add_argument("--secrets-environment", type=str, help="Secret credentials project")
         subparser.add_argument("--secrets-tags", type=str, help="Secret credentials tags")
         subparser.add_argument("--secrets-key", type=str, help="Secret credentials key")
 
@@ -267,10 +267,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 console.print(f"DAG {dag_name} resulted in an invalid DAG, skipping. Error: {exc}")
 
     def _merge_secret_nodes(self, secret_nodes, yml_dag) -> Dict[str, Any]:
-        for node_name, node_config in secret_nodes.get("nodes", {}).items():
-            yml_node = yml_dag.get("nodes", {}).get(node_name)
-            if yml_node:
-                yml_dag["nodes"][node_name] = deep_merge(node_config, yml_node)
+        if isinstance(secret_nodes, dict):
+            for node_name, node_config in secret_nodes.get("nodes", {}).items():
+                yml_node = yml_dag.get("nodes", {}).get(node_name)
+                if yml_node:
+                    yml_dag["nodes"][node_name] = deep_merge(node_config, yml_node)
+        elif isinstance(secret_nodes, list):  # Datacoves secrets
+            replace_secrets(secret_nodes, yml_dag)
         return yml_dag
 
     def _discover_secrets(self, yml_dag: Dict[str, Any]):
@@ -283,9 +286,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 yml_dag = self._merge_secret_nodes(secret_data, yml_dag)
 
         if self.secrets_manager:
-            secret_data = load_secret_manager_data(self)
-            for secret in secret_data:
-                yml_dag = self._merge_secret_nodes(secret.get("value", {}), yml_dag)
+            self.secret_data = load_secret_manager_data(self)
+            if self.secret_data:
+                yml_dag = self._merge_secret_nodes(self.secret_data, yml_dag)
 
         return yml_dag
 
@@ -321,6 +324,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         generators_params = self.get_config_value("generators_params")
         coves_config_generators_params = generators_params.get(generator, {})
+        if self.secrets_manager:
+            replace_secrets(self.secret_data, coves_config_generators_params)
         return deep_merge(tg_conf, coves_config_generators_params)
 
     def generate_task_group(self, tg_name: str, tg_conf: Dict[str, Any]):

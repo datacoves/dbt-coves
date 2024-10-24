@@ -57,7 +57,7 @@ class LoadFivetranTask(BaseLoadTask):
         subparser.add_argument(
             "--secrets-token", type=str, help="Secret credentials provider token"
         )
-        subparser.add_argument("--secrets-project", type=str, help="Secret credentials project")
+        subparser.add_argument("--secrets-environment", type=str, help="Secret credentials project")
         subparser.add_argument("--secrets-tags", type=str, help="Secret credentials tags")
         subparser.add_argument("--secrets-key", type=str, help="Secret credentials key")
         subparser.set_defaults(cls=cls, which="fivetran")

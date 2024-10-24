@@ -66,7 +66,7 @@ class GenerateAirflowDagsModel(BaseModel):
     secrets_manager: Optional[str] = ""
     secrets_url: Optional[str] = ""
     secrets_token: Optional[str] = ""
-    secrets_project: Optional[str] = ""
+    secrets_environment: Optional[str] = ""
     secrets_tags: Optional[str] = ""
     secrets_key: Optional[str] = ""
 
@@ -100,7 +100,7 @@ class LoadAirbyteModel(BaseModel):
     secrets_manager: Optional[str] = ""
     secrets_url: Optional[str] = ""
     secrets_token: Optional[str] = ""
-    secrets_project: Optional[str] = ""
+    secrets_environment: Optional[str] = ""
     secrets_tags: Optional[List[str]] = []
     secrets_key: Optional[str] = ""
 
@@ -114,7 +114,7 @@ class LoadFivetranModel(BaseModel):
     secrets_manager: Optional[str] = ""
     secrets_url: Optional[str] = ""
     secrets_token: Optional[str] = ""
-    secrets_project: Optional[str] = ""
+    secrets_environment: Optional[str] = ""
     secrets_tags: Optional[List[str]] = []
     secrets_key: Optional[str] = ""
 
@@ -224,7 +224,7 @@ class DbtCovesConfig:
         "generate.airflow_dags.secrets_manager",
         "generate.airflow_dags.secrets_url",
         "generate.airflow_dags.secrets_token",
-        "generate.airflow_dags.secrets_project",
+        "generate.airflow_dags.secrets_environment",
         "generate.airflow_dags.secrets_tags",
         "generate.airflow_dags.secrets_key",
         "extract.airbyte.path",
@@ -237,7 +237,7 @@ class DbtCovesConfig:
         "load.airbyte.secrets_manager",
         "load.airbyte.secrets_url",
         "load.airbyte.secrets_token",
-        "load.airbyte.secrets_project",
+        "load.airbyte.secrets_environment",
         "load.airbyte.secrets_tags",
         "load.airbyte.secrets_key",
         "setup.no_prompt",
@@ -259,7 +259,7 @@ class DbtCovesConfig:
         "load.fivetran.secrets_manager",
         "load.fivetran.secrets_url",
         "load.fivetran.secrets_token",
-        "load.fivetran.secrets_project",
+        "load.fivetran.secrets_environment",
         "load.fivetran.secrets_tags",
         "load.fivetran.secrets_key",
         "data_sync.redshift.tables",
