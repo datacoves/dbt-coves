@@ -11,7 +11,6 @@ SECRET_PATTERN = re.compile(r"\{\{\s*secret\('([^']+)'\)\s*\}\}", re.IGNORECASE)
 def load_secret_manager_data(task_instance) -> dict:
     payload = {}
     manager = task_instance.secrets_manager.lower()
-    # breakpoint()
     if manager == "datacoves":
         # Contact the secrets manager and retrieve Secrets
         secrets_url = os.getenv("DATACOVES__SECRETS_URL") or task_instance.get_config_value(
@@ -47,10 +46,10 @@ def load_secret_manager_data(task_instance) -> dict:
     raise DbtCovesException(f"'{manager}' not recognized as a valid secrets manager.")
 
 
-def replace_secrets(secrets_list, dictionary):
+def replace_secrets(secrets_list, dictionary, errors: set = set()):
     for key, value in dictionary.items():
         if isinstance(value, dict):
-            replace_secrets(secrets_list, value)
+            replace_secrets(secrets_list, value, errors)
         elif isinstance(value, str):
             value_secret = SECRET_PATTERN.search(value)
             if value_secret:
@@ -60,13 +59,17 @@ def replace_secrets(secrets_list, dictionary):
                     # fivetran_api_key
                     # datacoves X
                     if secret.get("slug", "").lower() == secret_key.lower():
+                        secret_found = True
                         if secret.get("slug", "") == secret_key:
-                            secret_found = True
                             dictionary[key] = secret.get("value")
                         else:
-                            raise DbtCovesException(
+                            errors.add(
                                 f"Secret [red]{secret_key}[/red] not found in secrets, "
-                                f"found case-unmatching [red]{secret.get('slug')}[/red]"
+                                f"did you mean [red]{secret.get('slug')}[/red]"
                             )
                 if not secret_found:
-                    raise DbtCovesException(f"Secret [red]{secret_key}[/red] not found in secrets")
+                    errors.add(f"Secret [red]{secret_key}[/red] not found in secrets")
+    if errors:
+        error_message = "Errors found:\n"
+        error_message += "\n".join(errors)
+        raise DbtCovesException(error_message)
