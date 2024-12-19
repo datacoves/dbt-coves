@@ -3,6 +3,7 @@ import time
 
 from rich.console import Console
 from snowflake.connector import DictCursor
+from snowflake.connector.connection import SnowflakeConnection
 
 console = Console()
 
@@ -140,7 +141,8 @@ class ThreadedRunCommands:
         self.threads = threads
         self.register_command_thread = 0
         self.thread_commands = [[] for _ in range(self.threads)]
-        self.con = con
+        self.con: SnowflakeConnection = con
+        self.pending_queries = []
 
     def register_command(self, command: str):
         """
@@ -168,7 +170,24 @@ class ThreadedRunCommands:
             None
         """
         for command in commands:
-            self.con.cursor().execute_async(command)
+            cur = self.con.cursor()
+            cur.execute_async(command)
+            self.pending_queries.append(cur.sfqid)
+
+    def wait_for_completion(self):
+        """
+        Waits for all queries to complete.
+        """
+        while self.pending_queries:
+            self.pending_queries = [
+                q
+                for q in self.pending_queries
+                if self.con.is_still_running(self.con.get_query_status_throw_if_error(q))
+            ]
+            console.print(
+                f"Waiting for {len(self.pending_queries)} queries to complete before continuing."
+            )
+            time.sleep(1)
 
     def run(self):
         """
@@ -185,6 +204,7 @@ class ThreadedRunCommands:
         # complete the processes
         for proc in procs:
             proc.join()
+        self.wait_for_completion()
 
 
 # if __name__ == "__main__":
