@@ -166,10 +166,11 @@ class GeneratePropertiesTask(BaseGenerateTask):
             if not model_data:
                 console.print(f"Model [red]{model}[/red] not found in manifest's nodes")
                 continue
+            table_name = model_data.get("alias") or model_data.get("name")
             database, schema, table = (
                 model_data["database"],
                 model_data["schema"],
-                model_data["name"],
+                table_name,
             )
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
