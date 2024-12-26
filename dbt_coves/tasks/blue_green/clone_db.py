@@ -3,7 +3,6 @@ import time
 
 from rich.console import Console
 from snowflake.connector import DictCursor
-from snowflake.connector.connection import SnowflakeConnection
 
 console = Console()
 
@@ -141,7 +140,7 @@ class ThreadedRunCommands:
         self.threads = threads
         self.register_command_thread = 0
         self.thread_commands = [[] for _ in range(self.threads)]
-        self.con: SnowflakeConnection = con
+        self.con = con
         self.pending_queries = []
 
     def register_command(self, command: str):
