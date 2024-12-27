@@ -100,18 +100,21 @@ class CloneDB:
         dict_cursor = self.con.cursor(DictCursor)
         dict_cursor.execute(f"show schemas in database {blue_database};")
         schemas = dict_cursor.fetchall()
-        threaded_run_commands = ThreadedRunCommands(self.con, self._thread_count)
+        threaded_schema_commands = ThreadedRunCommands(self.con, self._thread_count)
 
         # Clone schemas
         for schema in schemas:
             if schema["name"] not in self._list_of_schemas_to_exclude:
                 # Clone each schema
                 sql = f"create schema {green_database}.{schema['name']} clone {blue_database}.{schema['name']};"
-                threaded_run_commands.register_command(sql)
-        threaded_run_commands.run()
+                threaded_schema_commands.register_command(sql)
+        threaded_schema_commands.run()
         console.print(f"Cloned schemas in {time.time() - self.time_check} seconds.")
         self.time_check = time.time()
+
         # Copy grants from Blue DB schemas
+        threaded_grants_commands = ThreadedRunCommands(self.con, self._thread_count)
+
         console.print(
             f"Cloning [u]schema grants[/u] from [blue]{self.blue_database}[/blue] to "
             f"[green]{self.green_database}[/green]"
@@ -127,8 +130,8 @@ class CloneDB:
                         f"TO ROLE {grant['grantee_name']};"
                     )
                     # Load SQL into the threaded commands to run.
-                    threaded_run_commands.register_command(sql)
-        threaded_run_commands.run()
+                    threaded_grants_commands.register_command(sql)
+        threaded_grants_commands.run()
         print(f"Cloned grants to schemas in {time.time() - self.time_check} seconds.")
         self.time_check = time.time()
 
