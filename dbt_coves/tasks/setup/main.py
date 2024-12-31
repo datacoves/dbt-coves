@@ -176,6 +176,11 @@ class SetupTask(NonDbtBaseTask):
                 "DATACOVES__SQLFLUFF_VERSION", "3.1.1"
             )
 
+        if "setup_ci_cd" in services:
+            self.copier_context["datacoves_env_version"] = os.environ.get(
+                "DATACOVES__VERSION_MAJOR_MINOR__ENV", "3"
+            )
+
         copier.run_auto(
             src_path=self.get_config_value("template_url"),
             dst_path=self.repo_path,
