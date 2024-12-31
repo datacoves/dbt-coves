@@ -3,8 +3,10 @@ from pathlib import Path
 
 import copier
 import questionary
+import requests
 from rich.console import Console
 
+from dbt_coves import __dbt_major_version__, __dbt_minor_version__, __dbt_patch_version__
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
 
@@ -17,6 +19,11 @@ AVAILABLE_SERVICES = {
     "Linting with SQLFluff, dbt-checkpoint and/or YMLLint": "setup_precommit",
     "Sample Airflow DAGs": "setup_airflow_dag",
     "dbt-coves' config and/or templates": "setup_dbt_coves",
+}
+
+THIRD_PARTY_PRECOMMIT_REPOS = {
+    "dbt_checkpoint": "https://api.github.com/repos/dbt-checkpoint/dbt-checkpoint/tags",
+    "yamllint": "https://api.github.com/repos/adrienverge/yamllint/tags",
 }
 
 console = Console()
@@ -72,7 +79,20 @@ class SetupTask(NonDbtBaseTask):
     def run(self) -> int:
         self.repo_path = os.environ.get("DATACOVES__REPO_PATH", Path().resolve())
         self.copier_context = {"no_prompt": self.get_config_value("no_prompt")}
+        self.copier_context[
+            "dbt_core_version"
+        ] = f"{__dbt_major_version__}.{__dbt_minor_version__}.{__dbt_patch_version__}"
+        self.copier_context[
+            "dbt_adapter_version"
+        ] = f"{__dbt_major_version__}.{__dbt_minor_version__}"
         return self.setup_datacoves()
+
+    def _get_latest_repo_tag(self, repo_url):
+        res = requests.get(f"{repo_url}")
+        if res.status_code != 200:
+            return None
+        tags = res.json()
+        return tags[0].get("name")
 
     def setup_datacoves(self):
         choices = questionary.checkbox(
@@ -123,7 +143,9 @@ class SetupTask(NonDbtBaseTask):
 
         dbt_adapter = os.environ.get("DATACOVES__DBT_ADAPTER")
         if dbt_adapter:
-            self.copier_context["dbt_adapter"] = dbt_adapter
+            self.copier_context["datacoves_dbt_adapter"] = dbt_adapter
+        else:
+            self.copier_context["datacoves_dbt_adapter"] = False
 
         # sample DAG data
         if "setup_airflow_dag" in services:
@@ -137,11 +159,28 @@ class SetupTask(NonDbtBaseTask):
             yml_dags_path = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
             if not yml_dags_path:
                 self.copier_context["yml_dags_confirm_path"] = True
-                self.copier_context["tentative_yml_dags_path"] = "orchestrate/dag_yml_definitions"
+                self.copier_context["tentative_yml_dags_path"] = "orchestrate/dags_yml_definitions"
             else:
                 self.copier_context["yml_dags_path"] = yml_dags_path
         for service in services:
             self.copier_context[service] = True
+
+        if "setup_precommit" in services:
+            self.copier_context["dbt_checkpoint_version"] = self._get_latest_repo_tag(
+                THIRD_PARTY_PRECOMMIT_REPOS["dbt_checkpoint"]
+            )
+            self.copier_context["yamllint_version"] = self._get_latest_repo_tag(
+                THIRD_PARTY_PRECOMMIT_REPOS["yamllint"]
+            )
+            self.copier_context["sqlfluff_version"] = os.environ.get(
+                "DATACOVES__SQLFLUFF_VERSION", "3.1.1"
+            )
+
+        if "setup_ci_cd" in services:
+            self.copier_context["datacoves_env_version"] = os.environ.get(
+                "DATACOVES__VERSION_MAJOR_MINOR__ENV", "3"
+            )
+
         copier.run_auto(
             src_path=self.get_config_value("template_url"),
             dst_path=self.repo_path,
