@@ -48,7 +48,10 @@ def get_git_root(path=None):
 def get_dbt_projects(path=os.getcwd()):
     dbt_projects = []
     for file in Path(path).rglob("dbt_project.yml"):
-        if "dbt_packages" not in str(file):
+        file_str = str(file)
+        if all(
+            folder not in file_str for folder in ["dbt_packages", "compiled", "target", "macros"]
+        ):
             project_name = open_yaml(file)["name"]
             project_path = str(file.relative_to(path).parent)
             dbt_projects.append({"path": project_path, "name": project_name})
