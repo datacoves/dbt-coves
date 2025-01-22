@@ -166,12 +166,18 @@ class SetupTask(NonDbtBaseTask):
             self.copier_context[service] = True
 
         if "setup_precommit" in services:
-            self.copier_context["dbt_checkpoint_version"] = self._get_latest_repo_tag(
+            dbt_checkpoint_version = self._get_latest_repo_tag(
                 THIRD_PARTY_PRECOMMIT_REPOS["dbt_checkpoint"]
             )
-            self.copier_context["yamllint_version"] = self._get_latest_repo_tag(
-                THIRD_PARTY_PRECOMMIT_REPOS["yamllint"]
-            )
+            if dbt_checkpoint_version:
+                self.copier_context["dbt_checkpoint_version"] = dbt_checkpoint_version
+            else:
+                self.copier_context["ask_dbt_checkpoint_version"] = True
+            yamllint_version = self._get_latest_repo_tag(THIRD_PARTY_PRECOMMIT_REPOS["yamllint"])
+            if yamllint_version:
+                self.copier_context["yamllint_version"] = yamllint_version
+            else:
+                self.copier_context["ask_yamllint_version"] = True
             self.copier_context["sqlfluff_version"] = os.environ.get(
                 "DATACOVES__SQLFLUFF_VERSION", "3.1.1"
             )
