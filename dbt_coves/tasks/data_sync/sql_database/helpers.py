@@ -134,10 +134,10 @@ class SqlDatabaseTableConfiguration(BaseConfiguration):
 
 @configspec
 class SqlTableResourceConfiguration(BaseConfiguration):
-    credentials: ConnectionStringCredentials
-    table: str
+    credentials: ConnectionStringCredentials = (None,)
+    table: str = (None,)
     incremental: Optional[dlt.sources.incremental] = None  # type: ignore[type-arg]
-    schema: Optional[str]
+    schema: Optional[str] = None
 
 
 __source_name__ = "sql_database"
