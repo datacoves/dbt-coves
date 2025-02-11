@@ -30,7 +30,7 @@ jobs:
         uses: pre-commit/action@v3.0.0
 
       - name: Cache Poetry virtualenv
-        uses: actions/cache@v1
+        uses: actions/cache@v4
         id: cache
         with:
           path: ~/.virtualenvs
