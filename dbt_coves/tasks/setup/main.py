@@ -187,7 +187,7 @@ class SetupTask(NonDbtBaseTask):
                 "DATACOVES__VERSION_MAJOR_MINOR__ENV", "3"
             )
 
-        copier.run_auto(
+        copier.run_copy(
             src_path=self.get_config_value("template_url"),
             dst_path=self.repo_path,
             data=self.copier_context,
