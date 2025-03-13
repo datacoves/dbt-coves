@@ -259,8 +259,8 @@ files = [
 jmespath = ">=0.7.1,<2.0.0"
 python-dateutil = ">=2.1,<3.0.0"
 urllib3 = [
-    {version = ">=1.25.4,<2.2.0 || >2.2.0,<3", markers = "python_version >= \"3.10\""},
     {version = ">=1.25.4,<1.27", markers = "python_version < \"3.10\""},
+    {version = ">=1.25.4,<2.2.0 || >2.2.0,<3", markers = "python_version >= \"3.10\""},
 ]
 
 [package.extras]
@@ -537,13 +537,13 @@ files = [
 
 [[package]]
 name = "copier"
-version = "9.4.1"
+version = "9.6.0"
 description = "A library for rendering project templates."
 optional = false
 python-versions = ">=3.9"
 files = [
-    {file = "copier-9.4.1-py3-none-any.whl", hash = "sha256:863385b7ba8a9090c832cd12ca072dba9153397dbe7c5f337bf8c3d8859efa32"},
-    {file = "copier-9.4.1.tar.gz", hash = "sha256:cc81d8204cb17fbc8c4a14996a8ce764166c34c77236de38cfbeb960c887b68f"},
+    {file = "copier-9.6.0-py3-none-any.whl", hash = "sha256:aaf992600a373fa2dda9f61725916a230c210ede14a968c60dab855d524c6cf3"},
+    {file = "copier-9.6.0.tar.gz", hash = "sha256:e05a18b387b96e8d1fbd5271d37f59c9a02be5ad717f7878d0505562fd62b786"},
 ]
 
 [package.dependencies]
@@ -551,10 +551,11 @@ colorama = ">=0.4.6"
 dunamai = ">=1.7.0"
 eval-type-backport = {version = ">=0.1.3,<0.3.0", markers = "python_version < \"3.10\""}
 funcy = ">=1.17"
-jinja2 = ">=3.1.4"
+jinja2 = ">=3.1.5"
 jinja2-ansible-filters = ">=1.3.1"
 packaging = ">=23.0"
 pathspec = ">=0.9.0"
+platformdirs = ">=4.3.6"
 plumbum = ">=1.6.9"
 pydantic = ">=2.4.2"
 pygments = ">=2.7.1"
@@ -1270,12 +1271,12 @@ files = [
 google-auth = ">=2.14.1,<3.0.dev0"
 googleapis-common-protos = ">=1.56.2,<2.0.dev0"
 grpcio = [
-    {version = ">=1.49.1,<2.0dev", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
     {version = ">=1.33.2,<2.0dev", optional = true, markers = "python_version < \"3.11\" and extra == \"grpc\""},
+    {version = ">=1.49.1,<2.0dev", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
 ]
 grpcio-status = [
-    {version = ">=1.49.1,<2.0.dev0", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
     {version = ">=1.33.2,<2.0.dev0", optional = true, markers = "python_version < \"3.11\" and extra == \"grpc\""},
+    {version = ">=1.49.1,<2.0.dev0", optional = true, markers = "python_version >= \"3.11\" and extra == \"grpc\""},
 ]
 proto-plus = ">=1.22.3,<2.0.0dev"
 protobuf = ">=3.19.5,<3.20.0 || >3.20.0,<3.20.1 || >3.20.1,<4.21.0 || >4.21.0,<4.21.1 || >4.21.1,<4.21.2 || >4.21.2,<4.21.3 || >4.21.3,<4.21.4 || >4.21.4,<4.21.5 || >4.21.5,<6.0.0.dev0"
@@ -2875,8 +2876,8 @@ files = [
 
 [package.dependencies]
 numpy = [
-    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
     {version = ">=1.20.3", markers = "python_version < \"3.10\""},
+    {version = ">=1.23.2", markers = "python_version >= \"3.11\""},
     {version = ">=1.21.0", markers = "python_version >= \"3.10\" and python_version < \"3.11\""},
 ]
 python-dateutil = ">=2.8.1"
