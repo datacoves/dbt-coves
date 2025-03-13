@@ -186,6 +186,9 @@ class SetupTask(NonDbtBaseTask):
             self.copier_context["datacoves_env_version"] = os.environ.get(
                 "DATACOVES__VERSION_MAJOR_MINOR__ENV", "3"
             )
+        # dictionary of all DATACOVES__* environment variables
+        datacoves_env = {k: v for k, v in os.environ.items() if k.startswith("DATACOVES__")}
+        self.copier_context["datacoves_env"] = datacoves_env
 
         copier.run_copy(
             src_path=self.get_config_value("template_url"),
