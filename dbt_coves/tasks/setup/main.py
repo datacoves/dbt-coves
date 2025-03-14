@@ -195,5 +195,6 @@ class SetupTask(NonDbtBaseTask):
             dst_path=self.repo_path,
             data=self.copier_context,
             quiet=self.get_config_value("quiet"),
+            unsafe=True,
         )
         return 0
