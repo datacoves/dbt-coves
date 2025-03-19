@@ -133,6 +133,7 @@ class SetupModel(BaseModel):
     no_prompt: Optional[bool] = False
     quiet: Optional[bool] = False
     template_url: Optional[str] = "https://github.com/datacoves/setup_template.git"
+    update: Optional[bool] = False
 
 
 class RunDbtModel(BaseModel):
@@ -243,6 +244,7 @@ class DbtCovesConfig:
         "setup.no_prompt",
         "setup.quiet",
         "setup.template_url",
+        "setup.update",
         "dbt.command",
         "dbt.project_dir",
         "dbt.virtualenv",
