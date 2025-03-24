@@ -93,64 +93,22 @@ class SetupTask(NonDbtBaseTask):
         return tags[0].get("name")
 
     def setup_datacoves(self):
-        # dbt project
-        dbt_projects = get_dbt_projects(self.repo_path)
-        if not dbt_projects:
-            self.copier_context["is_new_project"] = True
-        elif len(dbt_projects) == 1:
-            self.copier_context["dbt_project_dir"] = dbt_projects[0].get("path")
-            self.copier_context["dbt_project_name"] = dbt_projects[0].get("name")
-        else:
-            self.copier_context["dbt_projects"] = dbt_projects
-
-        # dbt profile data gathering
-        airflow_profile_path = os.environ.get("DATACOVES__AIRFLOW_DBT_PROFILE_PATH", "automate/dbt")
-        if not airflow_profile_path:
-            airflow_profile_path = "automate/dbt"
-        self.copier_context["airflow_profile_path"] = airflow_profile_path
-
-        dbt_adapter = os.environ.get("DATACOVES__DBT_ADAPTER")
-        if dbt_adapter:
-            self.copier_context["datacoves_dbt_adapter"] = dbt_adapter
-        else:
-            self.copier_context["datacoves_dbt_adapter"] = False
-
-        # sample DAG data
-        dags_path = os.environ.get("DATACOVES__AIRFLOW_DAGS_PATH")
-        if not dags_path:
-            self.copier_context["airflow_dags_confirm_path"] = True
-            self.copier_context["tentative_dags_path"] = "orchestrate/dags"
-        else:
-            self.copier_context["dags_path"] = dags_path
-
-        yml_dags_path = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
-        if not yml_dags_path:
-            self.copier_context["yml_dags_confirm_path"] = True
-            self.copier_context["tentative_yml_dags_path"] = "orchestrate/dags_yml_definitions"
-        else:
-            self.copier_context["yml_dags_path"] = yml_dags_path
-
         dbt_checkpoint_version = self._get_latest_repo_tag(
             THIRD_PARTY_PRECOMMIT_REPOS["dbt_checkpoint"]
         )
         if dbt_checkpoint_version:
-            self.copier_context["dbt_checkpoint_version"] = dbt_checkpoint_version
-        else:
-            self.copier_context["ask_dbt_checkpoint_version"] = True
+            os.environ["DATACOVES__DBT_CHECKPOINT_VERSION"] = dbt_checkpoint_version
         yamllint_version = self._get_latest_repo_tag(THIRD_PARTY_PRECOMMIT_REPOS["yamllint"])
         if yamllint_version:
-            self.copier_context["yamllint_version"] = yamllint_version
-        else:
-            self.copier_context["ask_yamllint_version"] = True
-        self.copier_context["sqlfluff_version"] = os.environ.get(
-            "DATACOVES__SQLFLUFF_VERSION", "3.1.1"
-        )
+            os.environ["DATACOVES__YAMLLINT_VERSION"] = yamllint_version
         self.copier_context["datacoves_env_version"] = os.environ.get(
             "DATACOVES__VERSION_MAJOR_MINOR__ENV", "3"
         )
         # dictionary of all DATACOVES__* environment variables
         datacoves_env = {k: v for k, v in os.environ.items() if k.startswith("DATACOVES__")}
         self.copier_context["datacoves_env"] = datacoves_env
+        breakpoint()
+
         try:
             if self.get_config_value("update"):
                 copier.run_update(
@@ -158,6 +116,7 @@ class SetupTask(NonDbtBaseTask):
                     data=self.copier_context,
                     quiet=self.get_config_value("quiet"),
                     unsafe=True,
+                    overwrite=True,
                 )
             else:
                 copier.run_copy(
