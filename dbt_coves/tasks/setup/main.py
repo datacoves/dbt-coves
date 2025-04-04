@@ -2,7 +2,6 @@ import os
 from pathlib import Path
 
 import copier
-import questionary
 import requests
 from jinja2.exceptions import TemplateSyntaxError
 from rich.console import Console
@@ -10,8 +9,6 @@ from rich.console import Console
 from dbt_coves import __dbt_major_version__, __dbt_minor_version__, __dbt_patch_version__
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
-
-from .utils import get_dbt_projects
 
 THIRD_PARTY_PRECOMMIT_REPOS = {
     "dbt_checkpoint": "https://api.github.com/repos/dbt-checkpoint/dbt-checkpoint/tags",
@@ -107,7 +104,6 @@ class SetupTask(NonDbtBaseTask):
         # dictionary of all DATACOVES__* environment variables
         datacoves_env = {k: v for k, v in os.environ.items() if k.startswith("DATACOVES__")}
         self.copier_context["datacoves_env"] = datacoves_env
-        breakpoint()
 
         try:
             if self.get_config_value("update"):
