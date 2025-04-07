@@ -101,6 +101,9 @@ class SetupTask(NonDbtBaseTask):
         self.copier_context["datacoves_env_version"] = os.environ.get(
             "DATACOVES__VERSION_MAJOR_MINOR__ENV", "3"
         )
+        dbt_home = os.environ.get("DATACOVES__DBT_HOME")
+        dbt_home_relpath = Path(dbt_home).relative_to(self.repo_path)
+        os.environ["DATACOVES__DBT_HOME_REL_PATH"] = str(dbt_home_relpath)
         # dictionary of all DATACOVES__* environment variables
         datacoves_env = {k: v for k, v in os.environ.items() if k.startswith("DATACOVES__")}
         self.copier_context["datacoves_env"] = datacoves_env
