@@ -155,7 +155,7 @@ class BlueGreenTask(BaseConfiguredTask):
         dbt_selector: str = self.get_config_value("dbt_selector")
         is_deferral = self.get_config_value("defer")
         dbt_command = ["dbt", command, "--fail-fast"]
-        if is_deferral or os.environ.get("MANIFEST_FOUND"):
+        if is_deferral or (os.environ.get("MANIFEST_FOUND") == "true"):
             dbt_command.extend(["--defer", "--state", "logs", "-s", "state:modified+"])
         else:
             dbt_command.extend(dbt_selector.split())
