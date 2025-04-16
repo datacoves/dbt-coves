@@ -210,18 +210,26 @@ class BlueGreenTask(BaseConfiguredTask):
         if self.config.credentials.password:
             connection_dict["password"] = self.config.credentials.password
         else:
-            connection_dict["private_key"] = self._get_snowflake_private_key()
+            breakpoint()
+            if self.config.credentials.private_key_path:
+                connection_dict["private_key"] = self._gen_snowflake_private_key(filepath=self.config.credentials.private_key_path)
+            if self.config.credentials.private_key:
+                connection_dict["private_key"] = self._gen_snowflake_private_key(existing_private_key=self.config.credentials.private_key)
             connection_dict["login_timeout"] = 10
-
         return connection_dict
 
-    def _get_snowflake_private_key(self):
+    def _gen_snowflake_private_key(self, filepath=None, existing_private_key=None):
         from cryptography.hazmat.backends import default_backend
         from cryptography.hazmat.primitives import serialization
 
-        with open(self.config.credentials.private_key_path, "rb") as key_file:
+        if filepath:
+            with open(filepath, "rb") as key_file:
+                private_key = serialization.load_pem_private_key(
+                    key_file.read(), password=None, backend=default_backend()
+                )
+        if existing_private_key:
             private_key = serialization.load_pem_private_key(
-                key_file.read(), password=None, backend=default_backend()
+                private_key.encode(), password=None, backend=default_backend()
             )
 
         # Convert the private key to the required format
