@@ -210,7 +210,6 @@ class BlueGreenTask(BaseConfiguredTask):
         if self.config.credentials.password:
             connection_dict["password"] = self.config.credentials.password
         else:
-            breakpoint()
             if self.config.credentials.private_key_path:
                 connection_dict["private_key"] = self._gen_snowflake_private_key(
                     filepath=self.config.credentials.private_key_path
