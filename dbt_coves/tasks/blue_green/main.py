@@ -212,9 +212,13 @@ class BlueGreenTask(BaseConfiguredTask):
         else:
             breakpoint()
             if self.config.credentials.private_key_path:
-                connection_dict["private_key"] = self._gen_snowflake_private_key(filepath=self.config.credentials.private_key_path)
+                connection_dict["private_key"] = self._gen_snowflake_private_key(
+                    filepath=self.config.credentials.private_key_path
+                )
             if self.config.credentials.private_key:
-                connection_dict["private_key"] = self._gen_snowflake_private_key(existing_private_key=self.config.credentials.private_key)
+                connection_dict["private_key"] = self._gen_snowflake_private_key(
+                    existing_private_key=self.config.credentials.private_key
+                )
             connection_dict["login_timeout"] = 10
         return connection_dict
 
