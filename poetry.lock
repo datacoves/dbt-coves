@@ -1977,6 +1977,20 @@ PyYAML = "*"
 test = ["pytest", "pytest-cov"]
 
 [[package]]
+name = "jinja2-env"
+version = "0.1.3"
+description = "Jinja2 Extension for getting environment variables"
+optional = false
+python-versions = "<4.0,>=3.8"
+files = [
+    {file = "jinja2_env-0.1.3-py3-none-any.whl", hash = "sha256:c7b35edd2bedaf0569d4f729fe3ad5da1481b28977df3f69b938cea8593425f6"},
+    {file = "jinja2_env-0.1.3.tar.gz", hash = "sha256:1a5b538bb4e4e0619ef66d668c5621c1354eb7c4e8ce363a394acd03c7941b97"},
+]
+
+[package.dependencies]
+jinja2 = "*"
+
+[[package]]
 name = "jinxed"
 version = "1.3.0"
 description = "Jinxed Terminal Library"
@@ -5219,4 +5233,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.0"
 python-versions = ">=3.9,<3.13"
-content-hash = "68e14b05d12bb1a9b9e2e074d41999a33feec1cafc053ee55f2e91e6acf9fecc"
+content-hash = "e3b7b84e9bbf502b8d0ce78aa03e483f2d3c53078d51268469892b5330987d1a"
