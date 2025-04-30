@@ -452,7 +452,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"{' '*(indent+4)}{', '.join(decorator_args)}\n",
                 f"{' '*indent})\n",
                 f"{' '*indent}def {task_name}():\n",
-                f"{' '*(indent+4)}return '{bash_command}'\n",
+                f"{' '*(indent+4)}return \"{bash_command}\"\n",
             ]
 
             if dependencies:
