@@ -430,27 +430,56 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         if "config" in task_conf:
             self.create_and_append_k8s_config(task_name, task_conf)
         indent = 8 if is_task_taskgroup else 4
-        try:
-            operator = task_conf.pop("operator")
-        except KeyError:
-            raise GenerateAirflowDagsException(
-                f"Task [red][b][i]{task_name}[/i][/b][/red] has no [i]'operator'[/i]"
-            )
-        dependencies = task_conf.pop("dependencies", [])
-        task_output = []
-        task_output.extend(
-            [
-                f"{' '*indent}{task_name} = {operator.split('.')[-1]}(\n",
-                f"{' '*indent}task_id='{task_name}',\n",
-                f"{' '*indent}{self.dag_args_to_string(task_conf)}\n",
-                f"{' '*indent})\n",
-            ]
-        )
-        upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
-        if dependencies:
-            task_output.append(
-                f"{' '*indent}{task_name}.set_upstream([{','.join(upstream_list)}])\n"
-            )
+        task_decorator = task_conf.pop("task_decorator", None)
+        if task_decorator:
+            # Parse task_decorator and arguments
+            self.dag_output["imports"].append("from airflow.decorators import task\n")
+            bash_command = task_conf.pop("bash_command", "")
+            dependencies = task_conf.pop("dependencies", [])
 
-        self._add_operator_import_to_output(operator)
+            # Extract additional arguments for the decorator
+            decorator_args = []
+            for key, value in task_conf.items():
+                if isinstance(value, dict):  # Handle nested dictionaries (e.g., overrides)
+                    value = f"{value}"  # Render as a Python dictionary
+                elif isinstance(value, str):
+                    value = f'"{value}"'
+                decorator_args.append(f"{key}={value}")
+
+            # Render decorated function
+            task_output = [
+                f"{' '*indent}@task.{task_decorator}(\n",
+                f"{' '*(indent+4)}{', '.join(decorator_args)}\n",
+                f"{' '*indent})\n",
+                f"{' '*indent}def {task_name}():\n",
+                f"{' '*(indent+4)}return \"{bash_command}\"\n",
+            ]
+
+            if dependencies:
+                upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
+                task_output.append(f"{' '*indent}{task_name}() >> [{', '.join(upstream_list)}]\n")
+        else:
+            try:
+                operator = task_conf.pop("operator")
+            except KeyError:
+                raise GenerateAirflowDagsException(
+                    f"Task [red][b][i]{task_name}[/i][/b][/red] has no [i]'operator'[/i]"
+                )
+            dependencies = task_conf.pop("dependencies", [])
+            task_output = []
+            task_output.extend(
+                [
+                    f"{' '*indent}{task_name} = {operator.split('.')[-1]}(\n",
+                    f"{' '*indent}task_id='{task_name}',\n",
+                    f"{' '*indent}{self.dag_args_to_string(task_conf)}\n",
+                    f"{' '*indent})\n",
+                ]
+            )
+            upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
+            if dependencies:
+                task_output.append(
+                    f"{' '*indent}{task_name}.set_upstream([{','.join(upstream_list)}])\n"
+                )
+
+            self._add_operator_import_to_output(operator)
         return task_output
