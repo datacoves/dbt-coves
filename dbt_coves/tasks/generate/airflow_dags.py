@@ -433,7 +433,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         task_decorator = task_conf.pop("task_decorator", None)
         if task_decorator:
             # Parse task_decorator and arguments
-            self.dag_output["imports"].append(f"from airflow.decorators import task\n")
+            self.dag_output["imports"].append("from airflow.decorators import task\n")
             bash_command = task_conf.pop("bash_command", "")
             dependencies = task_conf.pop("dependencies", [])
 
