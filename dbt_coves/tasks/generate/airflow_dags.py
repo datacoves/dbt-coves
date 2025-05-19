@@ -457,7 +457,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
 
             if dependencies:
                 upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
-                task_output.append(f"{' '*indent}{task_name}() >> [{', '.join(upstream_list)}]\n")
+                task_output.append(f"{' '*indent}[{', '.join(upstream_list)}] >> {task_name}() \n")
         else:
             try:
                 operator = task_conf.pop("operator")
