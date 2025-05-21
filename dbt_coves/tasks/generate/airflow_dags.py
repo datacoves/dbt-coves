@@ -251,9 +251,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         for node_name, node_conf in nodes.items():
             self.generate_node(node_name, node_conf)
         for upstream_list, task_name in self.collected_dependencies:
-            self.dag_output["dag"].append(
-                f"    [{', '.join(upstream_list)}] >> {task_name}\n"
-            )
+            self.dag_output["dag"].append(f"    [{', '.join(upstream_list)}] >> {task_name}\n")
         self.dag_output["dag"].append(f"dag = {dag_name}()\n")
 
         with open(destination_path, "w") as f:
