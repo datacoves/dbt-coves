@@ -152,6 +152,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
 
         self.generated_groups = {}
+        self.collected_dependencies = []
         if self.secrets_path and self.secrets_manager:
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
@@ -249,7 +250,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         )
         for node_name, node_conf in nodes.items():
             self.generate_node(node_name, node_conf)
-
+        for upstream_list, task_name in self.collected_dependencies:
+            self.dag_output["dag"].append(f"    [{', '.join(upstream_list)}] >> {task_name}\n")
         self.dag_output["dag"].append(f"dag = {dag_name}()\n")
 
         with open(destination_path, "w") as f:
@@ -453,11 +455,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"{' '*indent})\n",
                 f"{' '*indent}def {task_name}():\n",
                 f"{' '*(indent+4)}return \"{bash_command}\"\n",
+                f"{' '*(indent)}{task_name} = {task_name}()\n",
             ]
-
-            if dependencies:
-                upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
-                task_output.append(f"{' '*indent}{task_name}() >> [{', '.join(upstream_list)}]\n")
         else:
             try:
                 operator = task_conf.pop("operator")
@@ -476,10 +475,11 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 ]
             )
             upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
-            if dependencies:
-                task_output.append(
-                    f"{' '*indent}{task_name}.set_upstream([{','.join(upstream_list)}])\n"
-                )
-
             self._add_operator_import_to_output(operator)
+        if dependencies:
+            upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
+            if is_task_taskgroup:
+                task_output.append(f"{' '*indent}[{', '.join(upstream_list)}] >> {task_name} \n")
+            else:
+                self.collected_dependencies.append((upstream_list, task_name))
         return task_output

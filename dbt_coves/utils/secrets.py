@@ -39,7 +39,7 @@ def load_secret_manager_data(task_instance) -> dict:
         if secrets_key:
             payload["key"] = secrets_key
         headers = {"Authorization": f"token {secrets_token}"}
-        response = requests.get(secrets_url, headers=headers, verify=False, params=payload)
+        response = requests.get(secrets_url, headers=headers, params=payload)
         response.raise_for_status()
         return response.json()
 
