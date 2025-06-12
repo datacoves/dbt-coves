@@ -77,6 +77,7 @@ jobs:
           DATACOVES__DBT_COVES_TEST__DATABASE: op://Engineering - dbt-coves/dbt-coves-tests/DATABASE_SNOWFLAKE
           DATACOVES__DBT_COVES_TEST__SCHEMA: op://Engineering - dbt-coves/dbt-coves-tests/SCHEMA_SNOWFLAKE
           DATACOVES__DBT_COVES_TEST__ROLE: op://Engineering - dbt-coves/dbt-coves-tests/ROLE_SNOWFLAKE
+          SNOWFLAKE_PRIVATE_KEY: op://Engineering - dbt-coves/dbt-coves-tests/SNOWFLAKE_PRIVATE_KEY
 
       - name: Create profiles
         run: |
