@@ -3,11 +3,11 @@ default:
     dev:
       account: "{{ env_var('DATACOVES__DBT_COVES_TEST__ACCOUNT') }}"
       database: "{{ env_var('DATACOVES__DBT_COVES_TEST__DATABASE') }}"
-      password: "{{ env_var('DATACOVES__DBT_COVES_TEST__PASSWORD') }}"
       role: "{{ env_var('DATACOVES__DBT_COVES_TEST__ROLE') }}"
       schema: TESTS_BLUE_GREEN
       threads: 2
       type: snowflake
       user: "{{ env_var('DATACOVES__DBT_COVES_TEST__USER') }}"
       warehouse: "{{ env_var('DATACOVES__DBT_COVES_TEST__WAREHOUSE') }}"
+      private_key: "{{ env_var('SNOWFLAKE_PRIVATE_KEY')}}"
   target: dev
