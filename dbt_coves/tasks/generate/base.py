@@ -159,12 +159,21 @@ class BaseGenerateTask(BaseConfiguredTask):
         }
         return data
 
-    def get_default_metadata_item(self, name, type="varchar", description=""):
+    def get_default_metadata_item(
+        self,
+        name,
+        type="varchar",
+        description="",
+        numeric_precision=None,
+        numeric_scale=None,
+    ):
         return {
             "name": name,
             "id": slugify(name, separator="_"),
             "type": type,
             "description": description,
+            "numeric_precision": numeric_precision,
+            "numeric_scale": numeric_scale,
         }
 
     def get_metadata(self):
@@ -240,11 +249,22 @@ class BaseGenerateTask(BaseConfiguredTask):
                     new_col["name"] = col.name
                     new_col["id"] = slugify(col.name, separator="_")
             if not new_col:
+                numeric_precision = None
+                numeric_scale = None
                 if "BigQuery" in self.adapter.__class__.__name__:
                     col_type = col.data_type
+                if "Snowflake" in self.adapter.__class__.__name__:
+                    col_type = col.dtype
+                    numeric_precision = col.numeric_precision
+                    numeric_scale = col.numeric_scale
                 else:
                     col_type = col.dtype
-                new_col = self.get_default_metadata_item(col.name, type=col_type)
+                new_col = self.get_default_metadata_item(
+                    col.name,
+                    type=col_type,
+                    numeric_precision=numeric_precision,
+                    numeric_scale=numeric_scale,
+                )
             metadata_cols.append(new_col)
         return metadata_cols
 
