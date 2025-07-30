@@ -2,6 +2,7 @@ import glob
 import json
 import os
 import pathlib
+import re
 from copy import copy
 
 from rich.console import Console
@@ -23,6 +24,17 @@ class AirbyteExtractorException(Exception):
 
 
 class ExtractAirbyteTask(BaseExtractTask):
+    def _normalize_filename(self, name: str) -> str:
+        """
+        Normalize a string to be safe for filenames: lowercase, replace spaces and unsafe chars with underscores.
+        """
+        name = name.lower()
+        # Replace spaces and any non-alphanumeric character with underscore
+        name = re.sub(r"[^a-z0-9\-]+", "_", name)
+        # Remove leading/trailing underscores
+        name = name.strip("_")
+        return name
+
     """
     Task that extracts airbyte sources, connections and destinations and stores them as json files
     """
@@ -270,6 +282,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         connection["sourceName"] = connection_source_name
         connection["destinationName"] = connection_destination_name
         filename = f"{connection_source_name}-{connection_destination_name}.json"
+        filename = self._normalize_filename(filename)
         path = os.path.join(self.connections_extract_destination, filename)
 
         self._save_json(path, connection)
@@ -282,10 +295,11 @@ class ExtractAirbyteTask(BaseExtractTask):
         destination.pop("workspaceId", None)
         destination.pop("destinationId", None)
         filename = f"{destination['name']}.json"
-        path = os.path.join(self.destinations_extract_destination, filename.lower())
+        filename = self._normalize_filename(filename)
+        path = os.path.join(self.destinations_extract_destination, filename)
 
         self._save_json(path, destination)
-        self.extraction_results["destinations"].add(filename.lower())
+        self.extraction_results["destinations"].add(filename)
 
     def _save_json_source(self, source):
         source = copy(source)
@@ -293,10 +307,11 @@ class ExtractAirbyteTask(BaseExtractTask):
         source.pop("workspaceId", None)
         source.pop("sourceId", None)
         filename = f"{source['name']}.json"
-        path = os.path.join(self.sources_extract_destination, filename.lower())
+        filename = self._normalize_filename(filename)
+        path = os.path.join(self.sources_extract_destination, filename)
 
         self._save_json(path, source)
-        self.extraction_results["sources"].add(filename.lower())
+        self.extraction_results["sources"].add(filename)
 
     def get_config_value(self, key):
         return self.coves_config.integrated["extract"]["airbyte"][key]
