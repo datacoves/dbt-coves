@@ -92,7 +92,7 @@ class PostgresGenerator():
 --yml-path --yaml-path
 # Path to the folder containing YML files to translate into Python DAGs
 
---dag-path
+--dags-path
 # Path to the folder where Python DAGs will be generated.
 
 --validate-operators
