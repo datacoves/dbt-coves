@@ -50,7 +50,7 @@ isort = "^5.12.0"
 dlt = {extras = ["redshift"], version = ">=1.0"}
 psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
-pyyaml-include = "<2.0"
+pyyaml-include = "<3.0"
 enlighten = "^1.12.4"
 snowflake-connector-python = "^3.12.1"
 jinja2-env = "^0.1.3"
