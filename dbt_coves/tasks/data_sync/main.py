@@ -2,9 +2,9 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import BaseTask
 
+from .duckdb import DuckdbDataSyncTask
 from .redshift import RedshiftDataSyncTask
 from .snowflake import SnowflakeDataSyncTask
-from .duckdb import DuckdbDataSyncTask
 
 console = Console()
 

@@ -150,8 +150,10 @@ class RedshiftDataSyncModel(BaseModel):
 class SnowflakeDataSyncModel(BaseModel):
     tables: Optional[List[str]] = []
 
+
 class DuckdbDataSyncModel(BaseModel):
     tables: Optional[List[str]] = []
+
 
 class DataSyncModel(BaseModel):
     redshift: Optional[RedshiftDataSyncModel] = RedshiftDataSyncModel()

@@ -1,5 +1,3 @@
-import os
-
 from dbt_coves.utils.tracking import trackable
 
 from .base import BaseDataSyncTask
@@ -12,6 +10,7 @@ class DuckdbDestination(object):
     def set_credentials(self) -> None:
         # No credentials required for duckdb
         pass
+
 
 class DuckdbDataSyncTask(BaseDataSyncTask):
     """
