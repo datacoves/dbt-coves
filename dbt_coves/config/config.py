@@ -151,9 +151,14 @@ class SnowflakeDataSyncModel(BaseModel):
     tables: Optional[List[str]] = []
 
 
+class DuckdbDataSyncModel(BaseModel):
+    tables: Optional[List[str]] = []
+
+
 class DataSyncModel(BaseModel):
     redshift: Optional[RedshiftDataSyncModel] = RedshiftDataSyncModel()
     snowflake: Optional[SnowflakeDataSyncModel] = SnowflakeDataSyncModel()
+    duckdb: Optional[DuckdbDataSyncModel] = DuckdbDataSyncModel()
 
 
 class BlueGreenModel(BaseModel):
@@ -266,6 +271,7 @@ class DbtCovesConfig:
         "load.fivetran.secrets_key",
         "data_sync.redshift.tables",
         "data_sync.snowflake.tables",
+        "data_sync.duckdb.tables",
         "blue_green.prod_db_env_var",
         "blue_green.staging_database",
         "blue_green.staging_suffix",
