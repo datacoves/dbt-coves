@@ -281,8 +281,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         connection.pop("sourceCatalogId", None)
         connection["sourceName"] = connection_source_name
         connection["destinationName"] = connection_destination_name
-        filename = f"{connection_source_name}-{connection_destination_name}.json"
-        filename = self._normalize_filename(filename)
+        filename = f"{self._normalize_filename(f'{connection_source_name}-{connection_destination_name}')}.json"
         path = os.path.join(self.connections_extract_destination, filename)
 
         self._save_json(path, connection)
@@ -294,8 +293,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         destination.pop("destinationDefinitionId", None)
         destination.pop("workspaceId", None)
         destination.pop("destinationId", None)
-        filename = f"{destination['name']}.json"
-        filename = self._normalize_filename(filename)
+        filename = f"{self._normalize_filename(destination['name'])}.json"
         path = os.path.join(self.destinations_extract_destination, filename)
 
         self._save_json(path, destination)
@@ -306,8 +304,7 @@ class ExtractAirbyteTask(BaseExtractTask):
         source.pop("sourceDefinitionId", None)
         source.pop("workspaceId", None)
         source.pop("sourceId", None)
-        filename = f"{source['name']}.json"
-        filename = self._normalize_filename(filename)
+        filename = f"{self._normalize_filename(source['name'])}.json"
         path = os.path.join(self.sources_extract_destination, filename)
 
         self._save_json(path, source)
