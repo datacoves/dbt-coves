@@ -13,7 +13,7 @@ class SnowflakeDestination(object):
         """Dlt destination credentials can be set either by modifying the secrets file or
         by setting environment variables. Setting environment variables.
         """
-        for key in ["DATABASE", "PASSWORD", "WAREHOUSE", "ROLE"]:
+        for key in ["DATABASE", "WAREHOUSE", "ROLE"]:
             value = os.environ.get(f"{DATA_SYNC_PREFIX}{key}")
             assert value, f"Environment variable {DATA_SYNC_PREFIX}{key} is not defined"
             os.environ[f"{DLT_PREFIX}{key}"] = value
@@ -23,6 +23,22 @@ class SnowflakeDestination(object):
         value = os.environ.get(f"{DATA_SYNC_PREFIX}ACCOUNT")
         assert value, f"Environment variable {DATA_SYNC_PREFIX}ACCOUNT is not defined"
         os.environ[f"{DLT_PREFIX}HOST"] = value
+
+        # Check for PRIVATE_KEY and PASSWORD
+        private_key = os.environ.get(f"{DATA_SYNC_PREFIX}PRIVATE_KEY")
+        private_key_password = os.environ.get(f"{DATA_SYNC_PREFIX}PRIVATE_KEY_PASSWORD")
+        password = os.environ.get(f"{DATA_SYNC_PREFIX}PASSWORD")
+
+        if private_key:
+            os.environ[f"{DLT_PREFIX}PRIVATE_KEY"] = private_key
+            if private_key_password:
+                os.environ[f"{DLT_PREFIX}PRIVATE_KEY_PASSWORD"] = private_key_password
+        elif password:
+            os.environ[f"{DLT_PREFIX}PASSWORD"] = password
+        else:
+            raise ValueError(
+                f"Either {DATA_SYNC_PREFIX}PRIVATE_KEY or {DATA_SYNC_PREFIX}PASSWORD must be defined"
+            )
 
 
 class SnowflakeDataSyncTask(BaseDataSyncTask):
