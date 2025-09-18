@@ -49,7 +49,7 @@ black = "^23"
 isort = "^5.12.0"
 dlt = {extras = ["redshift"], version = ">=1.0"}
 psycopg2-binary = "^2.9.9"
-sqlalchemy = "^1.4"
+sqlalchemy = ">=1.4,<3.0"
 pyyaml-include = "<2.0"
 enlighten = "^1.12.4"
 snowflake-connector-python = "^3.12.1"
