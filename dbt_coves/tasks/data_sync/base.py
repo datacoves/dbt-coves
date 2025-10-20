@@ -52,14 +52,14 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
 
         # Merge the default table list with the user-requested table list, and split it into
         # incremental and full loads according to if we have an incremental column.
-        fulltables = []
-        incrementaltables = {}
+        full_tables = []
+        incremental_tables = {}
         for i in DEFAULT_AIRFLOW_TABLES + self.tables:
             if i in AIRFLOW_INCREMENTALS.keys():
-                incrementaltables[i] = AIRFLOW_INCREMENTALS[i]
+                incremental_tables[i] = AIRFLOW_INCREMENTALS[i]
             else:
-                if i not in fulltables:
-                    fulltables += i
+                if i not in full_tables:
+                    full_tables += i
 
         pipeline = dlt.pipeline(
             progress="enlighten",
