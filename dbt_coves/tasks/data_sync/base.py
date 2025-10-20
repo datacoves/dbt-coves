@@ -33,8 +33,8 @@ AIRFLOW_INCREMENTALS = {
     "dag_run": "execution_date",
     "import_error": "timestamp",
     "job": "start_date",
-    "task_fail", "start_date",
-    "task_instance", "updated_at", 
+    "task_fail": "start_date",
+    "task_instance": "updated_at",
 }
 
 console = Console()
@@ -49,18 +49,18 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
 
     def perform_sync(self) -> None:
         """Use the sql_database source to completely load all tables in a database"""
-        
+
         # Merge the default table list with the user-requested table list, and split it into
         # incremental and full loads according to if we have an incremental column.
         fulltables = []
         incrementaltables = {}
-        for i in DEFAULT_AIRFLOW_TABLES+self.tables:
+        for i in DEFAULT_AIRFLOW_TABLES + self.tables:
             if i in AIRFLOW_INCREMENTALS.keys():
-                incrementaltables[i]=AIRFLOW_INCREMENTALS[i]
+                incrementaltables[i] = AIRFLOW_INCREMENTALS[i]
             else:
                 if i not in fulltables:
                     fulltables += i
-              
+
         pipeline = dlt.pipeline(
             progress="enlighten",
             pipeline_name="source",
@@ -81,10 +81,12 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
         # Incrementally loaded tables go one at a time, with their own cursor columns.
         for i in incremental_tables:
             console.print(f"Incrementally loading table {i}")
-            source = sql_table(credentials=credentials, table=i,
-                incremental=dlt.sources.incremental(incremental_tables[i],
-                    initial_value="1970-01-01T00:00:00Z"))
+            source = sql_table(
+                credentials=credentials,
+                table=i,
+                incremental=dlt.sources.incremental(
+                    incremental_tables[i], initial_value="1970-01-01T00:00:00Z"
+                ),
+            )
             info = pipeline.run(source, write_disposition="append")
             print(info)
-            
-                    
