@@ -12,6 +12,31 @@ from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
 
 from .sql_database import sql_database
 
+# These tables are always synced.  Anything else can be requested but that's on user.
+DEFAULT_AIRFLOW_TABLES = [
+    "ab_permission",
+    "ab_role",
+    "ab_user",
+    "dag",
+    "dag_run",
+    "dag_tag",
+    "import_error",
+    "job",
+    "task_fail",
+    "task_instance",
+]
+
+# These tables have a column appropriate for incremental upload.  Everything else will just
+# blindly replace the destination table.
+AIRFLOW_INCREMENTALS = {
+    "dag": "last_pickled",
+    "dag_run": "execution_date",
+    "import_error": "timestamp",
+    "job": "start_date",
+    "task_fail", "start_date",
+    "task_instance", "updated_at", 
+}
+
 console = Console()
 
 
@@ -24,6 +49,18 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
 
     def perform_sync(self) -> None:
         """Use the sql_database source to completely load all tables in a database"""
+        
+        # Merge the default table list with the user-requested table list, and split it into
+        # incremental and full loads according to if we have an incremental column.
+        fulltables = []
+        incrementaltables = {}
+        for i in DEFAULT_AIRFLOW_TABLES+self.tables:
+            if i in AIRFLOW_INCREMENTALS.keys():
+                incrementaltables[i]=AIRFLOW_INCREMENTALS[i]
+            else:
+                if i not in fulltables:
+                    fulltables += i
+              
         pipeline = dlt.pipeline(
             progress="enlighten",
             pipeline_name="source",
@@ -34,9 +71,20 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
         # By default the sql_database source reflects all tables in the schema
         # The database credentials are sourced from the `.dlt/secrets.toml` configuration
         credentials = ConnectionStringCredentials(self.source_connection_string)
-        source = sql_database(credentials=credentials, table_names=self.tables or None)
 
-        # Run the pipeline. For a large db this may take a while
-        console.print(f"Dumping database to {self.destination}")
-        info = pipeline.run(source, write_disposition="replace")
-        print(info)
+        # All fully-replaced tables go at once.
+        if len(full_tables):
+            console.print(f"Loading full tables into {self.destination}")
+            source = sql_database(credentials=credentials, table_names=full_tables)
+            info = pipeline.run(source, write_disposition="replace")
+            print(info)
+        # Incrementally loaded tables go one at a time, with their own cursor columns.
+        for i in incremental_tables:
+            console.print(f"Incrementally loading table {i}")
+            source = sql_table(credentials=credentials, table=i,
+                incremental=dlt.sources.incremental(incremental_tables[i],
+                    initial_value="1970-01-01T00:00:00Z"))
+            info = pipeline.run(source, write_disposition="append")
+            print(info)
+            
+                    
