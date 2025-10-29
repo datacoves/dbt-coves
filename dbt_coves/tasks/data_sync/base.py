@@ -10,7 +10,7 @@ from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
 
-from .sql_database import sql_database
+from .sql_database import sql_database, sql_table
 
 # These tables are always synced.  Anything else can be requested but that's on user.
 DEFAULT_AIRFLOW_TABLES = [
@@ -49,7 +49,6 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
 
     def perform_sync(self) -> None:
         """Use the sql_database source to completely load all tables in a database"""
-
         # Merge the default table list with the user-requested table list, and split it into
         # incremental and full loads according to if we have an incremental column.
         full_tables = []
