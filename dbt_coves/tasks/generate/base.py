@@ -195,9 +195,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                     rows = csv.DictReader(csvfile, skipinitialspace=True)
                     for row in rows:
                         try:
-                            metadata_map[
-                                self.get_metadata_map_key(row)
-                            ] = self.get_metadata_map_item(row)
+                            metadata_map[self.get_metadata_map_key(row)] = (
+                                self.get_metadata_map_item(row)
+                            )
                         except KeyError as e:
                             raise Exception(
                                 f"Key {e} not found in {path}. Please check this sample metadata"
