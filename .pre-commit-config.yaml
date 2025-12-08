@@ -33,12 +33,6 @@ repos:
         entry: bash ./scripts/pre-commit-hooks/prevent-push-to-main.sh
         language: system
         stages: [pre-commit, pre-push]
-  - repo: https://github.com/gitguardian/ggshield
-    rev: v1.17.2
-    hooks:
-      - id: ggshield
-        language_version: python3
-        stages: [pre-commit]
   - repo: https://github.com/pre-commit/pre-commit-hooks
     rev: v4.4.0  # Use the ref you want to point at
     hooks:

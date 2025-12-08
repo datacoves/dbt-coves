@@ -30,7 +30,8 @@ class TableLoader:
                 self.cursor_column = table.c[incremental.cursor_path]
             except KeyError as e:
                 raise KeyError(
-                    f"Cursor column '{incremental.cursor_path}' does not exist in table '{table.name}'"
+                    f"Cursor column '{incremental.cursor_path}' "
+                    f"does not exist in table '{table.name}'"
                 ) from e
             self.last_value = incremental.last_value
             self.end_value = incremental.end_value
@@ -49,13 +50,15 @@ class TableLoader:
         last_value_func = self.incremental.last_value_func
 
         # generate where
-        if last_value_func is max:  # Query ordered and filtered according to last_value function
+        if last_value_func is max:
+            # Query ordered and filtered according to last_value function
             filter_op = operator.ge
             filter_op_end = operator.lt
         elif last_value_func is min:
             filter_op = operator.le
             filter_op_end = operator.gt
-        else:  # Custom last_value, load everything and let incremental handle filtering
+        else:
+            # Custom last_value, load everything and let incremental handle filtering
             return query
 
         if self.last_value is not None:

@@ -107,7 +107,8 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
         fivetran_schema_db_naming = f"{source_schema}.{source_table}".lower()
         connector_ids = []
         for dest_dict in self.fivetran_data.values():
-            # destination dict can be empty if Fivetran Destination is missing configuration or not yet tested
+            # destination dict can be empty if Fivetran Destination is missing
+            # configuration or not yet tested
             if dest_dict and dest_dict.get("details"):
                 # match dbt source_db to Fivetran destination database
                 if self._dbt_database_in_destination(dest_dict, source_db.lower()):

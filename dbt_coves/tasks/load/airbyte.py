@@ -452,7 +452,8 @@ class LoadAirbyteTask(BaseLoadTask):
             if exported_json_data["name"] == destination["name"]:
                 if self._destinations_are_equivalent(exported_json_data, destination):
                     console.print(
-                        f"Destination [green]{destination['name']}[/green] already up to date. Skipping"
+                        f"Destination [green]{destination['name']}[/green] "
+                        f"already up to date. Skipping"
                     )
                     return
                 else:

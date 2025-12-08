@@ -24,8 +24,8 @@ def load_secret_manager_data(task_instance) -> dict:
         ) or task_instance.get_config_value("secrets_environment")
         if not (secrets_url and secrets_token and secrets_environment):
             raise DbtCovesException(
-                "[b]secrets_url[/b], [b]secrets_environment[/b] and [b]secrets_environment[/b] must "
-                "be provided when using a Secrets Manager"
+                "[b]secrets_url[/b], [b]secrets_environment[/b] and [b]secrets_environment[/b] "
+                "must be provided when using a Secrets Manager"
             )
 
         secrets_url = f"{secrets_url}/api/v1/secrets/{secrets_environment}"

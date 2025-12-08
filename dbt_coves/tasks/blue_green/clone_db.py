@@ -9,8 +9,9 @@ console = Console()
 
 class CloneDB:
     """
-    Class to clone a Snowflake database from one to another. This is intended to be used in a blue/green deployment and
-    will clone the schemas and grants from the blue database to the green database.
+    Class to clone a Snowflake database from one to another. This is intended to be used in a
+    blue/green deployment and will clone the schemas and grants from the blue database to the
+    green database.
     """
 
     def __init__(
@@ -66,7 +67,8 @@ class CloneDB:
             None
         """
         console.print(
-            f"Cloning grants from [blue]{self.blue_database}[/blue] to green [green]{self.green_database}[/green]"
+            f"Cloning grants from [blue]{self.blue_database}[/blue] to "
+            f"green [green]{self.green_database}[/green]"
         )
         dict_cursor = self.con.cursor(DictCursor)
         grants_sql_stg_1 = f"""show grants on database {blue_database}"""
@@ -84,8 +86,8 @@ class CloneDB:
 
     def clone_database_schemas(self, blue_database: str, green_database: str):
         """
-        Clones the schemas from the blue database to the green database and clones the existing blue database schema
-        grants.
+        Clones the schemas from the blue database to the green database and clones the existing
+        blue database schema grants.
 
         Args:
             green_database: The name of the green database (staging).
@@ -95,7 +97,8 @@ class CloneDB:
             None
         """
         console.print(
-            f"Cloning [u]schemas[/u] from [blue]{self.blue_database}[/blue] to [green]{self.green_database}[/green]"
+            f"Cloning [u]schemas[/u] from [blue]{self.blue_database}[/blue] to "
+            f"[green]{self.green_database}[/green]"
         )
         dict_cursor = self.con.cursor(DictCursor)
         dict_cursor.execute(f"show schemas in database {blue_database};")
@@ -106,7 +109,10 @@ class CloneDB:
         for schema in schemas:
             if schema["name"] not in self._list_of_schemas_to_exclude:
                 # Clone each schema
-                sql = f"create schema {green_database}.{schema['name']} clone {blue_database}.{schema['name']};"
+                sql = (
+                    f"create schema {green_database}.{schema['name']} "
+                    f"clone {blue_database}.{schema['name']};"
+                )
                 threaded_schema_commands.register_command(sql)
         threaded_schema_commands.run()
         console.print(f"Cloned schemas in {time.time() - self.time_check} seconds.")
@@ -126,7 +132,8 @@ class CloneDB:
                 grants = dict_cursor.fetchall()
                 for grant in grants:
                     sql = (
-                        f"GRANT {grant['privilege']} ON {grant['granted_on']} {green_database}.{schema['name']} "
+                        f"GRANT {grant['privilege']} ON {grant['granted_on']} "
+                        f"{green_database}.{schema['name']} "
                         f"TO ROLE {grant['grantee_name']};"
                     )
                     # Load SQL into the threaded commands to run.
@@ -211,16 +218,19 @@ class ThreadedRunCommands:
 
 # if __name__ == "__main__":
 #     '''
-#     This section is really only designed for testing purposes. When used in production, it's is intended that you will
-#     call the clone_blue_db_to_green method from an external script or directly from the DAG as needed.
+#     This section is really only designed for testing purposes. When used in production, it is
+#     intended that you will call the clone_blue_db_to_green method from an external script or
+#     directly from the DAG as needed.
 #     '''
 #     parser = argparse.ArgumentParser(
 #         description="Script to run a blue/green swap")
 
 #     # Add the arguments
-#     parser.add_argument('--blue-db', type=str, default=os.environ.get('DATACOVES__MAIN__DATABASE'),
+#     parser.add_argument('--blue-db', type=str,
+#                         default=os.environ.get('DATACOVES__MAIN__DATABASE'),
 #                         help='The source database.')
-#     parser.add_argument('--green-db', type=str, help='The name of the green (temporary build) database.')
+#     parser.add_argument('--green-db', type=str,
+#                         help='The name of the green (temporary build) database.')
 
 #     # Parse the arguments
 #     args = parser.parse_args()

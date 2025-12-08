@@ -151,8 +151,8 @@ class DbtCovesFlags:
     def parse_args(self, cli_args: List[str] = list()) -> None:
         args = sys.argv[1:]
 
-        # TODO: FIXME: This is a temporary logic for when --dbt-args is followed by a single-word string,
-        # like cases of --dbt-args "--no-compile",
+        # TODO: FIXME: This is a temporary logic for when --dbt-args is followed by a
+        # single-word string, like cases of --dbt-args "--no-compile",
         # it was being treated as a follow-up argument instead of string
         for i, arg in enumerate(args):
             if arg == "--dbt-args" and i + 1 < len(args):
@@ -224,9 +224,9 @@ class DbtCovesFlags:
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
                 if self.args.exclude_relations:
-                    self.generate["sources"][
-                        "exclude_relations"
-                    ] = self.args.exclude_relations.split(",")
+                    self.generate["sources"]["exclude_relations"] = (
+                        self.args.exclude_relations.split(",")
+                    )
                 if self.args.no_prompt:
                     self.generate["sources"]["no_prompt"] = True
                 if self.args.flatten_json_fields:
@@ -434,9 +434,9 @@ class DbtCovesFlags:
                 if self.args.drop_staging_db_at_start:
                     self.blue_green["drop_staging_db_at_start"] = self.args.drop_staging_db_at_start
                 if self.args.drop_staging_db_on_failure:
-                    self.blue_green[
-                        "drop_staging_db_on_failure"
-                    ] = self.args.drop_staging_db_on_failure
+                    self.blue_green["drop_staging_db_on_failure"] = (
+                        self.args.drop_staging_db_on_failure
+                    )
                 if self.args.dbt_selector:
                     self.blue_green["dbt_selector"] = self.args.dbt_selector
                 if self.args.defer:
@@ -444,6 +444,6 @@ class DbtCovesFlags:
                 if self.args.full_refresh:
                     self.blue_green["full_refresh"] = self.args.full_refresh
                 if self.args.keep_staging_db_on_success:
-                    self.blue_green[
-                        "keep_staging_db_on_success"
-                    ] = self.args.keep_staging_db_on_success
+                    self.blue_green["keep_staging_db_on_success"] = (
+                        self.args.keep_staging_db_on_success
+                    )

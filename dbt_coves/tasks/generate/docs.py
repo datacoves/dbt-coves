@@ -121,8 +121,8 @@ class GenerateDocsTask(BaseConfiguredTask):
         )
 
         console.print(
-            f"Merged [green]{n_nodes_merged} nodes[/green] and [green]{n_sources_merged} sources[/green] into",
-            "your local catalog.json",
+            f"Merged [green]{n_nodes_merged} nodes[/green] and [green]{n_sources_merged} "
+            f"sources[/green] into your local catalog.json",
         )
 
     def _write_catalog_json(self, catalog: Dict[str, Any], docs_folder: Path):

@@ -1,6 +1,7 @@
 import os
 import subprocess
-import unittest
+
+# import unittest
 from pathlib import Path
 
 import pytest
@@ -19,7 +20,8 @@ def test_output_dir():
 
 def test_generate_airflow_dags(test_data_dir: Path, test_output_dir: Path):
     """
-    Test that runs `dbt-coves generate airflow-dags`, fills Airflow's DagBag and asserts no errors result.
+    Test that runs `dbt-coves generate airflow-dags`, fills Airflow's DagBag and asserts
+    no errors result.
     """
     command = [
         "python",

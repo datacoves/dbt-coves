@@ -301,7 +301,7 @@ class DbtCovesConfig:
             source = self._flags
             for item in path_items[:-1]:
                 target = target[item]
-                source = source.get(item, {}) if type(source) == dict else getattr(source, item)
+                source = source.get(item, {}) if type(source) is dict else getattr(source, item)
             key = path_items[-1]
             if source.get(key):
                 target[key] = source[key]
@@ -324,7 +324,8 @@ class DbtCovesConfig:
     def replace_env_vars(self, yaml_dict: Dict) -> Dict:
         # regex -> {{ env_var('ENV_VAR_NAME', 'DEFAULT_VALUE') }}
         env_var_pattern = re.compile(
-            r"\{\{\s*env_var\s*\(\s*['\"]?\s*([^'\"]+)['\"]?\s*(?:,\s*['\"]?\s*([^'\"]+)['\"]?\s*)?\)\s*\}\}"
+            r"\{\{\s*env_var\s*\(\s*['\"]?\s*([^'\"]+)['\"]?\s*(?:,\s*['\"]?\s*"
+            r"([^'\"]+)['\"]?\s*)?\)\s*\}\}"
         )
 
         # Iterate through the YAML dictionary and replace placeholders

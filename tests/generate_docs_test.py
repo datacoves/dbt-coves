@@ -56,7 +56,7 @@ def test_generate_docs_merge_deferred_no_state(dbt_project_path):
     """
     command = ["python", "../../dbt_coves/core/main.py", "generate", "docs", "--merge-deferred"]
     try:
-        output = subprocess.check_output(command, cwd=dbt_project_path)
+        subprocess.check_output(command, cwd=dbt_project_path)
     except subprocess.CalledProcessError as e:
         assert (
             "A valid --state argument is required when using --merge-deferred"

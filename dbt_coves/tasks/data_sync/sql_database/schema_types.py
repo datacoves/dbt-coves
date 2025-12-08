@@ -47,7 +47,8 @@ def sqla_col_to_column_schema(sql_col: ColumnAny) -> Optional[TColumnSchema]:
     elif isinstance(sql_t, sqltypes.Time):
         col = dict(name=sql_col.name, data_type="time")
     if col:
-        return {key: value for key, value in col.items() if value is not None}  # type: ignore[return-value]
+        # type: ignore[return-value]
+        return {key: value for key, value in col.items() if value is not None}
     return None
 
 

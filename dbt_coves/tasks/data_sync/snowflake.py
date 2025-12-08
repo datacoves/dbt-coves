@@ -37,7 +37,8 @@ class SnowflakeDestination(object):
             os.environ[f"{DLT_PREFIX}PASSWORD"] = password
         else:
             raise ValueError(
-                f"Either {DATA_SYNC_PREFIX}PRIVATE_KEY or {DATA_SYNC_PREFIX}PASSWORD must be defined"
+                f"Either {DATA_SYNC_PREFIX}PRIVATE_KEY or "
+                f"{DATA_SYNC_PREFIX}PASSWORD must be defined"
             )
 
 

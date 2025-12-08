@@ -76,8 +76,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         )
         subparser.add_argument(
             "--generators-params",
-            help="Object with default values for the desired Generator(s), i.e {'AirbyteDbtGenerator' "
-            "{'host': 'http://localhost'}}",
+            help="Object with default values for the desired Generator(s), i.e "
+            "{'AirbyteDbtGenerator' {'host': 'http://localhost'}}",
             type=str,
         )
         subparser.add_argument(
@@ -302,7 +302,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             node_type = node_conf.pop("type")
         except KeyError:
             raise GenerateAirflowDagsException(
-                f"Node [red][b][i]{node_name}[/i][/b][/red] has no [i]'task'[/i] or [i]'task_group'[/i] type"
+                f"Node [red][b][i]{node_name}[/i][/b][/red] has no [i]'task'[/i] or "
+                f"[i]'task_group'[/i] type"
             )
         if node_type == "task_group":
             self.generate_task_group(node_name, node_conf)
@@ -336,8 +337,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         self.dag_output["imports"].append("from airflow.decorators import task_group\n"),
         task_group_output = [
-            f"{' '*4}@task_group(group_id='{tg_name}', tooltip='{tg_conf.pop('tooltip', '')}')\n",
-            f"{' '*4}def {tg_name}():\n",
+            f"{' ' * 4}@task_group(group_id='{tg_name}', tooltip='{tg_conf.pop('tooltip', '')}')\n",
+            f"{' ' * 4}def {tg_name}():\n",
         ]
         generator = tg_conf.pop("generator", "")
         tasks = tg_conf.pop("tasks", {})
@@ -351,17 +352,19 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             tasks = generator_instance.generate_tasks()
 
             for task_call in tasks.values():
-                if type(task_call) == str:
-                    task_group_output.append(f"{' '*8}{task_call}\n")
+                if type(task_call) is str:
+                    task_group_output.append(f"{' ' * 8}{task_call}\n")
                 elif isinstance(task_call, dict):
                     trigger = task_call.get("trigger", {})
                     sensor = task_call.get("sensor", {})
-                    task_group_output.append(f"{' ' *8}{trigger.get('call', '')}\n")
-                    task_group_output.append(f"{' ' *8}{sensor.get('call', '')}\n")
+                    task_group_output.append(f"{' ' * 8}{trigger.get('call', '')}\n")
+                    task_group_output.append(f"{' ' * 8}{sensor.get('call', '')}\n")
                     if sensor:
-                        task_group_output.append(f"{' ' *8}{trigger['name']} >> {sensor['name']}\n")
+                        task_group_output.append(
+                            f"{' ' * 8}{trigger['name']} >> {sensor['name']}\n"
+                        )
                     else:
-                        task_group_output.append(f"{' ' *8}{trigger['name']}\n")
+                        task_group_output.append(f"{' ' * 8}{trigger['name']}\n")
 
         elif tasks:
             for name, conf in tasks.items():
@@ -369,7 +372,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 task_group_output.extend(output)
 
         tg_variable_name = f"tg_{tg_name}"
-        task_group_output.append(f"{' '*4}{tg_variable_name} = {tg_name}()\n")
+        task_group_output.append(f"{' ' * 4}{tg_variable_name} = {tg_name}()\n")
         self.generated_groups[tg_name] = tg_variable_name
         self.dag_output["dag"].extend(task_group_output)
 
@@ -417,7 +420,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             task_name, task_conf.pop("config")
         )
         self.dag_output["globals"].append(
-            f"{config_global_name}={AIRFLOW_K8S_CONFIG_TEMPLATE.format(config=inner_config_lines)}\n"
+            f"{config_global_name}="
+            f"{AIRFLOW_K8S_CONFIG_TEMPLATE.format(config=inner_config_lines)}\n"
         )
         self.dag_output["imports"].append("from kubernetes.client import models as k8s\n")
         task_conf["executor_config"] = config_global_name
@@ -450,12 +454,12 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
 
             # Render decorated function
             task_output = [
-                f"{' '*indent}@task.{task_decorator}(\n",
-                f"{' '*(indent+4)}{', '.join(decorator_args)}\n",
-                f"{' '*indent})\n",
-                f"{' '*indent}def {task_name}():\n",
-                f"{' '*(indent+4)}return \"{bash_command}\"\n",
-                f"{' '*(indent)}{task_name} = {task_name}()\n",
+                f"{' ' * indent}@task.{task_decorator}(\n",
+                f"{' ' * (indent + 4)}{', '.join(decorator_args)}\n",
+                f"{' ' * indent})\n",
+                f"{' ' * indent}def {task_name}():\n",
+                f"{' ' * (indent + 4)}return \"{bash_command}\"\n",
+                f"{' ' * (indent)}{task_name} = {task_name}()\n",
             ]
         else:
             try:
@@ -468,10 +472,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             task_output = []
             task_output.extend(
                 [
-                    f"{' '*indent}{task_name} = {operator.split('.')[-1]}(\n",
-                    f"{' '*indent}task_id='{task_name}',\n",
-                    f"{' '*indent}{self.dag_args_to_string(task_conf)}\n",
-                    f"{' '*indent})\n",
+                    f"{' ' * indent}{task_name} = {operator.split('.')[-1]}(\n",
+                    f"{' ' * indent}task_id='{task_name}',\n",
+                    f"{' ' * indent}{self.dag_args_to_string(task_conf)}\n",
+                    f"{' ' * indent})\n",
                 ]
             )
             upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
@@ -479,7 +483,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         if dependencies:
             upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
             if is_task_taskgroup:
-                task_output.append(f"{' '*indent}[{', '.join(upstream_list)}] >> {task_name} \n")
+                task_output.append(f"{' ' * indent}[{', '.join(upstream_list)}] >> {task_name} \n")
             else:
                 self.collected_dependencies.append((upstream_list, task_name))
         return task_output
