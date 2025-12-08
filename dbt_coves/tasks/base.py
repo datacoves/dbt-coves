@@ -29,7 +29,7 @@ class BaseTask:
 
     @classmethod
     def register_parser(cls, sub_parsers, base_subparser):
-        raise NotImplementedError()
+        raise NotImplementedError("Missing parser for this task")
 
     @classmethod
     def get_instance(cls, flags, coves_config=None):
@@ -38,7 +38,7 @@ class BaseTask:
         return instance
 
     def run(self) -> int:
-        raise NotImplementedError()
+        raise NotImplementedError("Attempt to run unconfigured task")
 
 
 class BaseConfiguredTask(ConfiguredTask, BaseTask):
