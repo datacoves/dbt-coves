@@ -74,7 +74,9 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
         # All fully-replaced tables go at once.
         if len(full_tables):
             console.print(f"Loading full tables into {self.destination}")
+            console.print("Full tables: ", str(full_tables))
             source = sql_database(credentials=credentials, table_names=full_tables)
+            console.print("Run pipeline")
             info = pipeline.run(source, write_disposition="replace")
             print(info)
         # Incrementally loaded tables go one at a time, with their own cursor columns.

@@ -10,7 +10,7 @@ console = Console()
 
 class DataSyncTask(BaseTask):
     """
-    Task that extracts data from source and loads into destination
+    Task that uploads Airflow tables to Snowflake or Redshift.
     """
 
     arg_parser = None
@@ -20,7 +20,7 @@ class DataSyncTask(BaseTask):
         subparser = sub_parsers.add_parser(
             "data-sync",
             parents=[base_subparser],
-            help="Extract data from a source and load into a destination",
+            help="Upload Airflow tables to Snowflake or Redshift",
         )
         subparser.set_defaults(cls=cls, which="data_sync")
         sub_parsers = subparser.add_subparsers(title="dbt-coves data-sync commands", dest="task")

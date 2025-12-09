@@ -26,7 +26,7 @@ class BlueGreenTask(BaseConfiguredTask):
             "blue-green",
             parents=[base_subparser],
             # help="Run dbt on an isolated environment",
-            help="""Command to perfrom blue-green dbt runs""",
+            help="""Command to perform blue-green dbt runs""",
         )
         ext_subparser.set_defaults(cls=cls, which="blue-green")
         cls.arg_parser = ext_subparser
