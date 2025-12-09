@@ -53,12 +53,13 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
         # incremental and full loads according to if we have an incremental column.
         full_tables = []
         incremental_tables = {}
-        for i in DEFAULT_AIRFLOW_TABLES + self.tables:
+        requested_tables = self.tables.split(",")
+        for i in DEFAULT_AIRFLOW_TABLES + requested_tables:
             if i in AIRFLOW_INCREMENTALS.keys():
                 incremental_tables[i] = AIRFLOW_INCREMENTALS[i]
             else:
                 if i not in full_tables:
-                    full_tables += i
+                    full_tables.append(i)
 
         pipeline = dlt.pipeline(
             progress="enlighten",
