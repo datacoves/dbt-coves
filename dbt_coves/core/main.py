@@ -302,6 +302,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
             )
         if cpe.stderr:
             console.print(f"[red]:cross_mark:[/red] Called process error: {cpe.stderr}")
+            print(traceback.format_exc())
 
         return cpe.returncode
     except Exception as ex:
@@ -309,7 +310,7 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
         import traceback
 
         logger.debug(traceback.format_exc())
-        console.print(f"[red]:cross_mark:[/red] {ex}")
+        console.print(f"[red]:cross_mark:[/red] Exception: {ex}")
         print(traceback.format_exc())
         return 1
 
