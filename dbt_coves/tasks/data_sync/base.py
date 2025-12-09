@@ -53,7 +53,7 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
         # incremental and full loads according to if we have an incremental column.
         full_tables = []
         incremental_tables = {}
-        requested_tables = self.tables.split(",")
+        requested_tables = self.tables
         for i in DEFAULT_AIRFLOW_TABLES + requested_tables:
             if i in AIRFLOW_INCREMENTALS.keys():
                 incremental_tables[i] = AIRFLOW_INCREMENTALS[i]
