@@ -71,7 +71,6 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
         # By default the sql_database source reflects all tables in the schema
         # The database credentials are sourced from the `.dlt/secrets.toml` configuration
         credentials = ConnectionStringCredentials(self.source_connection_string)
-        incredentials = credentials.to_url()
 
         # All fully-replaced tables go at once.
         if len(full_tables):
@@ -85,7 +84,7 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
         for i in incremental_tables:
             console.print(f"Incrementally loading table: {i}")
             source = sql_table(
-                credentials=incredentials,
+                credentials=credentials,
                 table=i,
                 incremental=dlt.sources.incremental(
                     incremental_tables[i], initial_value="1970-01-01T00:00:00Z"

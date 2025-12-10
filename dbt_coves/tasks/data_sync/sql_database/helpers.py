@@ -137,10 +137,15 @@ class SqlDatabaseTableConfiguration(BaseConfiguration):
 
 @configspec
 class SqlTableResourceConfiguration(BaseConfiguration):
-    credentials: ConnectionStringCredentials = (None,)
-    table: str = (None,)
+    """Backported from dlt-hub PR #498"""
+
+    credentials: Union[ConnectionStringCredentials, Engine, str] = None
+    table: str = None
     incremental: Optional[dlt.sources.incremental] = None  # type: ignore[type-arg]
     schema: Optional[str] = None
+    chunk_size: int = 50000
+    detect_precision_hints: Optional[bool] = False
+    defer_table_reflect: Optional[bool] = False
 
 
 __source_name__ = "sql_database"
