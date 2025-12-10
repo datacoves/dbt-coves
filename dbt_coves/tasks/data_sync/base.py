@@ -3,6 +3,7 @@ Bring all common (shared across Snowflake and Redshift) dlt functionalities here
 """
 
 import os
+from datetime import datetime
 
 import dlt
 from dlt.sources.credentials import ConnectionStringCredentials
@@ -27,14 +28,14 @@ DEFAULT_AIRFLOW_TABLES = [
 ]
 
 # These tables have a column appropriate for incremental upload.  Everything else will just
-# blindly replace the destination table.
+# blindly replace the destination table.  Each tuple is (column, initial_value).
 AIRFLOW_INCREMENTALS = {
-    "dag": "last_pickled",
-    "dag_run": "execution_date",
-    "import_error": "timestamp",
-    "job": "start_date",
-    "task_fail": "start_date",
-    "task_instance": "updated_at",
+    "dag": ("last_pickled", "1970-01-01T00:00:00Z"),
+    "dag_run": ("execution_date", datetime.fromisoformat("1970-01-01T00:00:00Z")),
+    "import_error": ("timestamp", datetime.fromisoformat("1970-01-01T00:00:00Z")),
+    "job": ("start_date", datetime.fromisoformat("1970-01-01T00:00:00Z")),
+    "task_fail": ("start_date", datetime.fromisoformat("1970-01-01T00:00:00Z")),
+    "task_instance": ("updated_at", datetime.fromisoformat("1970-01-01T00:00:00Z")),
 }
 
 console = Console()
@@ -87,7 +88,7 @@ class BaseDataSyncTask(NonDbtBaseConfiguredTask):
                 credentials=credentials,
                 table=i,
                 incremental=dlt.sources.incremental(
-                    incremental_tables[i], initial_value="1970-01-01T00:00:00Z"
+                    incremental_tables[i][0], initial_value=incremental_tables[i][1]
                 ),
             )
             info = pipeline.run(source, write_disposition="append")
