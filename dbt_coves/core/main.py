@@ -6,7 +6,6 @@ import uuid
 from subprocess import CalledProcessError
 from typing import List
 
-import pyfiglet
 from dbt import tracking, version
 from rich.console import Console
 
@@ -125,7 +124,8 @@ base_subparser.add_argument(
     "--threads",
     type=str,
     default=None,
-    help="Specify number of threads to use while executing models. Overrides settings in profiles.yml.",
+    help="Specify number of threads to use while executing models. "
+    "Overrides settings in profiles.yml.",
 )
 
 base_subparser.add_argument(
@@ -136,8 +136,8 @@ base_subparser.add_argument(
     "--version-check",
     action="store_true",
     default=False,
-    help="If set, ensure the installed dbt version matches the require-dbt-version specified in the "
-    "dbt_project.yml file (if any). Otherwise, allow them to differ.",
+    help="If set, ensure the installed dbt version matches the require-dbt-version specified in "
+    "the dbt_project.yml file (if any). Otherwise, allow them to differ.",
     dest="VERSION_CHECK",
 )
 
@@ -179,8 +179,8 @@ base_subparser.add_argument(
     "--partial-parse",
     action="store_true",
     default=False,
-    help="Allow for partial parsing by looking for and writing to a pickle file in the target directory. "
-    "This overrides the user configuration file.",
+    help="Allow for partial parsing by looking for and writing to a pickle file in the "
+    "target directory. This overrides the user configuration file.",
     dest="PARTIAL_PARSE",
 )
 
@@ -272,8 +272,13 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
     # print version on every run unless doing `--version` which is better handled by argparse
     if "--version" not in sys.argv[1:]:
         # app logo
-        logo_str = str(pyfiglet.figlet_format("dbt-coves", font="standard"))
-        console.print(logo_str, style="cyan")
+        logo_str = """     _ _     _
+  __| | |__ | |_       ___ _____   _____  ___
+ / _` | '_ \\| __|____ / __/ _ \\ \\ / / _ \\/ __|
+| (_| | |_) | ||_____| (_| (_) \\ V /  __/\\__ \\
+ \\__,_|_.__/ \\__|     \\___\\___/ \\_/ \\___||___/
+ """
+        console.print(logo_str, style="cyan", highlight=False)
         dbt_version = version.get_installed_version().to_version_string(skip_matcher=True)
         console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23))
 
@@ -296,14 +301,17 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
                 "[red]The process was killed by the OS due to running out of memory.[/red]"
             )
         if cpe.stderr:
-            console.print(f"[red]:cross_mark:[/red] {cpe.stderr}")
+            console.print(f"[red]:cross_mark:[/red] Called process error: {cpe.stderr}")
+            print(traceback.format_exc())
 
         return cpe.returncode
     except Exception as ex:
+        # For general errors, print a more useful traceback.
         import traceback
 
         logger.debug(traceback.format_exc())
-        console.print(f"[red]:cross_mark:[/red] {ex}")
+        console.print(f"[red]:cross_mark:[/red] Exception: {ex}")
+        print(traceback.format_exc())
         return 1
 
     if exit_code > 0:
@@ -326,7 +334,8 @@ def _gen_get_app_uuid(args):
             args.uuid = dbt_coves_uuid
     except Exception as e:
         logger.debug(
-            f"Error occurred when trying to create ~/.dbt-coves/: {str(e)}, user home is {os.environ.get('HOME')}"
+            f"Error occurred when trying to create ~/.dbt-coves/: "
+            f"{str(e)}, user home is {os.environ.get('HOME')}"
         )
         args.uuid = None
 

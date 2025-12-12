@@ -192,7 +192,8 @@ class LoadFivetranTask(BaseLoadTask):
         ]
         if self._fivetran_destination_updated(destination_details):
             console.print(
-                f"Destination [green]{destination_details['id']}[/green] already up to date. Skipping"
+                f"Destination [green]{destination_details['id']}[/green] already up to date. "
+                f"Skipping"
             )
         else:
             destination_details["run_setup_tests"] = False

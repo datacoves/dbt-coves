@@ -74,12 +74,12 @@ class SetupTask(NonDbtBaseTask):
     def run(self) -> int:
         self.repo_path = os.environ.get("DATACOVES__REPO_PATH", Path().resolve())
         self.copier_context = {"no_prompt": self.get_config_value("no_prompt")}
-        self.copier_context[
-            "dbt_core_version"
-        ] = f"{__dbt_major_version__}.{__dbt_minor_version__}.{__dbt_patch_version__}"
-        self.copier_context[
-            "dbt_adapter_version"
-        ] = f"{__dbt_major_version__}.{__dbt_minor_version__}"
+        self.copier_context["dbt_core_version"] = (
+            f"{__dbt_major_version__}.{__dbt_minor_version__}.{__dbt_patch_version__}"
+        )
+        self.copier_context["dbt_adapter_version"] = (
+            f"{__dbt_major_version__}.{__dbt_minor_version__}"
+        )
         return self.setup_datacoves()
 
     def _get_latest_repo_tag(self, repo_url):

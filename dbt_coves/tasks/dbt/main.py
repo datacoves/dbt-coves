@@ -138,7 +138,10 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 f"[green]{command} :heavy_check_mark:[/green]"
             )
         except subprocess.CalledProcessError as e:
-            formatted = f"{Text.from_ansi(e.stderr.decode()) if e.stderr else Text.from_ansi(e.stdout.decode())}"
+            if e.stderr:
+                formatted = str(Text.from_ansi(e.stderr.decode()))
+            else:
+                formatted = str(Text.from_ansi(e.stdout.decode()))
             e.stderr = f"An error has occurred running [red]{command}[/red]:\n{formatted}"
             raise
 

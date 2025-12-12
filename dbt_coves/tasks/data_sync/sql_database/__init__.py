@@ -1,4 +1,5 @@
-"""Source that loads tables form any SQLAlchemy supported database, supports batching requests and incremental loads."""
+"""Source that loads tables form any SQLAlchemy supported database, supports batching requests
+and incremental loads."""
 
 from typing import Any, Callable, Iterable, List, Optional, Union
 
@@ -32,7 +33,8 @@ def sql_database(
 ) -> Iterable[DltResource]:
     """
     A DLT source which loads data from an SQL database using SQLAlchemy.
-    Resources are automatically created for each table in the schema or from the given list of tables.
+    Resources are automatically created for each table in the schema or from the given list of
+    tables.
 
     Args:
         credentials (Union[ConnectionStringCredentials, Engine, str]): Database credentials
@@ -117,12 +119,13 @@ def sql_table(
         schema (Optional[str]): Optional name of the schema the table belongs to.
         metadata (Optional[MetaData]): Optional `sqlalchemy.MetaData` instance.
             If provided, the `schema` argument is ignored.
-        incremental (Optional[dlt.sources.incremental[Any]]): Option to enable incremental loading for the table.
-            E.g., `incremental=dlt.sources.incremental('updated_at', pendulum.parse('2022-01-01T00:00:00Z'))`
+        incremental (Optional[dlt.sources.incremental[Any]]): Option to enable incremental loading
+            for the table. E.g., `incremental=dlt.sources.incremental('updated_at',
+            pendulum.parse('2022-01-01T00:00:00Z'))`
         chunk_size (int): Number of rows yielded in one batch.
             SQL Alchemy will create additional internal rows buffer twice the chunk size.
-        detect_precision_hints (bool): Set column precision and scale hints for supported data types
-            in the target schema based on the columns in the source tables.
+        detect_precision_hints (bool): Set column precision and scale hints for supported data
+            types in the target schema based on the columns in the source tables.
             This is disabled by default.
         defer_table_reflect (bool): Will connect and reflect table schema only when yielding data.
             Enable this option when running on Airflow. Available

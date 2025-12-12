@@ -26,7 +26,8 @@ class AirbyteExtractorException(Exception):
 class ExtractAirbyteTask(BaseExtractTask):
     def _normalize_filename(self, name: str) -> str:
         """
-        Normalize a string to be safe for filenames: lowercase, replace spaces and unsafe chars with underscores.
+        Normalize a string to be safe for filenames: lowercase, replace spaces and unsafe chars
+        with underscores.
         """
         name = name.lower()
         # Replace spaces and any non-alphanumeric character with underscore
@@ -281,7 +282,10 @@ class ExtractAirbyteTask(BaseExtractTask):
         connection.pop("sourceCatalogId", None)
         connection["sourceName"] = connection_source_name
         connection["destinationName"] = connection_destination_name
-        filename = f"{self._normalize_filename(f'{connection_source_name}-{connection_destination_name}')}.json"
+        filename = self._normalize_filename(
+            f"{connection_source_name}-{connection_destination_name}.json"
+        )
+
         path = os.path.join(self.connections_extract_destination, filename)
 
         self._save_json(path, connection)

@@ -26,7 +26,7 @@ class BlueGreenTask(BaseConfiguredTask):
             "blue-green",
             parents=[base_subparser],
             # help="Run dbt on an isolated environment",
-            help="""Command to perfrom blue-green dbt runs""",
+            help="""Command to perform blue-green dbt runs""",
         )
         ext_subparser.set_defaults(cls=cls, which="blue-green")
         cls.arg_parser = ext_subparser
@@ -83,7 +83,8 @@ class BlueGreenTask(BaseConfiguredTask):
             self.production_database = os.environ[self.prod_db_env_var]
         except KeyError:
             raise DbtCovesException(
-                f"Environment variable {self.prod_db_env_var} not found. Please provide a production database"
+                f"Environment variable {self.prod_db_env_var} not found. "
+                f"Please provide a production database"
             )
         self.con = self.snowflake_connection()
         staging_database = self.get_config_value("staging_database")
@@ -95,8 +96,8 @@ class BlueGreenTask(BaseConfiguredTask):
         self.staging_database = staging_database or f"{self.production_database}_{staging_suffix}"
         if self.production_database == self.staging_database:
             raise DbtCovesException(
-                f"Production database {self.production_database} cannot be the same as staging database "
-                f"{self.staging_database}"
+                f"Production database {self.production_database} cannot be the same as staging "
+                f"database {self.staging_database}"
             )
         self.drop_staging_db_at_start = self.get_config_value("drop_staging_db_at_start")
 
@@ -192,7 +193,8 @@ class BlueGreenTask(BaseConfiguredTask):
             self.cdb.drop_database()
         elif green_exists:
             raise DbtCovesException(
-                f"Green database {self.staging_database} already exists. Please either drop it or use a different name."
+                f"Green database {self.staging_database} already exists. Please either drop it or "
+                f"use a different name."
             )
 
     def _get_snowflake_credentials_from_dbt_adapter(self):

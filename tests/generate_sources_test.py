@@ -273,21 +273,21 @@ def test_generate_data(input):
         # Generate data
         query_job = client.query(f"CREATE SCHEMA IF NOT EXISTS `{project_id}.{schema}`;")
         query_job.result()
-        assert query_job.errors == None
+        assert query_job.errors is None
         with open(input["create_model_sql_file"], "r") as sql_file:
             query = sql_file.read()
         query_job = client.query(query, location="US")
         query_job.result()
-        assert query_job.errors == None
+        assert query_job.errors is None
         with open(input["insert_data_sql_file"], "r") as sql_file:
             query = sql_file.read()
         query_job = client.query(query, location="US")
         query_job.result()
-        assert query_job.errors == None
+        assert query_job.errors is None
         query_job = client.query(f"SELECT * FROM {schema}.{table} LIMIT 1;")
         query_job.result()
         rows = []
-        assert query_job.errors == None
+        assert query_job.errors is None
         for row in query_job:
             rows.append(row)
         assert len(rows) == 1
@@ -352,13 +352,13 @@ def test_generate_sources(input):
     # Execute CLI command and interact with it
     process = subprocess.run(
         args=command,
-        input="\x1B[A\n\x1B[B\x1B[B\x1B[B\n",
+        input="\x1b[A\n\x1b[B\x1b[B\x1b[B\n",
         encoding="utf-8",
         cwd=pathlib.Path(__file__).parent.resolve(),
     )
 
     assert process.returncode == 0
-    assert os.path.isdir(pathlib.Path(input["output_dir"], "models")) == True
+    assert os.path.isdir(pathlib.Path(input["output_dir"], "models"))
 
 
 # Check models cases
@@ -453,7 +453,7 @@ def test_check_models(input, expected):
             sep=",",
             index=False,
         )
-        assert query_job.errors == None
+        assert query_job.errors is None
         client.close()
     else:
         raise Exception("Adapter not supported")
@@ -614,12 +614,12 @@ def test_update_sources(input):
     # Execute CLI command and interact with it
     process = subprocess.run(
         args=command,
-        input="\n\x1B[A\n\x1B[A\n",
+        input="\n\x1b[A\n\x1b[A\n",
         encoding="utf-8",
         cwd=pathlib.Path(__file__).parent.resolve(),
     )
     assert process.returncode == 0
-    assert os.path.isdir(pathlib.Path(input["output_dir"], "models")) == True
+    assert os.path.isdir(pathlib.Path(input["output_dir"], "models"))
 
 
 # Assert descriptions are still the same
@@ -753,12 +753,12 @@ def tests_cleanup(input):
         # Delete table
         job_query = client.query(f"DROP TABLE `{schema}.{table}`;")
         job_query.result()
-        assert job_query.errors == None
+        assert job_query.errors is None
 
         # Delete dataset
         job_query = client.query(f"DROP SCHEMA `{schema}`;")
         job_query.result()
-        assert job_query.errors == None
+        assert job_query.errors is None
 
         client.close()
 
