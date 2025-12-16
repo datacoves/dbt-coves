@@ -320,7 +320,8 @@ class GenerateSourcesTask(BaseGenerateTask):
             config_db = ""
         _, data = self.adapter.execute(
             f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} \
-                limit 1",
+                WHERE {' IS NOT NULL AND '.join([' CAST(' + sub + ' AS VARCHAR) ' for sub in json_cols])} \
+                IS NOT NULL limit 1",
             fetch=True,
         )
         result = dict()
@@ -328,11 +329,13 @@ class GenerateSourcesTask(BaseGenerateTask):
             for idx, json_col in enumerate(json_cols):
                 value = data.columns[idx]
                 try:
-                    nested_key_names = list(json.loads(value[0]).keys())
-                    result[json_col] = {}
-                    for key_name in nested_key_names:
-                        result[json_col][key_name] = self.get_default_metadata_item(key_name)
-                    self.add_metadata_to_nested(relation, result, json_col)
+                    nested_object = json.loads(value[0])
+                    if type(nested_object) is dict:
+                        nested_key_names = list(nested_object.keys())
+                        result[json_col] = {}
+                        for key_name in nested_key_names:
+                            result[json_col][key_name] = self.get_default_metadata_item(key_name)
+                        self.add_metadata_to_nested(relation, result, json_col)
                 except TypeError:
                     console.print(
                         f"Column {json_col} in relation {relation.name} contains invalid JSON.\n"
