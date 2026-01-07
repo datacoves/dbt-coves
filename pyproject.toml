@@ -52,7 +52,7 @@ psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
 pyyaml-include = "<2.0"
 enlighten = "^1.12.4"
-snowflake-connector-python = "^3.12.1"
+snowflake-connector-python = ">=3.12.1,<4.3"
 jinja2-env = "^0.1.3"
 prompt-toolkit = "3.0.51"
 
