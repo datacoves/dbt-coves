@@ -52,7 +52,7 @@ psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
 pyyaml-include = "<2.0"
 enlighten = "^1.12.4"
-snowflake-connector-python = "^3.12.1"
+snowflake-connector-python = ">=3.12.1,<4.3"
 jinja2-env = "^0.1.3"
 prompt-toolkit = "3.0.51"
 
@@ -85,7 +85,7 @@ python-dotenv = "^0.21.1"
 pandas = "^1.3.0"
 # Old numpy is a sneak dependency of pandas
 numpy = "<2"
-snowflake-connector-python = {extras = ["pandas"], version = "^3.0"}
+snowflake-connector-python = {extras = ["pandas"], version = "^3.0,<4.3"}
 google-cloud-bigquery = ">2.34,<4"
 tox-poetry-installer = "^0.10.0"
 tox = "^3.23.1"
