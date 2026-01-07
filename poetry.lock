@@ -5273,7 +5273,7 @@ files = [
     {file = "pywin32-311-cp39-cp39-win_amd64.whl", hash = "sha256:e0c4cfb0621281fe40387df582097fd796e80430597cb9944f0ae70447bacd91"},
     {file = "pywin32-311-cp39-cp39-win_arm64.whl", hash = "sha256:62ea666235135fee79bb154e695f3ff67370afefd71bd7fea7512fc70ef31e3d"},
 ]
-markers = {main = "platform_system == \"Windows\" and platform_python_implementation != \"PyPy\" or sys_platform == \"win32\"", test = "platform_python_implementation != \"PyPy\" and sys_platform == \"win32\" and python_version == \"3.9\""}
+markers = {main = "platform_system == \"Windows\" and platform_python_implementation != \"PyPy\" or sys_platform == \"win32\"", test = "sys_platform == \"win32\" and platform_python_implementation != \"PyPy\" and python_version == \"3.9\""}
 
 [[package]]
 name = "pywin32-ctypes"
@@ -7402,4 +7402,4 @@ type = ["pytest-mypy"]
 [metadata]
 lock-version = "2.1"
 python-versions = ">=3.9,<3.13"
-content-hash = "187ffab048ef2ba722e8d312879b0c9daf512d20d184b3cdb882610cdf4252a3"
+content-hash = "92840ead66fbeaf03575568cd7b8cd17f6b5ed2a14627b8d54be9bd1153e7b85"
