@@ -2,16 +2,25 @@
 
 [![PyPI version fury.io](https://badge.fury.io/py/dbt-coves.svg)](https://pypi.python.org/pypi/dbt-coves/) ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/dbt_coves) [![Build](https://github.com/datacoves/dbt-coves/actions/workflows/main_ci.yml/badge.svg)](https://github.com/datacoves/dbt-coves/actions/workflows/main_ci.yml/badge.svg)
 
-## Brought to you by your friends at Datacoves
+## Brought to you by Datacoves
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="images/datacoves-dark.png">
   <img alt="Datacoves" src="images/datacoves-light.png" width="150">
 </picture>
 
-The Datacoves platform helps enterprises overcome their data delivery challenges quickly using dbt and Airflow, implementing best practices from the start without the need for multiple vendors or costly consultants.
+dbt-coves automates the tedious parts of dbt development. Datacoves takes it further: a managed DataOps platform for dbt and Airflow, deployable in your private cloud or available as SaaS.
 
-Hosted VS Code, dbt-core, SqlFluff, and Airflow, find out more at [Datacoves.com](https://datacoves.com/product).
+- **Private cloud or SaaS** – your data, your choice
+- **Managed dbt + Airflow** – production-ready from day one
+- **In-browser VS Code** – onboard developers in minutes
+- **Bring your own tools** – integrates with your existing stack, no lock-in
+- **AI-assisted development** – connect your organization's approved LLM (Anthropic, OpenAI, Azure, Gemini, and more)
+- **Built-in governance** – CI/CD, guardrails, and best practices included
+
+dbt-coves is the power tools. Datacoves is the workshop.
+
+[Explore the platform →](https://datacoves.com)
 
 ## Overview
 
