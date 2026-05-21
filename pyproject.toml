@@ -46,7 +46,7 @@ dlt = {extras = ["redshift"], version = ">=1.0"}
 psycopg2-binary = "^2.9.9"
 sqlalchemy = "^1.4"
 enlighten = "^1.12.4"
-snowflake-connector-python = ">=3.12.1,<4.3"
+snowflake-connector-python = ">=3.12.1,<4.6"
 jinja2-env = "^0.1.3"
 prompt-toolkit = "3.0.51"
 
@@ -78,7 +78,7 @@ redshift-connector = "^2.0.910"
 pytest-dependency = "^0.5.1"
 python-dotenv = "^0.21.1"
 pandas = "^2.0"
-snowflake-connector-python = {extras = ["pandas"], version = "^3.0,<4.3"}
+snowflake-connector-python = {extras = ["pandas"], version = "^3.0,<4.6"}
 google-cloud-bigquery = ">2.34,<4"
 tox-poetry-installer = "^0.10.0"
 tox = "^3.23.1"
