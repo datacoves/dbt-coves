@@ -82,7 +82,7 @@ class GenerateModel(BaseModel):
 class ExtractAirbyteModel(BaseModel):
     path: Optional[str] = ""
     host: Optional[str] = ""
-    port: Optional[str] = ""
+    api_key: Optional[str] = ""
 
 
 class ExtractFivetranModel(BaseModel):
@@ -95,7 +95,7 @@ class ExtractFivetranModel(BaseModel):
 class LoadAirbyteModel(BaseModel):
     path: Optional[str] = ""
     host: Optional[str] = ""
-    port: Optional[str] = ""
+    api_key: Optional[str] = ""
     secrets_path: Optional[str] = ""
     secrets_manager: Optional[str] = ""
     secrets_url: Optional[str] = ""
@@ -230,10 +230,10 @@ class DbtCovesConfig:
         "generate.airflow_dags.secrets_key",
         "extract.airbyte.path",
         "extract.airbyte.host",
-        "extract.airbyte.port",
+        "extract.airbyte.api_key",
         "load.airbyte.path",
         "load.airbyte.host",
-        "load.airbyte.port",
+        "load.airbyte.api_key",
         "load.airbyte.secrets_path",
         "load.airbyte.secrets_manager",
         "load.airbyte.secrets_url",

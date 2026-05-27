@@ -54,68 +54,125 @@ class FivetranApiCallerException(Exception):
 
 
 class AirbyteApiCaller:
-    def api_call(self, endpoint: str, body: Dict[str, str] = None, timeout=None):
-        """
-        Generic `api caller` for contacting Airbyte
-        """
-        response = requests.post(endpoint, json=body, timeout=timeout)
-        if response.status_code >= 200 and response.status_code < 300:
-            return json.loads(response.text) if response.text else None
-        else:
-            raise AirbyteApiCallerException(
-                f"Unexpected status code from airbyte in endpoint {endpoint}:"
-                f"{response.status_code}: {json.loads(response.text)['message']}"
-            )
+    """
+    API caller for Airbyte's public REST API (/api/public/v1).
+    Replaces the old internal config API (/api/v1) which used POST for all operations.
+    """
 
-    def __init__(self, api_host, api_port):
-        airbyte_host = api_host
-        airbyte_port = api_port
-        airbyte_api_root = "api/v1/"
-        airbyte_api_base_endpoint = f"{airbyte_host}:{airbyte_port}/{airbyte_api_root}"
-
-        self.api_endpoints = {
-            "GET_OBJECTS": airbyte_api_base_endpoint + "{obj}/get",
-            "LIST_OBJECTS": airbyte_api_base_endpoint + "{obj}/list",
-            "CREATE_OBJECT": airbyte_api_base_endpoint + "{obj}/create",
-            "UPDATE_OBJECT": airbyte_api_base_endpoint + "{obj}/update",
-            "DELETE_OBJECT": airbyte_api_base_endpoint + "{obj}/delete",
-            "TEST_UPDATE": airbyte_api_base_endpoint + "{obj}/check_connection_for_update",
-            "TEST_CONNECTION": airbyte_api_base_endpoint + "{obj}/check_connection",
+    def __init__(self, api_host, api_key=None):
+        self.base_url = f"{api_host.rstrip('/')}/api/public/v1"
+        self.headers = {
+            "accept": "application/json",
+            "content-type": "application/json",
         }
+        if api_key:
+            self.headers["authorization"] = f"Bearer {api_key}"
+
         try:
             console.print("Querying [i]Airbyte[/i] connections")
-            self.airbyte_workspace_id = self.api_call(
-                self.api_endpoints["LIST_OBJECTS"].format(obj="workspaces")
-            )["workspaces"][0]["workspaceId"]
-            self.standard_request_body = {"workspaceId": self.airbyte_workspace_id}
-            self.airbyte_connections_list = self.api_call(
-                self.api_endpoints["LIST_OBJECTS"].format(obj="connections"),
-                self.standard_request_body,
-            )["connections"]
-            self.airbyte_sources_list = self.api_call(
-                self.api_endpoints["LIST_OBJECTS"].format(obj="sources"), self.standard_request_body
-            )["sources"]
-            self.airbyte_destinations_list = self.api_call(
-                self.api_endpoints["LIST_OBJECTS"].format(obj="destinations"),
-                self.standard_request_body,
-            )["destinations"]
-
+            workspaces = self._get_all("workspaces")
+            if not workspaces:
+                raise AirbyteApiCallerException("No Airbyte workspaces found")
+            self.workspace_id = workspaces[0]["workspaceId"]
+            self.connections_list = self._get_all("connections", workspaceIds=self.workspace_id)
+            self.sources_list = self._get_all("sources", workspaceIds=self.workspace_id)
+            self.destinations_list = self._get_all("destinations", workspaceIds=self.workspace_id)
             self.load_definitions()
         except AirbyteApiCallerException as e:
             raise AirbyteApiCallerException(
-                f"Couldn't retrieve Airbyte connections, sources and destinations {e}"
+                f"Couldn't retrieve Airbyte connections, sources and destinations: {e}"
             )
 
-    def load_definitions(self):
-        self.destination_definitions = self.api_call(
-            self.api_endpoints["LIST_OBJECTS"].format(obj="destination_definitions"),
-            self.standard_request_body,
-        )["destinationDefinitions"]
+    def _request(self, method, path, body=None, params=None, timeout=None):
+        url = f"{self.base_url}/{path.lstrip('/')}"
+        response = requests.request(
+            method, url=url, json=body, params=params, headers=self.headers, timeout=timeout
+        )
+        if response.status_code == 204:
+            return None
+        if 200 <= response.status_code < 300:
+            return response.json() if response.text else None
+        try:
+            message = response.json().get("message", response.text)
+        except Exception:
+            message = response.text
+        raise AirbyteApiCallerException(
+            f"Airbyte API error ({response.status_code}) at {path}: {message}"
+        )
 
-        self.source_definitions = self.api_call(
-            self.api_endpoints["LIST_OBJECTS"].format(obj="source_definitions"),
-            self.standard_request_body,
-        )["sourceDefinitions"]
+    def _get_all(self, resource, **params):
+        """Fetch all pages from a list endpoint, handling pagination."""
+        results = []
+        limit = 100
+        offset = 0
+        while True:
+            page = self._request(
+                "GET", resource, params={"limit": limit, "offset": offset, **params}
+            )
+            data = page.get("data", [])
+            results.extend(data)
+            if len(data) < limit:
+                break
+            offset += limit
+        return results
+
+    def load_definitions(self):
+        self.destination_definitions = self._get_all(
+            "connector_definitions/destinations", workspaceId=self.workspace_id
+        )
+        self.source_definitions = self._get_all(
+            "connector_definitions/sources", workspaceId=self.workspace_id
+        )
+
+    def get_source_spec(self, definition_id):
+        """Fetch connector spec (including airbyte_secret markers) for a source definition."""
+        try:
+            return self._request("GET", f"connector_definitions/sources/{definition_id}")
+        except AirbyteApiCallerException:
+            return None
+
+    def get_destination_spec(self, definition_id):
+        """Fetch connector spec for a destination definition."""
+        try:
+            return self._request("GET", f"connector_definitions/destinations/{definition_id}")
+        except AirbyteApiCallerException:
+            return None
+
+    # Source CRUD
+    def create_source(self, body):
+        return self._request("POST", "sources", body=body)
+
+    def update_source(self, source_id, body):
+        return self._request("PATCH", f"sources/{source_id}", body=body)
+
+    def delete_source(self, source_id):
+        self._request("DELETE", f"sources/{source_id}")
+
+    def check_source(self, source_id, timeout=None):
+        return self._request("POST", f"sources/{source_id}/check", timeout=timeout)
+
+    # Destination CRUD
+    def create_destination(self, body):
+        return self._request("POST", "destinations", body=body)
+
+    def update_destination(self, destination_id, body):
+        return self._request("PATCH", f"destinations/{destination_id}", body=body)
+
+    def delete_destination(self, destination_id):
+        self._request("DELETE", f"destinations/{destination_id}")
+
+    def check_destination(self, destination_id, timeout=None):
+        return self._request("POST", f"destinations/{destination_id}/check", timeout=timeout)
+
+    # Connection CRUD
+    def create_connection(self, body):
+        return self._request("POST", "connections", body=body)
+
+    def update_connection(self, connection_id, body):
+        return self._request("PATCH", f"connections/{connection_id}", body=body)
+
+    def delete_connection(self, connection_id):
+        self._request("DELETE", f"connections/{connection_id}")
 
 
 class FivetranApiCaller:
