@@ -80,11 +80,11 @@ class AirbyteApiCaller:
             self.connections_list = self._get_all("connections", workspaceIds=self.workspace_id)
             self.sources_list = self._get_all("sources", workspaceIds=self.workspace_id)
             self.destinations_list = self._get_all("destinations", workspaceIds=self.workspace_id)
-            self.load_definitions()
         except AirbyteApiCallerException as e:
             raise AirbyteApiCallerException(
                 f"Couldn't retrieve Airbyte connections, sources and destinations: {e}"
             )
+        self.load_definitions()
 
     def _request(self, method, path, body=None, params=None, timeout=None):
         url = f"{self.base_url}/{path.lstrip('/')}"
@@ -120,12 +120,24 @@ class AirbyteApiCaller:
         return results
 
     def load_definitions(self):
-        self.destination_definitions = self._get_all(
-            "connector_definitions/destinations", workspaceId=self.workspace_id
-        )
-        self.source_definitions = self._get_all(
-            "connector_definitions/sources", workspaceId=self.workspace_id
-        )
+        """
+        Fetch connector definitions (used for version checking and secret field discovery).
+        Non-fatal: some Airbyte versions don't expose this endpoint in the public API.
+        """
+        self.source_definitions = []
+        self.destination_definitions = []
+        try:
+            self.source_definitions = self._get_all(
+                "connector_definitions/sources", workspaceId=self.workspace_id
+            )
+            self.destination_definitions = self._get_all(
+                "connector_definitions/destinations", workspaceId=self.workspace_id
+            )
+        except AirbyteApiCallerException as e:
+            console.print(
+                f"[yellow]Warning:[/yellow] Could not load connector definitions ({e}). "
+                "Connector version checking and secret masking will be skipped."
+            )
 
     def get_source_spec(self, definition_id):
         """Fetch connector spec (including airbyte_secret markers) for a source definition."""
