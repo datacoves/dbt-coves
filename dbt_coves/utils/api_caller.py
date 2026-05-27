@@ -96,7 +96,10 @@ class AirbyteApiCaller:
         if 200 <= response.status_code < 300:
             return response.json() if response.text else None
         try:
-            message = response.json().get("message", response.text)
+            error_body = response.json()
+            message = error_body.get("message", "") or error_body.get("detail", "")
+            if not message:
+                message = json.dumps(error_body)
         except Exception:
             message = response.text
         raise AirbyteApiCallerException(
