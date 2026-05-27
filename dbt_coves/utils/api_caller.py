@@ -59,8 +59,11 @@ class AirbyteApiCaller:
     Replaces the old internal config API (/api/v1) which used POST for all operations.
     """
 
-    def __init__(self, api_host, api_key=None):
-        self.base_url = f"{api_host.rstrip('/')}/api/public/v1"
+    def __init__(self, api_host, api_port=None, api_key=None):
+        host = api_host.rstrip("/")
+        if api_port:
+            host = f"{host}:{api_port}"
+        self.base_url = f"{host}/api/public/v1"
         self.headers = {
             "accept": "application/json",
             "content-type": "application/json",

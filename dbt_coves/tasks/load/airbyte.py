@@ -42,7 +42,12 @@ class LoadAirbyteTask(BaseLoadTask):
         subparser.add_argument(
             "--host",
             type=str,
-            help="Airbyte's API host, i.e. 'http://airbyte-server:8000'",
+            help="Airbyte's API host, i.e. 'http://airbyte-server'",
+        )
+        subparser.add_argument(
+            "--port",
+            type=str,
+            help="Airbyte's API port, i.e. '8006'",
         )
         subparser.add_argument(
             "--api-key",
@@ -78,6 +83,7 @@ class LoadAirbyteTask(BaseLoadTask):
         }
         self.load_destination = self.get_config_value("path")
         self.airbyte_host = self.get_config_value("host")
+        self.airbyte_port = self.get_config_value("port")
         self.airbyte_api_key = self.get_config_value("api_key")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
@@ -108,7 +114,11 @@ class LoadAirbyteTask(BaseLoadTask):
         self.destinations_load_destination = os.path.abspath(path / "destinations")
         self.sources_load_destination = os.path.abspath(path / "sources")
 
-        self.airbyte_api = AirbyteApiCaller(self.airbyte_host, api_key=self.airbyte_api_key or None)
+        self.airbyte_api = AirbyteApiCaller(
+            self.airbyte_host,
+            api_port=self.airbyte_port or None,
+            api_key=self.airbyte_api_key or None,
+        )
 
         console.print(f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n")
 

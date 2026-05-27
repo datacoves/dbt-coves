@@ -53,7 +53,12 @@ class ExtractAirbyteTask(BaseExtractTask):
         subparser.add_argument(
             "--host",
             type=str,
-            help="Airbyte's API host, i.e. 'http://airbyte-server:8000'",
+            help="Airbyte's API host, i.e. 'http://airbyte-server'",
+        )
+        subparser.add_argument(
+            "--port",
+            type=str,
+            help="Airbyte's API port, i.e. '8006'",
         )
         subparser.add_argument(
             "--api-key",
@@ -73,6 +78,7 @@ class ExtractAirbyteTask(BaseExtractTask):
 
         extract_destination = self.get_config_value("path")
         airbyte_host = self.get_config_value("host")
+        airbyte_port = self.get_config_value("port")
         airbyte_api_key = self.get_config_value("api_key")
 
         if not extract_destination or not airbyte_host:
@@ -88,7 +94,9 @@ class ExtractAirbyteTask(BaseExtractTask):
         self.destinations_extract_destination = os.path.abspath(destinations_path)
         self.sources_extract_destination = os.path.abspath(sources_path)
 
-        self.airbyte_api = AirbyteApiCaller(airbyte_host, api_key=airbyte_api_key or None)
+        self.airbyte_api = AirbyteApiCaller(
+            airbyte_host, api_port=airbyte_port or None, api_key=airbyte_api_key or None
+        )
 
         console.print(
             "Extracting Airbyte's [b]Source[/b], [b]Destination[/b] and [b]Connection[/b]"
