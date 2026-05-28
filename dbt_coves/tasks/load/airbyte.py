@@ -427,6 +427,76 @@ class LoadAirbyteTask(BaseLoadTask):
 
         return self._create_destination(exported_json_data)
 
+    SYNC_MODE_MAP = {
+        ("full_refresh", "overwrite"): "full_refresh_overwrite",
+        ("full_refresh", "append"): "full_refresh_append",
+        ("incremental", "append"): "incremental_append",
+        ("incremental", "append_dedup"): "incremental_deduped_history",
+    }
+
+    NAMESPACE_DEFINITION_MAP = {
+        "customformat": "custom_format",
+        "nsformat": "custom_format",
+    }
+
+    def _normalize_connection_fields(self, connection):
+        """Normalize field values that changed between the old internal API and the public API."""
+        ns_def = connection.get("namespaceDefinition")
+        if ns_def in self.NAMESPACE_DEFINITION_MAP:
+            connection["namespaceDefinition"] = self.NAMESPACE_DEFINITION_MAP[ns_def]
+        if connection.get("prefix") == "":
+            connection.pop("prefix")
+        return connection
+
+    def _normalize_connection_catalog(self, connection):
+        """
+        Convert syncCatalog (old internal API) to configurations (public API).
+        Skips deselected streams. Maps combined syncMode+destinationSyncMode to
+        the single syncMode string the public API expects.
+        """
+        sync_catalog = connection.pop("syncCatalog", None)
+        if sync_catalog is None or "configurations" in connection:
+            return connection
+
+        streams = []
+        for entry in sync_catalog.get("streams", []):
+            stream = entry.get("stream", {})
+            config = entry.get("config", {})
+            if not config.get("selected", True):
+                continue
+            sync_mode = config.get("syncMode", "full_refresh")
+            dest_sync_mode = config.get("destinationSyncMode", "overwrite")
+            new_mode = self.SYNC_MODE_MAP.get(
+                (sync_mode, dest_sync_mode), f"{sync_mode}_{dest_sync_mode}"
+            )
+            stream_config = {"name": stream.get("name"), "syncMode": new_mode}
+            if stream.get("namespace"):
+                stream_config["streamNamespace"] = stream["namespace"]
+            if config.get("cursorField"):
+                stream_config["cursorField"] = config["cursorField"]
+            if config.get("primaryKey"):
+                stream_config["primaryKey"] = config["primaryKey"]
+            streams.append(stream_config)
+
+        connection["configurations"] = {"streams": streams}
+        return connection
+
+    def _normalize_connection_schedule(self, connection):
+        """
+        Convert flat scheduleType/scheduleData (old internal API) to the
+        nested schedule object the public API expects.
+        """
+        schedule_type = connection.pop("scheduleType", None)
+        schedule_data = connection.pop("scheduleData", None)
+        if schedule_type and "schedule" not in connection:
+            schedule = {"scheduleType": schedule_type}
+            if schedule_data:
+                schedule["cronExpression"] = schedule_data.get("cron", {}).get(
+                    "cronExpression"
+                ) or schedule_data.get("basicSchedule", {}).get("cronExpression")
+            connection["schedule"] = {k: v for k, v in schedule.items() if v is not None}
+        return connection
+
     def _create_connection(self, exported_json_data, source_id, destination_id):
         exported_json_data["sourceId"] = source_id
         exported_json_data["destinationId"] = destination_id
@@ -435,6 +505,10 @@ class LoadAirbyteTask(BaseLoadTask):
         )
         exported_json_data.pop("sourceName", None)
         exported_json_data.pop("destinationName", None)
+        exported_json_data.pop("operationIds", None)
+        exported_json_data = self._normalize_connection_fields(exported_json_data)
+        exported_json_data = self._normalize_connection_schedule(exported_json_data)
+        exported_json_data = self._normalize_connection_catalog(exported_json_data)
 
         try:
             response = self.airbyte_api.create_connection(exported_json_data)
