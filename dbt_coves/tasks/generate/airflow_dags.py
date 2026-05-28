@@ -371,6 +371,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 output = self.generate_task_output(name, conf, is_task_taskgroup=True)
                 task_group_output.extend(output)
 
+        if len(task_group_output) == 2:
+            # No tasks were added — emit pass to keep the function body valid
+            task_group_output.append(f"{' ' * 8}pass # XXX dbt-coves did not receive a task here\n")
+
         tg_variable_name = f"tg_{tg_name}"
         task_group_output.append(f"{' ' * 4}{tg_variable_name} = {tg_name}()\n")
         self.generated_groups[tg_name] = tg_variable_name

@@ -104,7 +104,7 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         airbyte_tables = []
         connection_ids = []
         for conn in list(
-            filter(lambda conn: conn.get("status") == "active", self.airbyte_connections)
+            filter(lambda conn: conn.get("status") != "deprecated", self.airbyte_connections)
         ):
             # Handle both old syncCatalog and new configurations API formats
             catalog = conn.get("syncCatalog") or conn.get("configurations", {})
