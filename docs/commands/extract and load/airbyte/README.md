@@ -9,7 +9,7 @@ Extracts the configuration from your Airbyte sources, connections and destinatio
 Full usage example:
 
 ```console
-dbt-coves extract airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load/airbyte
+dbt-coves extract airbyte --host http://airbyte-server --port 8001 --api-key <your-api-key> --path /config/workspace/load/airbyte
 ```
 
 ## Load configuration to Airbyte
@@ -50,5 +50,5 @@ To load encrypted fields through a manager (in this case we are connecting to Da
 Full usage example:
 
 ```console
-dbt-coves load airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load/airbyte --secrets-path /config/workspace/secrets
+dbt-coves load airbyte --host http://airbyte-server --port 8001 --api-key <your-api-key> --path /config/workspace/load/airbyte --secrets-path /config/workspace/secrets
 ```

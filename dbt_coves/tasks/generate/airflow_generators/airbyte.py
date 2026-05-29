@@ -19,17 +19,21 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         self,
         host: str = "http://localhost",
         port: str = "8000",
+        api_key: str = "",
         connection_ids: List[str] = [],
         airbyte_conn_id: str = "",
     ):
         self.host = host
         self.port = port
+        self.api_key = api_key
         self.airbyte_conn_id = airbyte_conn_id
         self.connection_ids = connection_ids
         self.ignored_source_tables = []
         self.imports = ["airflow.providers.airbyte.operators.airbyte.AirbyteTriggerSyncOperator"]
-        self.api_caller = AirbyteApiCaller(self.host, self.port)
-        self.airbyte_connections = self.api_caller.airbyte_connections_list
+        self.api_caller = AirbyteApiCaller(
+            self.host, api_port=self.port or None, api_key=self.api_key or None
+        )
+        self.airbyte_connections = self.api_caller.connections_list
         self.connections_should_exist = False
 
     def validate_ids_in_airbyte(self, connection_ids):
@@ -62,14 +66,14 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
 
     def _get_airbyte_destination(self, id):
         """Given a destination id, returns the destination payload"""
-        for destination in self.api_caller.airbyte_destinations_list:
+        for destination in self.api_caller.destinations_list:
             if destination["destinationId"] == id:
                 return destination
         raise AirbyteGeneratorException(f"Airbyte error: there are no destinations for id {id}")
 
     def _get_airbyte_source(self, id):
         """Get the complete Source object from it's ID"""
-        for source in self.api_caller.airbyte_sources_list:
+        for source in self.api_caller.sources_list:
             if source["sourceId"] == id:
                 return source
         raise AirbyteGeneratorException(
@@ -77,22 +81,24 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         )
 
     def _get_connection_schema(self, conn, destination_config):
-        """Given an airybte connection, returns a schema name"""
+        """Given an airbyte connection, returns a schema name"""
         namespace_definition = conn["namespaceDefinition"]
+        custom_format_values = {"customformat", "custom_format"}
 
         if namespace_definition == "source" or (
-            conn["namespaceDefinition"] == "customformat"
+            namespace_definition in custom_format_values
             and conn["namespaceFormat"] == "${SOURCE_NAMESPACE}"
         ):
             source = self._get_airbyte_source(conn["sourceId"])
-            if "schema" in source["connectionConfiguration"]:
-                return source["connectionConfiguration"]["schema"].lower()
+            source_config = source.get("configuration", source.get("connectionConfiguration", {}))
+            if "schema" in source_config:
+                return source_config["schema"].lower()
             else:
                 return None
         elif namespace_definition == "destination":
             return destination_config["schema"].lower()
         else:
-            if namespace_definition == "customformat":
+            if namespace_definition in custom_format_values:
                 return conn["namespaceFormat"].lower()
 
     def get_pipeline_connection_ids(self, db: str, schema: str, table: str) -> str:
@@ -102,16 +108,23 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         airbyte_tables = []
         connection_ids = []
         for conn in list(
-            filter(lambda conn: conn.get("status") == "active", self.airbyte_connections)
+            filter(lambda conn: conn.get("status") != "deprecated", self.airbyte_connections)
         ):
-            for stream in conn["syncCatalog"]["streams"]:
-                # look for the table
-                airbyte_table = stream["stream"]["name"].lower()
+            # Handle both old syncCatalog and new configurations API formats
+            catalog = conn.get("syncCatalog") or conn.get("configurations", {})
+            streams = catalog.get("streams", [])
+            for stream in streams:
+                # Old format: {"stream": {"name": ...}, "config": {...}}
+                # New format: {"name": ..., "syncMode": ...}
+                airbyte_table = (
+                    stream.get("stream", {}).get("name") or stream.get("name", "")
+                ).lower()
                 airbyte_tables.append(airbyte_table)
                 if airbyte_table == table.replace("_airbyte_raw_", ""):
-                    destination_config = self._get_airbyte_destination(conn["destinationId"])[
-                        "connectionConfiguration"
-                    ]
+                    destination = self._get_airbyte_destination(conn["destinationId"])
+                    destination_config = destination.get(
+                        "configuration", destination.get("connectionConfiguration", {})
+                    )
 
                     # match database
                     if (
@@ -154,6 +167,7 @@ class AirbyteDbtGenerator(AirbyteGenerator, BaseDbtGenerator):
         self,
         host: str = "http://localhost",
         port: str = "8000",
+        api_key: str = "",
         dbt_project_path: str = "",
         virtualenv_path: str = "",
         run_dbt_compile: bool = False,
@@ -161,7 +175,9 @@ class AirbyteDbtGenerator(AirbyteGenerator, BaseDbtGenerator):
         run_dbt_deps: bool = False,
         airbyte_conn_id: str = "",
     ):
-        AirbyteGenerator.__init__(self, host=host, port=port, airbyte_conn_id=airbyte_conn_id)
+        AirbyteGenerator.__init__(
+            self, host=host, port=port, api_key=api_key, airbyte_conn_id=airbyte_conn_id
+        )
         BaseDbtGenerator.__init__(
             self,
             dbt_project_path,

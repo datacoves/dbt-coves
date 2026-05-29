@@ -27,7 +27,7 @@ Generators are custom classes that receive YML `key:value` pairs and return one 
 We provide some prebuilt Generators:
 
 - `AirbyteGenerator` creates `AirbyteTriggerSyncOperator` tasks (one per Airbyte connection)
-  - It must receive Airbyte's `host` and `port`, `airbyte_conn_id` (Airbyte's connection name on Airflow) and a `connection_ids` list of Airbyte Connections to Sync
+  - It must receive Airbyte's `host`, `airbyte_conn_id` (Airbyte's connection name on Airflow) and a `connection_ids` list of Airbyte Connections to Sync. `port` and `api_key` are optional (API key required for Airbyte Cloud and modern self-hosted instances)
 - `FivetranGenerator`: creates `FivetranOperator` tasks (one per Fivetran connection)
   - It must receive Fivetran's `api_key`, `api_secret` and a `connection_ids` list of Fivetran Connectors to Sync.
 - `AirbyteDbtGenerator` and `FivetranDbtGenerator`: instead of passing them Airbyte or Fivetran connections, they use dbt to discover those IDs. Apart from their parent Generators mandatory fields, they can receive:
@@ -53,6 +53,7 @@ nodes:
     generator: AirbyteDbtGenerator
     host: http://localhost
     port: 8000
+    api_key: "{{ env_var('AIRBYTE_API_KEY') }}"
     dbt_project_path: /path/to/dbt_project
     virtualenv_path: /virtualenvs/dbt_160
     run_dbt_compile: false
@@ -104,7 +105,7 @@ class PostgresGenerator():
 
 --generators-params
 # Object with default values for the desired Generator(s)
-# For example: {"AirbyteGenerator": {"host": "http://localhost", "port": "8000"}}
+# For example: {"AirbyteGenerator": {"host": "http://localhost", "port": "8000", "api_key": "<your-api-key>"}}
 
 --secrets-path
 # Secret files location for DAG configuration, i.e. 'yml_path/secrets/'

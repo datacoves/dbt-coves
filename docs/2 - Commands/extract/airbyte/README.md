@@ -25,8 +25,13 @@ dbt-coves extract airbyte <arguments>
 # Airbyte's API port, i.e. '8001'
 ```
 
+```shell
+--api-key
+# Airbyte's API key (required for Airbyte Cloud and modern self-hosted instances)
+```
+
 ### Sample usage
 
 ```shell
-dbt-coves extract airbyte --host http://airbyte-server --port 8001 --path /config/workspace/load/airbyte
+dbt-coves extract airbyte --host http://airbyte-server --port 8001 --api-key <your-api-key> --path /config/workspace/load/airbyte
 ```
