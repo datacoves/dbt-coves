@@ -136,11 +136,13 @@ class AirbyteApiCaller:
             self.destination_definitions = self._get_all(
                 "connector_definitions/destinations", workspaceId=self.workspace_id
             )
-        except AirbyteApiCallerException as e:
-            console.print(
-                f"[yellow]Warning:[/yellow] Could not load connector definitions ({e}). "
-                "Connector version checking and secret masking will be skipped."
-            )
+        except AirbyteApiCallerException:
+            # Silently don't worry about it for now.
+            pass
+            # console.print(
+            #     f"[yellow]Warning:[/yellow] Could not load connector definitions ({e}). "
+            #     "Connector version checking and secret masking will be skipped."
+            # )
 
     def get_source_spec(self, definition_id):
         """Fetch connector spec (including airbyte_secret markers) for a source definition."""
