@@ -56,6 +56,7 @@ generate:
       AirbyteDbtGenerator:
         host: "{{ env_var('AIRBYTE_HOST_NAME') }}"
         port: "{{ env_var('AIRBYTE_PORT') }}"
+        api_key: "{{ env_var('AIRBYTE_API_KEY') }}"
         airbyte_conn_id: airbyte_connection
 
         dbt_project_path: "{{ env_var('DBT_HOME') }}"
@@ -66,7 +67,8 @@ extract:
   airbyte:
     path: /config/workspace/load/airbyte # Where json files will be generated
     host: http://airbyte-server # Airbyte's API hostname
-    port: 8001 # Airbyte's API port
+    port: 8001 # Airbyte's API port (optional)
+    api_key: [API_KEY] # Airbyte's API key (required for Airbyte Cloud and modern self-hosted instances)
   fivetran:
     path: /config/workspace/load/fivetran # Where Fivetran export will be generated
     api_key: [KEY] # Fivetran API Key
@@ -78,7 +80,8 @@ load:
   airbyte:
     path: /config/workspace/load
     host: http://airbyte-server
-    port: 8001
+    port: 8001 # optional
+    api_key: [API_KEY] # Airbyte's API key (required for Airbyte Cloud and modern self-hosted instances)
     secrets_manager: datacoves # (optional) Secret credentials provider (secrets_path OR secrets_manager should be used, can't load secrets locally and remotely at the same time)
     secrets_path: /config/workspace/secrets # (optional) Secret files location if secrets_manager was not specified
     secrets_url: https://api.datacoves.localhost/service-credentials/airbyte # Secrets url if secrets_manager is datacoves

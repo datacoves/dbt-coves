@@ -19,16 +19,20 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         self,
         host: str = "http://localhost",
         port: str = "8000",
+        api_key: str = "",
         connection_ids: List[str] = [],
         airbyte_conn_id: str = "",
     ):
         self.host = host
         self.port = port
+        self.api_key = api_key
         self.airbyte_conn_id = airbyte_conn_id
         self.connection_ids = connection_ids
         self.ignored_source_tables = []
         self.imports = ["airflow.providers.airbyte.operators.airbyte.AirbyteTriggerSyncOperator"]
-        self.api_caller = AirbyteApiCaller(self.host, api_port=self.port)
+        self.api_caller = AirbyteApiCaller(
+            self.host, api_port=self.port or None, api_key=self.api_key or None
+        )
         self.airbyte_connections = self.api_caller.connections_list
         self.connections_should_exist = False
 
@@ -163,6 +167,7 @@ class AirbyteDbtGenerator(AirbyteGenerator, BaseDbtGenerator):
         self,
         host: str = "http://localhost",
         port: str = "8000",
+        api_key: str = "",
         dbt_project_path: str = "",
         virtualenv_path: str = "",
         run_dbt_compile: bool = False,
@@ -170,7 +175,9 @@ class AirbyteDbtGenerator(AirbyteGenerator, BaseDbtGenerator):
         run_dbt_deps: bool = False,
         airbyte_conn_id: str = "",
     ):
-        AirbyteGenerator.__init__(self, host=host, port=port, airbyte_conn_id=airbyte_conn_id)
+        AirbyteGenerator.__init__(
+            self, host=host, port=port, api_key=api_key, airbyte_conn_id=airbyte_conn_id
+        )
         BaseDbtGenerator.__init__(
             self,
             dbt_project_path,
