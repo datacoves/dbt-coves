@@ -178,15 +178,11 @@ class ExtractAirbyteTask(BaseExtractTask):
                 destination_type = destination.get("destinationType", "")
                 spec = self._get_airbyte_destination_definition_spec(destination_type)
 
+                # We may or may not get secrets information from Airbyte.
                 if spec:
                     airbyte_secret_fields = self._get_airbyte_secret_fields_for_definition(spec)
                     destination["configuration"] = self._hide_configuration_secret_fields(
                         destination.get("configuration", {}), airbyte_secret_fields
-                    )
-                else:
-                    console.print(
-                        f"[yellow]Warning:[/yellow] Could not retrieve spec for destination type "
-                        f"'{destination_type}' — secrets will not be masked"
                     )
 
                 destination["connectorVersion"] = self._get_connector_version(
@@ -202,7 +198,7 @@ class ExtractAirbyteTask(BaseExtractTask):
     def _get_connector_version(self, connector_type, definitions, obj_type):
         """
         Look up dockerImageTag from the definitions list by matching connector type
-        against the docker repository name.
+        against the docker repository name, if any.
         """
         for definition in definitions:
             repo = definition.get("dockerRepository", "")
@@ -212,10 +208,6 @@ class ExtractAirbyteTask(BaseExtractTask):
                 return definition.get("dockerImageTag", "unknown")
             if definition.get("connectorType") == connector_type:
                 return definition.get("dockerImageTag", "unknown")
-        console.print(
-            f"[yellow]Warning:[/yellow] Could not find connector version for {obj_type} "
-            f"type '{connector_type}'"
-        )
         return "unknown"
 
     def _get_airbyte_source_from_id(self, source_id):
@@ -225,15 +217,11 @@ class ExtractAirbyteTask(BaseExtractTask):
                 source_type = source.get("sourceType", "")
                 spec = self._get_airbyte_source_definition_spec(source_type)
 
+                # Try to get secrets information, if there is any.
                 if spec:
                     airbyte_secret_fields = self._get_airbyte_secret_fields_for_definition(spec)
                     source["configuration"] = self._hide_configuration_secret_fields(
                         source.get("configuration", {}), airbyte_secret_fields
-                    )
-                else:
-                    console.print(
-                        f"[yellow]Warning:[/yellow] Could not retrieve spec for source type "
-                        f"'{source_type}' — secrets will not be masked"
                     )
 
                 source["connectorVersion"] = self._get_connector_version(
