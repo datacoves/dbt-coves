@@ -1,10 +1,11 @@
-[tool.poetry]
+[project]
 name = "dbt_coves"
 version = "1.11.2"
 description = "CLI tool for dbt users adopting analytics engineering best practices."
-authors = ["Datacoves <hello@datacoves.com>"]
-license = "Apache 2.0"
+authors = [{ name = "Datacoves", email = "hello@datacoves.com" }]
+license = "Apache-2.0"
 readme = "README.md"
+requires-python = ">=3.9,<3.13"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Information Technology",
@@ -17,78 +18,85 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
 ]
-include = ["templates/*"]
-keywords = ["data engineering", "analytics engineering", "dbt", 'ETL', "data modelling"]
-homepage = "https://datacoves.com"
-documentation = "https://github.com/datacoves/dbt-coves/blob/main/README.md"
-repository = "https://github.com/datacoves/dbt-coves"
+keywords = ["data engineering", "analytics engineering", "dbt", "ETL", "data modelling"]
+dependencies = [
+    "packaging>=20.8",
+    "pretty-errors>=1.2.19,<2",
+    "pydantic>=1.8",
+    "PyYAML>=5.4.1",
+    "questionary==2.1.1",
+    "rich>=10.4",
+    "Jinja2>2.11.2",
+    "python-slugify<9.0.0",
+    "dbt-core>=1.1,<1.12",
+    "typing_extensions>=4.0,<5; python_version<'3.7'",
+    "ruamel-yaml>=0.17.21,<0.18",
+    "db-dtypes>=1.0.5,<2",
+    "copier>=9.0.0",
+    "gitpython>=3.1.31,<4",
+    "mixpanel>=4.10.0,<5",
+    "black>=24,<25",
+    "isort>=5.12.0,<6",
+    "dlt[redshift]>=1.0",
+    "psycopg2-binary>=2.9.9,<3",
+    "sqlalchemy>=1.4,<2",
+    "enlighten>=1.12.4,<2",
+    "snowflake-connector-python>=3.12.1,<4.6",
+    "jinja2-env>=0.1.3,<0.2",
+    "prompt-toolkit==3.0.51",
+]
 
-[tool.poetry.dependencies]
-python = ">=3.9,<3.13"
-packaging = ">=20.8"
-pretty-errors = "^1.2.19"
-pydantic = ">=1.8"
-PyYAML = ">=5.4.1"
-questionary = "2.1.1"
-rich = ">=10.4"
-Jinja2 = ">2.11.2"
-python-slugify = "<9.0.0"
-dbt-core = ">=1.1,<1.12"
-typing_extensions = { version = "^4.0", python = "^3.7" }
-ruamel-yaml = "^0.17.21"
-db-dtypes = "^1.0.5"
-copier = ">=9.0.0"
-gitpython = "^3.1.31"
-mixpanel = "^4.10.0"
-black = "^24"
-isort = "^5.12.0"
-dlt = {extras = ["redshift"], version = ">=1.0"}
-psycopg2-binary = "^2.9.9"
-sqlalchemy = "^1.4"
-enlighten = "^1.12.4"
-snowflake-connector-python = ">=3.12.1,<4.6"
-jinja2-env = "^0.1.3"
-prompt-toolkit = "3.0.51"
+[project.urls]
+Homepage = "https://datacoves.com"
+Documentation = "https://github.com/datacoves/dbt-coves/blob/main/README.md"
+Repository = "https://github.com/datacoves/dbt-coves"
 
-[tool.poetry.group.dev.dependencies]
-bumpversion = "^0.6.0"
-pytest = "^7.2.0"
-pytest-cov = "^4.0.0"
-mypy = "^0.991"
-towncrier = "^22.12.0"
-pytest-mock = "^3.6.1"
-pytest-sugar = "^0.9.4"
-pytest-datafiles = "^2.0"
-asciinema = "^2.0.2"
-pytest-dictsdiff = "^0.5.8"
-black = "^24"
-ipdb = "^0.13.9"
-sphinx-argparse = "^0.4.0"
-sphinxcontrib-restbuilder = "^0.3"
-types-PyYAML = "^5.4.1"
-types-python-slugify = "^8.0.0.0"
-types-requests = "^2.28.11.5"
-flake8 = "^5.0.0"
+[project.scripts]
+dbt-coves = "dbt_coves.core.main:main"
 
-[tool.poetry.group.test.dependencies]
-dbt-redshift = ">=1.1,<1.11"
-dbt-bigquery = ">=1.1,<1.12"
-dbt-snowflake = ">=1.1,<1.12"
-redshift-connector = "^2.0.910"
-pytest-dependency = "^0.5.1"
-python-dotenv = "^0.21.1"
-pandas = "^2.0"
-snowflake-connector-python = {extras = ["pandas"], version = "^3.0,<4.6"}
-google-cloud-bigquery = ">2.34,<4"
-tox-poetry-installer = "^0.10.0"
-tox = "^3.23.1"
+[dependency-groups]
+dev = [
+    "pre-commit>=3.5.0,<5",
+    "bumpversion>=0.6.0,<0.7",
+    "pytest>=7.2.0,<8",
+    "pytest-cov>=4.0.0,<5",
+    "mypy>=0.991,<0.992",
+    "towncrier>=22.12.0,<23",
+    "pytest-mock>=3.6.1,<4",
+    "pytest-sugar>=0.9.4,<0.10",
+    "pytest-datafiles>=2.0,<3",
+    "asciinema>=2.0.2,<3",
+    "pytest-dictsdiff>=0.5.8,<0.6",
+    "ipdb>=0.13.9,<0.14",
+    "sphinx-argparse>=0.4.0,<0.5",
+    "sphinxcontrib-restbuilder>=0.3,<0.4",
+    "types-PyYAML>=5.4.1,<6",
+    "types-python-slugify>=8.0.0.0,<9",
+    "types-requests>=2.28.11.5,<3",
+    "flake8>=5.0.0,<6",
+]
+test = [
+    "dbt-redshift>=1.1,<1.11",
+    "dbt-bigquery>=1.1,<1.12",
+    "dbt-snowflake>=1.1,<1.12",
+    "redshift-connector>=2.0.910,<3",
+    "pytest-dependency>=0.5.1,<0.6",
+    "python-dotenv>=0.21.1,<0.22",
+    "pandas>=2.0,<3",
+    "snowflake-connector-python[pandas]>=3.0,<4.6",
+    "google-cloud-bigquery>2.34,<4",
+    "tox>=3.23.1,<4",
+]
 
 [build-system]
-requires = ["poetry-core>=1.0.0"]
-build-backend = "poetry.core.masonry.api"
+requires = ["hatchling"]
+build-backend = "hatchling.build"
 
-[tool.poetry.scripts]
-dbt-coves="dbt_coves.core.main:main"
+[tool.hatch.build.targets.wheel]
+packages = ["dbt_coves"]
+
+[tool.hatch.build.targets.sdist]
+include = ["dbt_coves", "README.md"]
 
 [tool.towncrier]
 version = "1.1.1-alpha.33"
