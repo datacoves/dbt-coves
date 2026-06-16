@@ -160,8 +160,6 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.secrets_manager = self.get_config_value("secrets_manager")
         self.yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
 
-        self.generated_groups = {}
-        self.collected_dependencies = []
         if self.secrets_path and self.secrets_manager:
             raise GenerateAirflowDagsException(
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
@@ -234,6 +232,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate DAG Python file based on YML configuration
         """
+        self.generated_groups = {}
+        self.collected_dependencies = []
         yml_dag = self._discover_secrets(yml_dag)
         try:
             nodes = yml_dag.pop("nodes")
