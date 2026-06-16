@@ -7,7 +7,7 @@ repos:
         entry: black
         language: python
         language_version: python3
-        additional_dependencies: [black]
+        additional_dependencies: ["black>=25,<26"]
         minimum_pre_commit_version: 2.9.2
         require_serial: true
         types_or: [cython, pyi, python]
@@ -17,7 +17,7 @@ repos:
         require_serial: true
         language: python
         language_version: python3
-        additional_dependencies: [isort]
+        additional_dependencies: ["isort>=5.12.0,<6"]
         types_or: [cython, pyi, python]
         args: ["--profile", "black", "./dbt_coves", "./scripts"]
       # Lint
@@ -26,7 +26,7 @@ repos:
         entry: flake8
         language: python
         language_version: python3
-        additional_dependencies: [flake8]
+        additional_dependencies: ["flake8>=7.1.0,<8"]
         types_or: [cython, pyi, python]
       - id: prevent-push-to-main
         name: Prevent push to main

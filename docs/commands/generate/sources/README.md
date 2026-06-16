@@ -53,16 +53,19 @@ dbt-coves generate sources -h
 ```console
 --sources-destination
 # Where sources yml files will be generated, default: 'models/staging/{{schema}}/sources.yml'
+# Accepts the '{{database}}', '{{schema}}' and '{{relation}}' template variables.
 ```
 
 ```console
 --models-destination
 # Where models sql files will be generated, default: 'models/staging/{{schema}}/{{relation}}.sql'
+# Accepts the '{{database}}', '{{schema}}' and '{{relation}}' template variables.
 ```
 
 ```console
 --model-props-destination
 # Where models yml files will be generated, default: 'models/staging/{{schema}}/{{relation}}.yml'
+# Accepts the '{{database}}', '{{schema}}' and '{{relation}}' template variables.
 ```
 
 ```console

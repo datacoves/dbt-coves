@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-# Run `poetry run towncrier create 123.feature` to update changelog
+# Run `uv run towncrier create 123.feature` to update changelog
 
-# poetry run towncrier build
+# uv run towncrier build
 die() {
     echo >&2 "$@"
     exit 1
@@ -21,9 +21,9 @@ else
 
 fi
 
-poetry run bumpversion $TYPE
+uv run bumpversion $TYPE
 git show --name-only
 git push
 
-poetry build
-poetry publish
+uv build
+uv publish

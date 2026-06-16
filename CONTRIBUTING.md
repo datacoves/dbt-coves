@@ -126,17 +126,17 @@ If you don't want to bother, that's also OK because we also have [pre-commit.ci]
 
 ### Development
 
-The whole package is managed using [Poetry](https://python-poetry.org/). It's really really good and ensures reproducibility. \*\*If this is holding you up from contributing feel free to shoot us a DM on [Discord](https://discord.gg/bUk4MVTcqW) and we can see what are other ways. It's likely that `pip` would understand the `pyproject.toml` file and then you'll be free to set up a virtual environment of your choice and get going.
+The whole package is managed using [uv](https://docs.astral.sh/uv/). It's really really good and ensures reproducibility. \*\*If this is holding you up from contributing feel free to shoot us a DM on [Discord](https://discord.gg/bUk4MVTcqW) and we can see what are other ways. It's likely that `pip` would understand the `pyproject.toml` file and then you'll be free to set up a virtual environment of your choice and get going.
 
-#### Installing Poetry
+#### Installing uv
 
-1. [Install Poetry on your system](https://python-poetry.org/docs/#installation) --I personally recommend installing it via [`pipx`](https://github.com/pipxproject/pipx) but that's entirely up to you.
-2. `cd` to your fork and run `poetry install` in the root folder of the repo. Poetry will create a virtual environment for python, install dependencies and install `dbt-coves` in **editable** mode so that you can directly run and test `dbt-cove` as you develop without having to install over and over.
-3. The easiest way to activate the poetry virtual env is to call `poetry shell` it'll wrap around your shell and activate the dbt-cove venv, to deactivate or get out of the shell simply type `exit`. More info on [the Poetry documentation website](https://python-poetry.org/docs/basic-usage/#using-your-virtual-environment)
+1. [Install uv on your system](https://docs.astral.sh/uv/getting-started/installation/).
+2. `cd` to your fork and run `uv sync --all-groups` in the root folder of the repo. uv will create a virtual environment for python, install dependencies and install `dbt-coves` in **editable** mode so that you can directly run and test `dbt-coves` as you develop without having to install over and over.
+3. Prefix commands with `uv run` (e.g. `uv run dbt-coves`, `uv run pytest`) to run them inside the project's virtual environment, or activate it directly with `source .venv/bin/activate`. More info on [the uv documentation website](https://docs.astral.sh/uv/pip/environments/).
 
 ### Testing
 
-If you're comfortable writing tests for your features, we use the [`pytest`](https://docs.pytest.org/en/stable/) framework. It'll be installed automatically when you set up your poetry environment. If you don't know how to write tests that's fine, we'll work it out with you during the review process 💪🏻
+If you're comfortable writing tests for your features, we use the [`pytest`](https://docs.pytest.org/en/stable/) framework. It'll be installed automatically when you set up your uv environment. If you don't know how to write tests that's fine, we'll work it out with you during the review process 💪🏻
 
 For our current tests, we must have certain environment variables defined in a `.env` file inside `/tests`:
 

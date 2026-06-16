@@ -242,6 +242,7 @@ class GenerateSourcesTask(BaseGenerateTask):
 
     def render_path_template(self, destination_path, relation):
         template_context = {
+            "database": relation.database.lower(),
             "schema": relation.schema.lower(),
             "relation": relation.name.lower(),
         }
