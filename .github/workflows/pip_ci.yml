@@ -16,7 +16,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           version: "0.9.x"
-          python-version: "3.9"
+          python-version: "3.11"
           enable-cache: true
 
       - name: run Pre-Commit

@@ -5,18 +5,17 @@ description = "CLI tool for dbt users adopting analytics engineering best practi
 authors = [{ name = "Datacoves", email = "hello@datacoves.com" }]
 license = "Apache-2.0"
 readme = "README.md"
-requires-python = ">=3.9,<3.13"
+requires-python = ">=3.11,<3.15"
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Information Technology",
     "Topic :: Software Development :: Build Tools",
     "Topic :: Software Development :: Code Generators",
     "License :: OSI Approved :: Apache Software License",
-    "Programming Language :: Python :: 3.7",
-    "Programming Language :: Python :: 3.8",
-    "Programming Language :: Python :: 3.9",
-    "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 keywords = ["data engineering", "analytics engineering", "dbt", "ETL", "data modelling"]
 dependencies = [
@@ -29,7 +28,6 @@ dependencies = [
     "Jinja2>2.11.2",
     "python-slugify<9.0.0",
     "dbt-core>=1.1,<1.12",
-    "typing_extensions>=4.0,<5; python_version<'3.7'",
     "ruamel-yaml>=0.17.21,<0.18",
     "db-dtypes>=1.0.5,<2",
     "copier>=9.0.0",
@@ -133,7 +131,7 @@ markers = ["datafiles"]
 
 [tool.black]
 line-length = 100
-target-version=['py37', 'py38', 'py39', 'py310', 'py311']
+target-version=['py311', 'py312', 'py313', 'py314']
 
 [tool.isort]
 known_third_party=["airflow", "black", "copier", "dbt", "dlt", "dotenv", "git", "google", "isort", "jinja2", "mixpanel", "pretty_errors", "pydantic", "pyfiglet", "pytest", "questionary", "redshift_connector", "requests", "rich", "ruamel", "slugify", "snowflake", "sqlalchemy", "typing_extensions", "yaml"]
