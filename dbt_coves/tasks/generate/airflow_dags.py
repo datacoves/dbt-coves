@@ -39,6 +39,10 @@ class GenerateAirflowDagsException(Exception):
     pass
 
 
+class RawExpr(str):
+    """A string marked via the `!py` YAML tag to be emitted as a raw, unquoted Python expression."""
+
+
 class GenerateAirflowDagsTask(NonDbtBaseTask):
     """
     Task that generate sources, models and model properties automatically
@@ -110,11 +114,16 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         value = loader.construct_scalar(node)
         return datetime.datetime.strptime(value, "%Y-%m-%d")
 
+    # Custom constructor for `!py` tagged values: emitted as raw Python expressions
+    def raw_expr_constructor(self, loader, node):
+        return RawExpr(loader.construct_scalar(node))
+
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["airflow_dags"][key]
 
     def _generate_dag(self, yml_filepath: Path):
         yaml.FullLoader.add_constructor("tag:yaml.org,2002:timestamp", self.date_constructor)
+        yaml.FullLoader.add_constructor("!py", self.raw_expr_constructor)
         console.print(f"Generating [b][i]{yml_filepath.stem}[/i][/b]")
         try:
             if self.dags_path:
@@ -175,11 +184,14 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 for call in self.generate_notifiers(yaml["notifications"]):
                     dag_args += f"{indent * ' '}{call},\n"
             else:
-                dag_value = (
-                    f'"{value}"' if (isinstance(value, str) and "config" not in key) else value
-                )
+                if isinstance(value, RawExpr):
+                    dag_value = str(value)
+                elif isinstance(value, str) and "config" not in key:
+                    dag_value = f'"{value}"'
+                else:
+                    dag_value = value
                 dag_args += f'{indent * " "}{key}={dag_value},\n'
-        return dag_args[:-2]
+        return dag_args[:-1]
 
     def generate_notifiers(self, notifiers: Dict[str, Any]):
         """
@@ -208,7 +220,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             if isinstance(callback_args, list):
                 for arg in callback_args:
                     if isinstance(arg, dict):
-                        arg = self.dag_args_to_string(arg, indent=4)
+                        arg = self.dag_args_to_string(arg, indent=4).rstrip(",")
                         usage_args.append(arg)
                     if isinstance(arg, int):
                         usage_args.append(f"{arg}")
@@ -230,17 +242,24 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"YML file [red][b][i]{dag_name}[/i][/b][/red] must contain a 'nodes' section"
             )
         default_args = {"default_args": yml_dag.pop("default_args", {})}
+        extra_imports = yml_dag.pop("imports", [])
+        doc_md = yml_dag.pop("doc_md", None)
         self.dag_output = {
+            "docstring": [],
             "imports": [
                 "from airflow.decorators import dag\n",
                 "import datetime\n",
+                *[f"{imp}\n" for imp in extra_imports],
             ],
             "globals": [],
             "dag": [
                 "@dag(\n",
-                f"{self.dag_args_to_string(default_args)},\n",
+                f"{self.dag_args_to_string(default_args)}\n",
             ],
         }
+        if doc_md:
+            self.dag_output["docstring"].append(f'"""\n{doc_md.rstrip()}\n"""\n\n')
+            yml_dag["doc_md"] = RawExpr("__doc__")
         self.dag_output["dag"].extend(
             [
                 f"{self.dag_args_to_string(yml_dag)}\n",
@@ -256,7 +275,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
 
         with open(destination_path, "w") as f:
             final_output = (
-                "".join(set(self.dag_output["imports"]))
+                "".join(self.dag_output["docstring"])
+                + "".join(set(self.dag_output["imports"]))
                 + "".join(self.dag_output["globals"])
                 + "".join(self.dag_output["dag"])
             )
@@ -336,8 +356,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         Generate Task Groups, using YML's `generator` or `tasks`
         """
         self.dag_output["imports"].append("from airflow.decorators import task_group\n"),
+        tg_tooltip = tg_conf.pop("tooltip", "")
         task_group_output = [
-            f"{' ' * 4}@task_group(group_id='{tg_name}', tooltip='{tg_conf.pop('tooltip', '')}')\n",
+            f"{' ' * 4}@task_group(group_id='{tg_name}', tooltip='{tg_tooltip}',)\n",
             f"{' ' * 4}def {tg_name}():\n",
         ]
         generator = tg_conf.pop("generator", "")
@@ -459,7 +480,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             # Render decorated function
             task_output = [
                 f"{' ' * indent}@task.{task_decorator}(\n",
-                f"{' ' * (indent + 4)}{', '.join(decorator_args)}\n",
+                f"{' ' * (indent + 4)}{', '.join(decorator_args)},\n",
                 f"{' ' * indent})\n",
                 f"{' ' * indent}def {task_name}():\n",
                 f"{' ' * (indent + 4)}return \"{bash_command}\"\n",
