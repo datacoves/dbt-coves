@@ -1,7 +1,6 @@
 import os
 import subprocess
 
-import snowflake.connector
 from rich.console import Console
 
 from dbt_coves.core.exceptions import DbtCovesException
@@ -245,6 +244,8 @@ class BlueGreenTask(BaseConfiguredTask):
         )
 
     def snowflake_connection(self):
+        import snowflake.connector
+
         connection_dict = self._get_snowflake_credentials_from_dbt_adapter()
         try:
             return snowflake.connector.connect(**connection_dict)

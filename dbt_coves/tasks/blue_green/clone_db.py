@@ -2,7 +2,6 @@ import threading
 import time
 
 from rich.console import Console
-from snowflake.connector import DictCursor
 
 console = Console()
 
@@ -66,6 +65,8 @@ class CloneDB:
         Returns:
             None
         """
+        from snowflake.connector import DictCursor
+
         console.print(
             f"Cloning grants from [blue]{self.blue_database}[/blue] to "
             f"green [green]{self.green_database}[/green]"
@@ -96,6 +97,8 @@ class CloneDB:
         Returns:
             None
         """
+        from snowflake.connector import DictCursor
+
         console.print(
             f"Cloning [u]schemas[/u] from [blue]{self.blue_database}[/blue] to "
             f"[green]{self.green_database}[/green]"

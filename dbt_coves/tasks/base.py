@@ -1,17 +1,5 @@
-from dbt.adapters.factory import get_adapter, register_adapter
-
-try:
-    from dbt.flags import set_flags
-
-    SET_FLAGS = True
-except ImportError:
-    SET_FLAGS = False
-from dbt.config.runtime import RuntimeConfig
-from dbt.context.providers import generate_runtime_macro_context
-from dbt.parser.manifest import ManifestLoader
 from dbt.task.base import ConfiguredTask
 
-from dbt_coves import __dbt_major_version__, __dbt_minor_version__
 from dbt_coves.core.exceptions import MissingCommand
 from dbt_coves.utils.mp_context import get_mp_context
 
@@ -50,6 +38,12 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
     needs_dbt_project = True
 
     def __init__(self, args, config):
+        from dbt.adapters.factory import get_adapter, register_adapter
+        from dbt.context.providers import generate_runtime_macro_context
+        from dbt.parser.manifest import ManifestLoader
+
+        from dbt_coves import __dbt_major_version__, __dbt_minor_version__
+
         super().__init__(args, config)
         try:
             adapter = get_adapter(self.config)
@@ -75,8 +69,16 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
 
     @classmethod
     def from_args(cls, args):
-        if SET_FLAGS:
+        from dbt.config.runtime import RuntimeConfig
+
+        from dbt_coves import __dbt_major_version__, __dbt_minor_version__
+
+        try:
+            from dbt.flags import set_flags
+
             set_flags(args)
+        except ImportError:
+            pass
         if (__dbt_major_version__, __dbt_minor_version__) < (1, 8):
             config = cls.ConfigType.from_args(args)
         else:

@@ -6,7 +6,8 @@ import uuid
 from subprocess import CalledProcessError
 from typing import List
 
-from dbt import tracking, version
+from dbt import tracking
+from dbt import version as dbt_version
 from rich.console import Console
 
 from dbt_coves import __version__
@@ -279,8 +280,8 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
  \\__,_|_.__/ \\__|     \\___\\___/ \\_/ \\___||___/
  """
         console.print(logo_str, style="cyan", highlight=False)
-        dbt_version = version.get_installed_version().to_version_string(skip_matcher=True)
-        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23))
+        installed_dbt = dbt_version.get_installed_version().to_version_string(skip_matcher=True)
+        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{installed_dbt}\n".rjust(23))
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore
