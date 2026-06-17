@@ -4,7 +4,7 @@ import subprocess
 from rich.console import Console
 
 from dbt_coves.core.exceptions import DbtCovesException
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.utils.tracking import trackable
 
 from .clone_db import CloneDB

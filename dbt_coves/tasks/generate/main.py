@@ -1,6 +1,6 @@
 from rich.console import Console
 
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base_configured import BaseConfiguredTask
 
 from .airflow_dags import GenerateAirflowDagsTask
 from .docs import GenerateDocsTask

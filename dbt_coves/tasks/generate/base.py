@@ -7,7 +7,7 @@ from rich.console import Console
 from ruamel.yaml import YAML
 from slugify import slugify
 
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.utils.jinja import get_render_output, render_template_file
 from dbt_coves.utils.yaml import open_yaml, save_yaml
 

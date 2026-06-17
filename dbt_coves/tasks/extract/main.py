@@ -1,6 +1,6 @@
 from rich.console import Console
 
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base_configured import BaseConfiguredTask
 
 from .airbyte import ExtractAirbyteTask
 from .fivetran import ExtractFivetranTask

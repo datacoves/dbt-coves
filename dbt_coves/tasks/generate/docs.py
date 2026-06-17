@@ -6,7 +6,7 @@ from typing import Any, Dict
 
 from rich.console import Console
 
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.tasks.setup.utils import print_row
 from dbt_coves.utils.shell import prepare_cmd, run_and_capture_cwd
 from dbt_coves.utils.tracking import trackable
