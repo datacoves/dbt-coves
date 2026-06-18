@@ -241,9 +241,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             raise GenerateAirflowDagsException(
                 f"YML file [red][b][i]{dag_name}[/i][/b][/red] must contain a 'nodes' section"
             )
-        default_args = {"default_args": yml_dag.pop("default_args", {})}
         extra_imports = yml_dag.pop("imports", [])
-        doc_md = yml_dag.pop("doc_md", None)
+        doc_md = yml_dag.get("doc_md", None)
         self.dag_output = {
             "docstring": [],
             "imports": [
@@ -252,14 +251,11 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 *[f"{imp}\n" for imp in extra_imports],
             ],
             "globals": [],
-            "dag": [
-                "@dag(\n",
-                f"{self.dag_args_to_string(default_args)}\n",
-            ],
+            "dag": ["@dag(\n"],
         }
         if doc_md:
             self.dag_output["docstring"].append(f'"""\n{doc_md.rstrip()}\n"""\n\n')
-            yml_dag["doc_md"] = RawExpr("__doc__")
+            yml_dag["doc_md"] = RawExpr("__doc__")  # update in-place to preserve key order
         self.dag_output["dag"].extend(
             [
                 f"{self.dag_args_to_string(yml_dag)}\n",
