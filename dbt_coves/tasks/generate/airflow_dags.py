@@ -247,7 +247,6 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             "docstring": [],
             "imports": [
                 "from airflow.decorators import dag\n",
-                "import datetime\n",
                 *[f"{imp}\n" for imp in extra_imports],
             ],
             "globals": [],
