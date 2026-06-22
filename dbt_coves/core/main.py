@@ -1,4 +1,5 @@
 import argparse
+import importlib
 import os
 import pathlib
 import sys
@@ -6,34 +7,73 @@ import uuid
 from subprocess import CalledProcessError
 from typing import List
 
-from dbt import tracking, version
+from dbt import tracking
+from dbt import version as dbt_version
 from rich.console import Console
 
 from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
 from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
 from dbt_coves.tasks.base import BaseTask
-from dbt_coves.tasks.blue_green.main import BlueGreenTask
-from dbt_coves.tasks.data_sync.main import DataSyncTask
-from dbt_coves.tasks.dbt.main import RunDbtTask
-from dbt_coves.tasks.extract.main import ExtractTask
-from dbt_coves.tasks.generate.main import GenerateTask
-from dbt_coves.tasks.load.main import LoadTask
-from dbt_coves.tasks.setup.main import SetupTask
 from dbt_coves.ui.traceback import DbtCovesTraceback
 from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.log import log_manager
 from dbt_coves.utils.yaml import open_yaml, save_yaml
 
+# Registry: subcommand name → (module path, class name, help text)
+_TASK_REGISTRY = {
+    "generate": (
+        "dbt_coves.tasks.generate.main",
+        "GenerateTask",
+        "Generates dbt source and staging files, model property files and extracts\n"
+        "                     metadata for tables (used as input for sources and properties)",
+    ),
+    "setup": (
+        "dbt_coves.tasks.setup.main",
+        "SetupTask",
+        "Set up dbt project components (dbt project, CI, pre-commit, Airflow DAGs)",
+    ),
+    "extract": (
+        "dbt_coves.tasks.extract.main",
+        "ExtractTask",
+        "Extract configuration data from Airbyte or Fivetran",
+    ),
+    "load": (
+        "dbt_coves.tasks.load.main",
+        "LoadTask",
+        "Loads configurations into different systems, such as Airbyte.",
+    ),
+    "dbt": (
+        "dbt_coves.tasks.dbt.main",
+        "RunDbtTask",
+        "Use this command to run dbt commands on special environments\n"
+        "                    such as Airflow, or CI workers. When a read-write copy needs to be\n"
+        "                    created, its path can be found in /tmp/dbt_coves_dbt_clone_path.txt.",
+    ),
+    "data-sync": (
+        "dbt_coves.tasks.data_sync.main",
+        "DataSyncTask",
+        "Upload Airflow tables to Snowflake or Redshift",
+    ),
+    "blue-green": (
+        "dbt_coves.tasks.blue_green.main",
+        "BlueGreenTask",
+        "Command to perform blue-green dbt runs",
+    ),
+}
+
 try:
     from dbt.flags import PROFILES_DIR
 
     VARS_DEFAULT_IS_STR = False
 except ImportError:
-    from dbt.cli.resolvers import default_profiles_dir
-
-    PROFILES_DIR = os.environ.get("DBT_PROFILES_DIR") or default_profiles_dir()
+    # dbt >= 1.8: replicate default_profiles_dir() inline to avoid importing dbt.cli.main
+    _cwd = pathlib.Path.cwd()
+    PROFILES_DIR = str(
+        os.environ.get("DBT_PROFILES_DIR")
+        or (_cwd if (_cwd / "profiles.yml").exists() else pathlib.Path.home() / ".dbt")
+    )
     VARS_DEFAULT_IS_STR = True
 
 console = Console()
@@ -225,19 +265,32 @@ base_subparser.add_argument(
 
 sub_parsers = parser.add_subparsers(title="dbt-coves commands", dest="task")
 
-# Register subcommands
-[
-    task.register_parser(sub_parsers, base_subparser)
-    for task in [
-        GenerateTask,
-        SetupTask,
-        ExtractTask,
-        LoadTask,
-        RunDbtTask,
-        DataSyncTask,
-        BlueGreenTask,
-    ]
-]
+
+def _detect_subcommand() -> str | None:
+    """Return the first argv token that matches a known subcommand, or None."""
+    for token in sys.argv[1:]:
+        if token in _TASK_REGISTRY:
+            return token
+    return None
+
+
+def _load_task(name: str):
+    """Import and return the task class for the given subcommand name."""
+    module_path, class_name, _ = _TASK_REGISTRY[name]
+    module = importlib.import_module(module_path)
+    return getattr(module, class_name)
+
+
+# Detect the subcommand early so we only import the needed task module.
+_selected_subcommand = _detect_subcommand()
+
+for _name, (_mod, _cls, _help) in _TASK_REGISTRY.items():
+    if _name == _selected_subcommand:
+        # Register the full parser with all subcommands and flags.
+        _load_task(_name).register_parser(sub_parsers, base_subparser)
+    else:
+        # Register a lightweight stub so the command appears in --help.
+        sub_parsers.add_parser(_name, help=_help)
 
 
 def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int:
@@ -279,8 +332,8 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
  \\__,_|_.__/ \\__|     \\___\\___/ \\_/ \\___||___/
  """
         console.print(logo_str, style="cyan", highlight=False)
-        dbt_version = version.get_installed_version().to_version_string(skip_matcher=True)
-        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{dbt_version}\n".rjust(23))
+        installed_dbt = dbt_version.get_installed_version().to_version_string(skip_matcher=True)
+        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{installed_dbt}\n".rjust(23))
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore
