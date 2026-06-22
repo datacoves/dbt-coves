@@ -1,6 +1,6 @@
 [project]
 name = "dbt_coves"
-version = "1.11.2"
+version = "1.11.3"
 description = "CLI tool for dbt users adopting analytics engineering best practices."
 authors = [{ name = "Datacoves", email = "hello@datacoves.com" }]
 license = "Apache-2.0"
