@@ -28,7 +28,7 @@ dependencies = [
     "Jinja2>2.11.2",
     "python-slugify<9.0.0",
     "dbt-core>=1.1,<1.12",
-    "ruamel-yaml>=0.17.21,<0.18",
+    "ruamel-yaml>=0.17.21,<0.20",
     "db-dtypes>=1.0.5,<2",
     "copier>=9.0.0",
     "gitpython>=3.1.31,<4",
