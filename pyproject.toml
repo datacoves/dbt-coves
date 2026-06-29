@@ -80,7 +80,7 @@ test = [
     "redshift-connector>=2.0.910,<3",
     "pytest-dependency>=0.5.1,<0.7",
     "python-dotenv>=1.2.2,<2",
-    "pandas>=2.0,<3",
+    "pandas>=2.0,<4",
     "snowflake-connector-python[pandas]>=3.0,<4.6",
     "google-cloud-bigquery>2.34,<4",
     "tox>=3.23.1,<4",
