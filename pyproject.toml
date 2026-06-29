@@ -83,7 +83,7 @@ test = [
     "pandas>=2.0,<3",
     "snowflake-connector-python[pandas]>=3.0,<4.6",
     "google-cloud-bigquery>2.34,<4",
-    "tox>=3.23.1,<4",
+    "tox>=3.23.1,<5",
 ]
 
 [build-system]
