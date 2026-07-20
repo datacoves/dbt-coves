@@ -54,7 +54,13 @@ def test_generate_docs_merge_deferred_no_state(dbt_project_path):
     Test that runs `dbt-coves generate docs --merge-deferred`
     It's expected to break because no state was passed
     """
-    command = ["python", "../../dbt_coves/core/main.py", "generate", "docs", "--merge-deferred"]
+    command = [
+        "python",
+        "../../dbt_coves/core/main.py",
+        "generate",
+        "docs",
+        "--merge-deferred",
+    ]
     try:
         subprocess.check_output(command, cwd=dbt_project_path)
     except subprocess.CalledProcessError as e:

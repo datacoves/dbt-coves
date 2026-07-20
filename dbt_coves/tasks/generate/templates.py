@@ -31,7 +31,9 @@ class GenerateTemplatesTask(BaseConfiguredTask):
         subparser.set_defaults(cls=cls, which="templates")
         return subparser
 
-    def copy_template_file(self, template_name, dbtcoves_template_path, destination_template_path):
+    def copy_template_file(
+        self, template_name, dbtcoves_template_path, destination_template_path
+    ):
         try:
             shutil.copyfile(dbtcoves_template_path, destination_template_path)
             console.print(f"Generated [green]{destination_template_path}[/green]")
@@ -47,7 +49,9 @@ class GenerateTemplatesTask(BaseConfiguredTask):
 
         dbt_project_path = self.config.project_root
         templates_destination_path = (
-            dbt_project_path / Path(self.coves_config.DBT_COVES_CONFIG_FOLDER) / "templates"
+            dbt_project_path
+            / Path(self.coves_config.DBT_COVES_CONFIG_FOLDER)
+            / "templates"
         )
         templates_destination_path.mkdir(parents=True, exist_ok=True)
 
@@ -57,7 +61,9 @@ class GenerateTemplatesTask(BaseConfiguredTask):
             target_destination = templates_destination_path / template_name
             if target_destination.exists():
                 if not options["overwrite_all"]:
-                    console.print(f"[yellow]{target_destination}[/yellow] already exists.")
+                    console.print(
+                        f"[yellow]{target_destination}[/yellow] already exists."
+                    )
                     overwrite = questionary.select(
                         "Would you like to overwrite it?",
                         choices=["No", "Yes", "Overwrite all", "Cancel"],
@@ -69,6 +75,8 @@ class GenerateTemplatesTask(BaseConfiguredTask):
                     if overwrite == "Cancel":
                         exit()
 
-            self.copy_template_file(template_name, dbtcoves_template_path, target_destination)
+            self.copy_template_file(
+                template_name, dbtcoves_template_path, target_destination
+            )
 
         return 0

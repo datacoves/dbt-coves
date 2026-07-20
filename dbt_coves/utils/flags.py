@@ -134,7 +134,12 @@ class DbtCovesFlags:
             "current-dir": False,
         }
         self.setup = {"no_prompt": False, "template_url": None, "update": False}
-        self.dbt = {"command": None, "project_dir": None, "virtualenv": None, "cleanup": False}
+        self.dbt = {
+            "command": None,
+            "project_dir": None,
+            "virtualenv": None,
+            "cleanup": False,
+        }
         self.data_sync = {"redshift": {"tables": []}, "snowflake": {"tables": []}}
         self.blue_green = {
             "prod_db_env_var": None,
@@ -207,20 +212,29 @@ class DbtCovesFlags:
                     self.generate["sources"]["database"] = self.args.database
                 if self.args.select_relations:
                     self.generate["sources"]["select_relations"] = [
-                        relation.strip() for relation in self.args.select_relations.split(",")
+                        relation.strip()
+                        for relation in self.args.select_relations.split(",")
                     ]
                 if self.args.sources_destination:
-                    self.generate["sources"]["sources_destination"] = self.args.sources_destination
+                    self.generate["sources"]["sources_destination"] = (
+                        self.args.sources_destination
+                    )
                 if self.args.models_destination:
-                    self.generate["sources"]["models_destination"] = self.args.models_destination
+                    self.generate["sources"]["models_destination"] = (
+                        self.args.models_destination
+                    )
                 if self.args.model_props_destination:
-                    self.generate["sources"][
-                        "model_props_destination"
-                    ] = self.args.model_props_destination
+                    self.generate["sources"]["model_props_destination"] = (
+                        self.args.model_props_destination
+                    )
                 if self.args.update_strategy:
-                    self.generate["sources"]["update_strategy"] = self.args.update_strategy
+                    self.generate["sources"]["update_strategy"] = (
+                        self.args.update_strategy
+                    )
                 if self.args.templates_folder:
-                    self.generate["sources"]["templates_folder"] = self.args.templates_folder
+                    self.generate["sources"]["templates_folder"] = (
+                        self.args.templates_folder
+                    )
                 if self.args.metadata:
                     self.generate["sources"]["metadata"] = self.args.metadata
                 if self.args.exclude_relations:
@@ -230,9 +244,9 @@ class DbtCovesFlags:
                 if self.args.no_prompt:
                     self.generate["sources"]["no_prompt"] = True
                 if self.args.flatten_json_fields:
-                    self.generate["sources"][
-                        "flatten_json_fields"
-                    ] = self.args.flatten_json_fields.lower()
+                    self.generate["sources"]["flatten_json_fields"] = (
+                        self.args.flatten_json_fields.lower()
+                    )
                 if self.args.overwrite_staging_models:
                     self.generate["sources"]["overwrite_staging_models"] = True
                 if self.args.skip_model_props:
@@ -241,13 +255,17 @@ class DbtCovesFlags:
             # generate properties
             if self.args.cls.__name__ == "GeneratePropertiesTask":
                 if self.args.templates_folder:
-                    self.generate["properties"]["templates_folder"] = self.args.templates_folder
+                    self.generate["properties"]["templates_folder"] = (
+                        self.args.templates_folder
+                    )
                 if self.args.metadata:
                     self.generate["properties"]["metadata"] = self.args.metadata
                 if self.args.destination:
                     self.generate["properties"]["destination"] = self.args.destination
                 if self.args.update_strategy:
-                    self.generate["sources"]["update_strategy"] = self.args.update_strategy
+                    self.generate["sources"]["update_strategy"] = (
+                        self.args.update_strategy
+                    )
                 if self.args.select:
                     self.generate["properties"]["select"] = self.args.select
                 if self.args.exclude:
@@ -267,11 +285,13 @@ class DbtCovesFlags:
                     ]
                 if self.args.select_relations:
                     self.generate["metadata"]["select_relations"] = [
-                        relation.strip() for relation in self.args.select_relations.split(",")
+                        relation.strip()
+                        for relation in self.args.select_relations.split(",")
                     ]
                 if self.args.exclude_relations:
                     self.generate["metadata"]["exclude_relations"] = [
-                        relation.strip() for relation in self.args.exclude_relations.split(",")
+                        relation.strip()
+                        for relation in self.args.exclude_relations.split(",")
                     ]
                 if self.args.destination:
                     self.generate["metadata"]["destination"] = self.args.destination
@@ -294,27 +314,39 @@ class DbtCovesFlags:
                 if self.args.dags_path:
                     self.generate["airflow_dags"]["dags_path"] = self.args.dags_path
                 if self.args.validate_operators:
-                    self.generate["airflow_dags"][
-                        "validate_operators"
-                    ] = self.args.validate_operators
+                    self.generate["airflow_dags"]["validate_operators"] = (
+                        self.args.validate_operators
+                    )
                 if self.args.generators_folder:
-                    self.generate["airflow_dags"]["generators_folder"] = self.args.generators_folder
+                    self.generate["airflow_dags"]["generators_folder"] = (
+                        self.args.generators_folder
+                    )
                 if self.args.generators_params:
-                    self.generate["airflow_dags"]["generators_params"] = self.args.generators_params
+                    self.generate["airflow_dags"]["generators_params"] = (
+                        self.args.generators_params
+                    )
                 if self.args.secrets_path:
-                    self.generate["airflow_dags"]["secrets_path"] = self.args.secrets_path
+                    self.generate["airflow_dags"]["secrets_path"] = (
+                        self.args.secrets_path
+                    )
                 if self.args.secrets_manager:
-                    self.generate["airflow_dags"]["secrets_manager"] = self.args.secrets_manager
+                    self.generate["airflow_dags"]["secrets_manager"] = (
+                        self.args.secrets_manager
+                    )
                 if self.args.secrets_url:
                     self.generate["airflow_dags"]["secrets_url"] = self.args.secrets_url
                 if self.args.secrets_token:
-                    self.generate["airflow_dags"]["secrets_token"] = self.args.secrets_token
+                    self.generate["airflow_dags"]["secrets_token"] = (
+                        self.args.secrets_token
+                    )
                 if self.args.secrets_environment:
-                    self.generate["airflow_dags"][
-                        "secrets_environment"
-                    ] = self.args.secrets_environment
+                    self.generate["airflow_dags"]["secrets_environment"] = (
+                        self.args.secrets_environment
+                    )
                 if self.args.secrets_tags:
-                    self.generate["airflow_dags"]["secrets_tags"] = self.args.secrets_tags
+                    self.generate["airflow_dags"]["secrets_tags"] = (
+                        self.args.secrets_tags
+                    )
                 if self.args.secrets_key:
                     self.generate["airflow_dags"]["secrets_key"] = self.args.secrets_key
 
@@ -335,7 +367,9 @@ class DbtCovesFlags:
                 if self.args.secrets_token:
                     self.load["airbyte"]["secrets_token"] = self.args.secrets_token
                 if self.args.secrets_environment:
-                    self.load["airbyte"]["secrets_environment"] = self.args.secrets_environment
+                    self.load["airbyte"]["secrets_environment"] = (
+                        self.args.secrets_environment
+                    )
                 if self.args.secrets_tags:
                     self.load["airbyte"]["secrets_tags"] = [
                         tag.strip() for tag in self.args.secrets_tags.split(",")
@@ -362,7 +396,9 @@ class DbtCovesFlags:
                 if self.args.secrets_token:
                     self.load["fivetran"]["secrets_token"] = self.args.secrets_token
                 if self.args.secrets_environment:
-                    self.load["fivetran"]["secrets_environment"] = self.args.secrets_environment
+                    self.load["fivetran"]["secrets_environment"] = (
+                        self.args.secrets_environment
+                    )
                 if self.args.secrets_tags:
                     self.load["fivetran"]["secrets_tags"] = [
                         tag.strip() for tag in self.args.secrets_tags.split(",")
@@ -432,7 +468,9 @@ class DbtCovesFlags:
                 if self.args.staging_suffix:
                     self.blue_green["staging_suffix"] = self.args.staging_suffix
                 if self.args.drop_staging_db_at_start:
-                    self.blue_green["drop_staging_db_at_start"] = self.args.drop_staging_db_at_start
+                    self.blue_green["drop_staging_db_at_start"] = (
+                        self.args.drop_staging_db_at_start
+                    )
                 if self.args.drop_staging_db_on_failure:
                     self.blue_green["drop_staging_db_on_failure"] = (
                         self.args.drop_staging_db_on_failure

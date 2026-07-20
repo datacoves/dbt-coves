@@ -54,7 +54,9 @@ class SnowflakeDataSyncTask(BaseDataSyncTask):
             parents=[base_subparser],
             help="""Loads data into Snowflake""",
         )
-        subparser.add_argument("--tables", help="List of tables to dump", required=False)
+        subparser.add_argument(
+            "--tables", help="List of tables to dump", required=False
+        )
         subparser.add_argument("--source", help="Source database name", required=True)
         subparser.set_defaults(cls=cls, which="snowflake")
         return subparser

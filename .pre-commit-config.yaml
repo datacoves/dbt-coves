@@ -1,40 +1,31 @@
 repos:
   - repo: local
     hooks:
-      # Format.
-      - id: black
-        name: black
-        entry: black
+      # DCV-3932: ruff replaces black + isort + flake8 + debug-statements.
+      # Lint with autofix (isort I, flake8-debugger T10, pyflakes, pycodestyle).
+      # --force-exclude makes ruff honor extend-exclude even when pre-commit
+      # passes file paths explicitly (otherwise excluded dirs like migrations/
+      # get linted/formatted).
+      - id: ruff-check
+        name: ruff check
+        entry: ruff check --force-exclude --fix
         language: python
         language_version: python3
-        additional_dependencies: ["black>=25,<26"]
-        minimum_pre_commit_version: 2.9.2
+        additional_dependencies: [ruff==0.15.19]
         require_serial: true
-        types_or: [cython, pyi, python]
-      - id: isort
-        name: isort
-        entry: isort
+        types_or: [pyi, python]
+      # Format (black-compatible).
+      - id: ruff-format
+        name: ruff format
+        entry: ruff format --force-exclude
+        language: python
+        language_version: python3
+        additional_dependencies: [ruff==0.15.19]
         require_serial: true
-        language: python
-        language_version: python3
-        additional_dependencies: ["isort>=5.12.0,<6"]
-        types_or: [cython, pyi, python]
-        args: ["--profile", "black", "./dbt_coves", "./scripts"]
-      # Lint
-      - id: linter
-        name: linter
-        entry: flake8
-        language: python
-        language_version: python3
-        additional_dependencies: ["flake8>=7.1.0,<8"]
-        types_or: [cython, pyi, python]
+        types_or: [pyi, python]
       - id: prevent-push-to-main
         name: Prevent push to main
         entry: bash ./scripts/pre-commit-hooks/prevent-push-to-main.sh
         language: system
         stages: [pre-commit, pre-push]
-  - repo: https://github.com/pre-commit/pre-commit-hooks
-    rev: v4.4.0  # Use the ref you want to point at
-    hooks:
-    -   id: debug-statements
 

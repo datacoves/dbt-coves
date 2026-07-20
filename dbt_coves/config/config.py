@@ -31,7 +31,9 @@ class GenerateSourcesModel(BaseModel):
     exclude_relations: Optional[List[str]] = []
     sources_destination: Optional[str] = "models/staging/{{schema}}/{{schema}}.yml"
     models_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.sql"
-    model_props_destination: Optional[str] = "models/staging/{{schema}}/{{relation}}.yml"
+    model_props_destination: Optional[str] = (
+        "models/staging/{{schema}}/{{relation}}.yml"
+    )
     update_strategy: Optional[str] = "ask"
     templates_folder: Optional[str] = ".dbt_coves/templates"
     metadata: Optional[str] = ""
@@ -305,7 +307,11 @@ class DbtCovesConfig:
             source = self._flags
             for item in path_items[:-1]:
                 target = target[item]
-                source = source.get(item, {}) if type(source) is dict else getattr(source, item)
+                source = (
+                    source.get(item, {})
+                    if type(source) is dict
+                    else getattr(source, item)
+                )
             key = path_items[-1]
             if source.get(key):
                 target[key] = source[key]
@@ -366,7 +372,9 @@ class DbtCovesConfig:
             logger.debug("Trying to find .dbt_coves in current folder")
 
             for filename in self.DBT_COVES_CONFIG_FILEPATHS:
-                config_path = Path(os.environ.get("DATACOVES__DBT_HOME", "")).joinpath(filename)
+                config_path = Path(os.environ.get("DATACOVES__DBT_HOME", "")).joinpath(
+                    filename
+                )
                 if config_path.exists():
                     coves_config_dir = config_path
                     logger.debug(f"{coves_config_dir} exists and was retrieved.")

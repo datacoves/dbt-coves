@@ -23,7 +23,9 @@ class DataSyncTask(BaseTask):
             help="Upload Airflow tables to Snowflake or Redshift",
         )
         subparser.set_defaults(cls=cls, which="data_sync")
-        sub_parsers = subparser.add_subparsers(title="dbt-coves data-sync commands", dest="task")
+        sub_parsers = subparser.add_subparsers(
+            title="dbt-coves data-sync commands", dest="task"
+        )
         SnowflakeDataSyncTask.register_parser(sub_parsers, base_subparser)
         RedshiftDataSyncTask.register_parser(sub_parsers, base_subparser)
         cls.arg_parser = subparser

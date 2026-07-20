@@ -91,7 +91,9 @@ class GenerateDocsTask(BaseConfiguredTask):
             with open(catalog_path, "r") as f:
                 return json.load(f)
         except FileNotFoundError:
-            raise DbtCovesGenerateDocsException(f"Catalog.json not found at {catalog_path}")
+            raise DbtCovesGenerateDocsException(
+                f"Catalog.json not found at {catalog_path}"
+            )
 
     def _merge_catalogs(
         self, local_catalog: Dict[str, Any], target_catalog: Dict[str, Any]
