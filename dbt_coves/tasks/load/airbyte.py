@@ -64,12 +64,18 @@ class LoadAirbyteTask(BaseLoadTask):
             type=str,
             help="Secret credentials provider, i.e. 'datacoves'",
         )
-        subparser.add_argument("--secrets-url", type=str, help="Secret credentials provider url")
+        subparser.add_argument(
+            "--secrets-url", type=str, help="Secret credentials provider url"
+        )
         subparser.add_argument(
             "--secrets-token", type=str, help="Secret credentials provider token"
         )
-        subparser.add_argument("--secrets-environment", type=str, help="Secret credentials project")
-        subparser.add_argument("--secrets-tags", type=str, help="Secret credentials tags")
+        subparser.add_argument(
+            "--secrets-environment", type=str, help="Secret credentials project"
+        )
+        subparser.add_argument(
+            "--secrets-tags", type=str, help="Secret credentials tags"
+        )
         subparser.add_argument("--secrets-key", type=str, help="Secret credentials key")
         subparser.set_defaults(cls=cls, which="airbyte")
         return subparser
@@ -120,13 +126,19 @@ class LoadAirbyteTask(BaseLoadTask):
             api_key=self.airbyte_api_key or None,
         )
 
-        console.print(f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n")
+        console.print(
+            f"Loading DBT Sources into Airbyte from {os.path.abspath(path)}\n"
+        )
 
-        extracted_sources = self.retrieve_all_jsons_from_path(self.sources_load_destination)
+        extracted_sources = self.retrieve_all_jsons_from_path(
+            self.sources_load_destination
+        )
         extracted_destinations = self.retrieve_all_jsons_from_path(
             self.destinations_load_destination
         )
-        extracted_connections = self.retrieve_all_jsons_from_path(self.connections_load_destination)
+        extracted_connections = self.retrieve_all_jsons_from_path(
+            self.connections_load_destination
+        )
         for source in extracted_sources:
             self._create_or_update_source(source)
         for destination in extracted_destinations:
@@ -264,7 +276,9 @@ class LoadAirbyteTask(BaseLoadTask):
                 f"Connection test for {exported_data['name']} failed:\n "
                 f"{conn_status.get('message', '')}"
             )
-            update = questionary.confirm("Would you like to continue updating it?").ask()
+            update = questionary.confirm(
+                "Would you like to continue updating it?"
+            ).ask()
         if update:
             update_body = {
                 "name": exported_data["name"],
@@ -293,7 +307,9 @@ class LoadAirbyteTask(BaseLoadTask):
                 f"Connection test for {exported_data['name']} failed:\n "
                 f"{conn_status.get('message', '')}"
             )
-            create = questionary.confirm("Would you like to continue creating it?").ask()
+            create = questionary.confirm(
+                "Would you like to continue creating it?"
+            ).ask()
 
         if create:
             if object_type == "sources":
@@ -396,7 +412,9 @@ class LoadAirbyteTask(BaseLoadTask):
     def _update_destination(self, exported_data, destination_id):
         exported_data.pop("connectorVersion", None)
         exported_data = self._get_secrets(exported_data, "destinations")
-        self._update_source_or_destination(exported_data, "destinations", destination_id)
+        self._update_source_or_destination(
+            exported_data, "destinations", destination_id
+        )
 
     def _destinations_are_equivalent(self, exported_destination, current_destination):
         current_copy = copy(current_destination)
@@ -494,15 +512,15 @@ class LoadAirbyteTask(BaseLoadTask):
                 schedule["cronExpression"] = schedule_data.get("cron", {}).get(
                     "cronExpression"
                 ) or schedule_data.get("basicSchedule", {}).get("cronExpression")
-            connection["schedule"] = {k: v for k, v in schedule.items() if v is not None}
+            connection["schedule"] = {
+                k: v for k, v in schedule.items() if v is not None
+            }
         return connection
 
     def _create_connection(self, exported_json_data, source_id, destination_id):
         exported_json_data["sourceId"] = source_id
         exported_json_data["destinationId"] = destination_id
-        connection_name = (
-            f"{exported_json_data['sourceName']}-{exported_json_data['destinationName']}"
-        )
+        connection_name = f"{exported_json_data['sourceName']}-{exported_json_data['destinationName']}"
         exported_json_data.pop("sourceName", None)
         exported_json_data.pop("destinationName", None)
         exported_json_data.pop("operationIds", None)
@@ -516,13 +534,17 @@ class LoadAirbyteTask(BaseLoadTask):
                 self.airbyte_api.connections_list.append(response)
                 return connection_name
         except AirbyteApiCallerException as ex:
-            raise AirbyteApiCallerException(f"Could not create Airbyte connection: {ex}")
+            raise AirbyteApiCallerException(
+                f"Could not create Airbyte connection: {ex}"
+            )
 
     def _delete_connection(self, connection_id):
         try:
             self.airbyte_api.delete_connection(connection_id)
         except AirbyteApiCallerException:
-            raise AirbyteLoaderException("Could not delete Airbyte connection for re-creation")
+            raise AirbyteLoaderException(
+                "Could not delete Airbyte connection for re-creation"
+            )
 
     def _get_source_id_by_name(self, source_name):
         for source in self.airbyte_api.sources_list:
@@ -583,10 +605,14 @@ class LoadAirbyteTask(BaseLoadTask):
             else:
                 connection_id = connection["connectionId"]
                 self._delete_connection(connection_id)
-                conn_name = self._create_connection(connection_json, source_id, destination_id)
+                conn_name = self._create_connection(
+                    connection_json, source_id, destination_id
+                )
                 self._add_update_result("connections", conn_name)
         else:
-            conn_name = self._create_connection(connection_json, source_id, destination_id)
+            conn_name = self._create_connection(
+                connection_json, source_id, destination_id
+            )
             self.loading_results["connections"]["created"].append(conn_name)
 
     def _add_update_result(self, obj_type, obj_name):
@@ -602,7 +628,9 @@ class LoadAirbyteTask(BaseLoadTask):
                 object_definition = self._get_source_definition_by_type(source_type)
             else:
                 destination_type = exported_json_data.get("destinationType", "")
-                object_definition = self._get_destination_definition_by_type(destination_type)
+                object_definition = self._get_destination_definition_by_type(
+                    destination_type
+                )
         except AirbyteLoaderException:
             return
 

@@ -94,12 +94,18 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             type=str,
             help="Secret credentials provider, i.e. 'datacoves'",
         )
-        subparser.add_argument("--secrets-url", type=str, help="Secret credentials provider url")
+        subparser.add_argument(
+            "--secrets-url", type=str, help="Secret credentials provider url"
+        )
         subparser.add_argument(
             "--secrets-token", type=str, help="Secret credentials provider token"
         )
-        subparser.add_argument("--secrets-environment", type=str, help="Secret credentials project")
-        subparser.add_argument("--secrets-tags", type=str, help="Secret credentials tags")
+        subparser.add_argument(
+            "--secrets-environment", type=str, help="Secret credentials project"
+        )
+        subparser.add_argument(
+            "--secrets-tags", type=str, help="Secret credentials tags"
+        )
         subparser.add_argument("--secrets-key", type=str, help="Secret credentials key")
 
         cls.arg_parser = base_subparser
@@ -122,7 +128,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         return self.coves_config.integrated["generate"]["airflow_dags"][key]
 
     def _generate_dag(self, yml_filepath: Path):
-        yaml.FullLoader.add_constructor("tag:yaml.org,2002:timestamp", self.date_constructor)
+        yaml.FullLoader.add_constructor(
+            "tag:yaml.org,2002:timestamp", self.date_constructor
+        )
         yaml.FullLoader.add_constructor("!py", self.raw_expr_constructor)
         console.print(f"Generating [b][i]{yml_filepath.stem}[/i][/b]")
         try:
@@ -136,7 +144,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 else:
                     yml_relpath = yml_filepath.name
                 dag_destination = (
-                    Path(self.dags_path).resolve().joinpath(yml_relpath).with_suffix(".py")
+                    Path(self.dags_path)
+                    .resolve()
+                    .joinpath(yml_relpath)
+                    .with_suffix(".py")
                 )
             else:
                 dag_destination = yml_filepath.with_suffix(".py")
@@ -188,7 +199,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                     dag_value = f'"{value}"'
                 else:
                     dag_value = value
-                dag_args += f'{indent * " "}{key}={dag_value},\n'
+                dag_args += f"{indent * ' '}{key}={dag_value},\n"
         return dag_args[:-1]
 
     def generate_notifiers(self, notifiers: Dict[str, Any]):
@@ -208,7 +219,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             module = ".".join(split_callback[:-1])
             callback_class = split_callback[-1]
             callback_args = definition.get("args")
-            self.dag_output["imports"].append(f"from {module} import {callback_class}\n")
+            self.dag_output["imports"].append(
+                f"from {module} import {callback_class}\n"
+            )
             usage_args = []
             if isinstance(callback_args, dict):
                 for arg, value in callback_args.items():
@@ -228,7 +241,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             callback_output.append(f"{2 * ' '}{callback}={callback_usage}")
         return callback_output
 
-    def build_dag_file(self, destination_path: Path, dag_name: str, yml_dag: Dict[str, Any]):
+    def build_dag_file(
+        self, destination_path: Path, dag_name: str, yml_dag: Dict[str, Any]
+    ):
         """
         Generate DAG Python file based on YML configuration
         """
@@ -254,7 +269,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         }
         if doc_md:
             self.dag_output["docstring"].append(f'"""\n{doc_md.rstrip()}\n"""\n\n')
-            yml_dag["doc_md"] = RawExpr("__doc__")  # update in-place to preserve key order
+            yml_dag["doc_md"] = RawExpr(
+                "__doc__"
+            )  # update in-place to preserve key order
         self.dag_output["dag"].extend(
             [
                 f"{self.dag_args_to_string(yml_dag)}\n",
@@ -265,7 +282,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         for node_name, node_conf in nodes.items():
             self.generate_node(node_name, node_conf)
         for upstream_list, task_name in self.collected_dependencies:
-            self.dag_output["dag"].append(f"    [{', '.join(upstream_list)}] >> {task_name}\n")
+            self.dag_output["dag"].append(
+                f"    [{', '.join(upstream_list)}] >> {task_name}\n"
+            )
         self.dag_output["dag"].append(f"dag = {dag_name}()\n")
 
         with open(destination_path, "w") as f:
@@ -281,7 +300,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f.write(isort_formatted)
             except Exception as exc:
                 f.write(final_output)
-                console.print(f"DAG {dag_name} resulted in an invalid DAG, skipping. Error: {exc}")
+                console.print(
+                    f"DAG {dag_name} resulted in an invalid DAG, skipping. Error: {exc}"
+                )
 
     def _merge_secret_nodes(self, secret_nodes, yml_dag) -> Dict[str, Any]:
         if isinstance(secret_nodes, dict):
@@ -336,7 +357,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         )
         return getattr(module, generator)
 
-    def _merge_generator_configs(self, tg_conf: Dict[str, Any], generator: str) -> Dict[str, Any]:
+    def _merge_generator_configs(
+        self, tg_conf: Dict[str, Any], generator: str
+    ) -> Dict[str, Any]:
         """
         Merge the generator configs between YML Dag and dbt-coves `generators_params` config
         """
@@ -350,7 +373,11 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate Task Groups, using YML's `generator` or `tasks`
         """
-        self.dag_output["imports"].append("from airflow.decorators import task_group\n"),
+        (
+            self.dag_output["imports"].append(
+                "from airflow.decorators import task_group\n"
+            ),
+        )
         tg_tooltip = tg_conf.pop("tooltip", "")
         task_group_output = [
             f"{' ' * 4}@task_group(group_id='{tg_name}', tooltip='{tg_tooltip}',)\n",
@@ -389,7 +416,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
 
         if len(task_group_output) == 2:
             # No tasks were added — emit pass to keep the function body valid
-            task_group_output.append(f"{' ' * 8}pass # XXX dbt-coves did not receive a task here\n")
+            task_group_output.append(
+                f"{' ' * 8}pass # XXX dbt-coves did not receive a task here\n"
+            )
 
         tg_variable_name = f"tg_{tg_name}"
         task_group_output.append(f"{' ' * 4}{tg_variable_name} = {tg_name}()\n")
@@ -443,7 +472,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             f"{config_global_name}="
             f"{AIRFLOW_K8S_CONFIG_TEMPLATE.format(config=inner_config_lines)}\n"
         )
-        self.dag_output["imports"].append("from kubernetes.client import models as k8s\n")
+        self.dag_output["imports"].append(
+            "from kubernetes.client import models as k8s\n"
+        )
         task_conf["executor_config"] = config_global_name
 
     def generate_task_output(
@@ -466,7 +497,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             # Extract additional arguments for the decorator
             decorator_args = []
             for key, value in task_conf.items():
-                if isinstance(value, dict):  # Handle nested dictionaries (e.g., overrides)
+                if isinstance(
+                    value, dict
+                ):  # Handle nested dictionaries (e.g., overrides)
                     value = f"{value}"  # Render as a Python dictionary
                 elif isinstance(value, str):
                     value = f'"{value}"'
@@ -478,7 +511,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"{' ' * (indent + 4)}{', '.join(decorator_args)},\n",
                 f"{' ' * indent})\n",
                 f"{' ' * indent}def {task_name}():\n",
-                f"{' ' * (indent + 4)}return \"{bash_command}\"\n",
+                f'{" " * (indent + 4)}return "{bash_command}"\n',
                 f"{' ' * (indent)}{task_name} = {task_name}()\n",
             ]
         else:
@@ -503,7 +536,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         if dependencies:
             upstream_list = [self.generated_groups.get(d, d) for d in dependencies]
             if is_task_taskgroup:
-                task_output.append(f"{' ' * indent}[{', '.join(upstream_list)}] >> {task_name} \n")
+                task_output.append(
+                    f"{' ' * indent}[{', '.join(upstream_list)}] >> {task_name} \n"
+                )
             else:
                 self.collected_dependencies.append((upstream_list, task_name))
         return task_output

@@ -39,9 +39,11 @@ console = Console()
 
 class BaseDataSyncTask(NonDbtBaseConfiguredTask):
     def get_source_connection_string(self):
-        self.source_connection_string = os.environ.get("DATA_SYNC_SOURCE_CONNECTION_STRING")
+        self.source_connection_string = os.environ.get(
+            "DATA_SYNC_SOURCE_CONNECTION_STRING"
+        )
         assert self.source_connection_string, (
-            "Environment variable " "DATA_SYNC_SOURCE_CONNECTION_STRING is not defined"
+            "Environment variable DATA_SYNC_SOURCE_CONNECTION_STRING is not defined"
         )
 
     def perform_sync(self) -> None:

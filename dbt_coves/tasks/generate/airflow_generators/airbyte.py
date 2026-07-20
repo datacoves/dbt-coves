@@ -29,7 +29,9 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         self.airbyte_conn_id = airbyte_conn_id
         self.connection_ids = connection_ids
         self.ignored_source_tables = []
-        self.imports = ["airflow.providers.airbyte.operators.airbyte.AirbyteTriggerSyncOperator"]
+        self.imports = [
+            "airflow.providers.airbyte.operators.airbyte.AirbyteTriggerSyncOperator"
+        ]
         self.api_caller = AirbyteApiCaller(
             self.host, api_port=self.port or None, api_key=self.api_key or None
         )
@@ -41,7 +43,9 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         Ensure connection_ids exist in Airbyte API
         """
         for conn in connection_ids:
-            if conn not in (connection["connectionId"] for connection in self.airbyte_connections):
+            if conn not in (
+                connection["connectionId"] for connection in self.airbyte_connections
+            ):
                 raise AirbyteGeneratorException(
                     f"Airbyte error: there is no Airbyte connection for id [red]{conn}[/red]"
                 )
@@ -69,7 +73,9 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         for destination in self.api_caller.destinations_list:
             if destination["destinationId"] == id:
                 return destination
-        raise AirbyteGeneratorException(f"Airbyte error: there are no destinations for id {id}")
+        raise AirbyteGeneratorException(
+            f"Airbyte error: there are no destinations for id {id}"
+        )
 
     def _get_airbyte_source(self, id):
         """Get the complete Source object from it's ID"""
@@ -90,7 +96,9 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
             and conn["namespaceFormat"] == "${SOURCE_NAMESPACE}"
         ):
             source = self._get_airbyte_source(conn["sourceId"])
-            source_config = source.get("configuration", source.get("connectionConfiguration", {}))
+            source_config = source.get(
+                "configuration", source.get("connectionConfiguration", {})
+            )
             if "schema" in source_config:
                 return source_config["schema"].lower()
             else:
@@ -108,7 +116,10 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         airbyte_tables = []
         connection_ids = []
         for conn in list(
-            filter(lambda conn: conn.get("status") != "deprecated", self.airbyte_connections)
+            filter(
+                lambda conn: conn.get("status") != "deprecated",
+                self.airbyte_connections,
+            )
         ):
             # Handle both old syncCatalog and new configurations API formats
             catalog = conn.get("syncCatalog") or conn.get("configurations", {})
@@ -133,11 +144,13 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
                             "database", destination_config.get("project-id", "")
                         ).lower()
                     ):
-                        airbyte_schema = self._get_connection_schema(conn, destination_config)
+                        airbyte_schema = self._get_connection_schema(
+                            conn, destination_config
+                        )
                         # and finally, match schema, if defined
-                        if (airbyte_schema == schema or not airbyte_schema) and conn.get(
-                            "connectionId"
-                        ) not in connection_ids:
+                        if (
+                            airbyte_schema == schema or not airbyte_schema
+                        ) and conn.get("connectionId") not in connection_ids:
                             connection_ids.append(conn["connectionId"])
         if connection_ids:
             return connection_ids
@@ -154,7 +167,9 @@ class AirbyteGenerator(BaseDbtCovesTaskGenerator):
         for conn in self.airbyte_connections:
             if conn["connectionId"] == conn_id:
                 source_name = self._get_airbyte_source(conn["sourceId"])["name"]
-                destination_name = self._get_airbyte_destination(conn["destinationId"])["name"]
+                destination_name = self._get_airbyte_destination(conn["destinationId"])[
+                    "name"
+                ]
                 return slugify(f"{source_name} → {destination_name}", separator="_")
 
         raise AirbyteGeneratorException(

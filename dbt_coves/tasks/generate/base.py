@@ -97,9 +97,13 @@ class BaseGenerateTask(BaseConfiguredTask):
             return selected_schemas
 
     def get_relations(self, filtered_schemas):
-        rel_name_selectors = [relation for relation in self.get_config_value("select_relations")]
+        rel_name_selectors = [
+            relation for relation in self.get_config_value("select_relations")
+        ]
 
-        rel_excludes = [relation for relation in self.get_config_value("exclude_relations")]
+        rel_excludes = [
+            relation for relation in self.get_config_value("exclude_relations")
+        ]
 
         rel_wildcard_selectors = []
 
@@ -137,7 +141,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                     break
 
         rels = (
-            intersected_rels if rel_name_selectors and rel_name_selectors[0] else listed_relations
+            intersected_rels
+            if rel_name_selectors and rel_name_selectors[0]
+            else listed_relations
         )
 
         return rels
@@ -214,7 +220,9 @@ class BaseGenerateTask(BaseConfiguredTask):
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"][self.args.task][key]
 
-    def render_templates(self, relation, columns, destination, options=None, json_cols=None):
+    def render_templates(
+        self, relation, columns, destination, options=None, json_cols=None
+    ):
         destination.parent.mkdir(parents=True, exist_ok=True)
         context = self.get_templates_context(relation, columns, json_cols)
         self.render_templates_with_context(context, destination, options)
@@ -324,7 +332,9 @@ class BaseGenerateTask(BaseConfiguredTask):
             current_yml = open_yaml(yml_path)
             if not current_yml:
                 # target yml path exists but it's empty -> recreate file
-                return self.create_property_file(template, context, yml_path, templates_folder)
+                return self.create_property_file(
+                    template, context, yml_path, templates_folder
+                )
             object_in_yml = self.new_object_exists_in_current_yml(
                 current_yml,
                 template,
@@ -375,7 +385,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                     elif update_strategy == "recreate":
                         sel_action = "recreate"
                     else:
-                        console.print(f"Update strategy {update_strategy} not a valid option.")
+                        console.print(
+                            f"Update strategy {update_strategy} not a valid option."
+                        )
                         exit()
                 elif options[strategy_key_recreate_all]:
                     sel_action = "recreate"
@@ -433,8 +445,10 @@ class BaseGenerateTask(BaseConfiguredTask):
                     if action == "recreate":
                         current_yml[resource_type_key][idx] = new_object
                     if action == "update":
-                        current_yml[resource_type_key][idx] = self.update_object_properties(
-                            curr_obj, new_object, resource_type
+                        current_yml[resource_type_key][idx] = (
+                            self.update_object_properties(
+                                curr_obj, new_object, resource_type
+                            )
                         )
 
         # "{Model/Source} {name} created/recreated/updated on file {filepath}"
@@ -461,9 +475,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                 # If column exists in A, update it's description
                 # and leave as-is to avoid overriding tests
                 for current_column in columns_a:
-                    if (current_column.get("name") == new_column.get("name")) and new_column.get(
-                        "description"
-                    ):
+                    if (
+                        current_column.get("name") == new_column.get("name")
+                    ) and new_column.get("description"):
                         current_column["description"] = new_column.get("description")
             else:
                 columns_a.append(new_column)
@@ -498,8 +512,12 @@ class BaseGenerateTask(BaseConfiguredTask):
 
     def raise_duplicate_relations(self, relations):
         if not self.no_prompt:
-            relation_names = [f"{rel.schema.lower()}.{rel.name.lower()}" for rel in relations]
-            duplicates = {rel for rel in relation_names if relation_names.count(rel) > 1}
+            relation_names = [
+                f"{rel.schema.lower()}.{rel.name.lower()}" for rel in relations
+            ]
+            duplicates = {
+                rel for rel in relation_names if relation_names.count(rel) > 1
+            }
             if duplicates:
                 raise BaseGeneratorException(
                     "Can't select multiple relations with the exact same name: "

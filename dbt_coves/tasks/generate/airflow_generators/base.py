@@ -39,7 +39,9 @@ class BaseDbtGenerator:
         Discover DBT source(s)' Airbyte/Fivetran connection IDs based on params
         """
         if self.virtualenv_path:
-            self.virtualenv_path = Path(f"{self.virtualenv_path}/bin/activate").absolute()
+            self.virtualenv_path = Path(
+                f"{self.virtualenv_path}/bin/activate"
+            ).absolute()
 
         if Path(self.dbt_project_path).is_absolute():
             self.dbt_project_path = Path(self.dbt_project_path)
@@ -60,7 +62,9 @@ class BaseDbtGenerator:
             ).stdout.strip("\n")
             deploy_path = "/tmp/airbyte-generator-" + commit
             # Move folders
-            subprocess.run(["cp", "-rf", self.dbt_project_path, deploy_path], check=True)
+            subprocess.run(
+                ["cp", "-rf", self.dbt_project_path, deploy_path], check=True
+            )
             cwd = deploy_path
 
         try:
@@ -96,7 +100,8 @@ class BaseDbtGenerator:
 
             if self.virtualenv_path:
                 command = self.get_bash_command(
-                    self.virtualenv_path, f"dbt ls --resource-type source {self.dbt_list_args}"
+                    self.virtualenv_path,
+                    f"dbt ls --resource-type source {self.dbt_list_args}",
                 )
             else:
                 command = [
@@ -121,7 +126,9 @@ class BaseDbtGenerator:
                 error_message += f"{e.stdout.decode()}\n"
             if e.stderr:
                 error_message += f"{e.stderr.decode()}"
-            raise GeneratorException(f"Exception occurred running {command}\n{error_message}")
+            raise GeneratorException(
+                f"Exception occurred running {command}\n{error_message}"
+            )
 
         sources_list = []
         if "No nodes selected" not in stdout:
@@ -169,7 +176,8 @@ class BaseDbtCovesTaskGenerator:
         Returns Airflow call as a string
         """
         func_call = ", ".join(
-            f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}" for k, v in kwargs.items()
+            f'{k}="{v}"' if isinstance(v, str) else f"{k}={v}"
+            for k, v in kwargs.items()
         )
         return f"{name} = {operator}({func_call})"
 

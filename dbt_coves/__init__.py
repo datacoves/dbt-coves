@@ -2,7 +2,11 @@ __version__ = "1.11.3"
 
 
 def __getattr__(name: str):
-    if name in ("__dbt_major_version__", "__dbt_minor_version__", "__dbt_patch_version__"):
+    if name in (
+        "__dbt_major_version__",
+        "__dbt_minor_version__",
+        "__dbt_patch_version__",
+    ):
         import dbt.version
 
         v = dbt.version.installed

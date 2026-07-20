@@ -69,7 +69,9 @@ class BlueGreenTask(BaseConfiguredTask):
             action="store_true",
             help="Perform a full dbt build",
         )
-        ext_subparser.add_argument("--defer", action="store_true", help="Run in deferral")
+        ext_subparser.add_argument(
+            "--defer", action="store_true", help="Run in deferral"
+        )
         return ext_subparser
 
     def get_config_value(self, key):
@@ -89,16 +91,22 @@ class BlueGreenTask(BaseConfiguredTask):
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
         if staging_database and staging_suffix:
-            raise DbtCovesException("Cannot specify both staging_database and staging_suffix")
+            raise DbtCovesException(
+                "Cannot specify both staging_database and staging_suffix"
+            )
         elif not staging_database and not staging_suffix:
             staging_suffix = "STAGING"
-        self.staging_database = staging_database or f"{self.production_database}_{staging_suffix}"
+        self.staging_database = (
+            staging_database or f"{self.production_database}_{staging_suffix}"
+        )
         if self.production_database == self.staging_database:
             raise DbtCovesException(
                 f"Production database {self.production_database} cannot be the same as staging "
                 f"database {self.staging_database}"
             )
-        self.drop_staging_db_at_start = self.get_config_value("drop_staging_db_at_start")
+        self.drop_staging_db_at_start = self.get_config_value(
+            "drop_staging_db_at_start"
+        )
 
         self.cdb = CloneDB(
             self.production_database,
@@ -112,11 +120,15 @@ class BlueGreenTask(BaseConfiguredTask):
             # create staging db
             self.cdb.create_database(self.staging_database)
             # clones schemas and schema grants from production to pre_production
-            self.cdb.clone_database_schemas(self.production_database, self.staging_database)
+            self.cdb.clone_database_schemas(
+                self.production_database, self.staging_database
+            )
             # run dbt build
             self._run_dbt_build(env)
             # copy db grants from production db
-            self.cdb.clone_database_grants(self.production_database, self.staging_database)
+            self.cdb.clone_database_grants(
+                self.production_database, self.staging_database
+            )
             # Swaps databases: Snowflake sql `alter database {blue} swap with {green}`
             self._swap_databases()
             # drops pre_production (ex production)
@@ -145,7 +157,9 @@ class BlueGreenTask(BaseConfiguredTask):
             )
             console.print(f"[green]{command_string} :heavy_check_mark:[/green]")
         except subprocess.CalledProcessError as e:
-            console.print(f"Error running [red]{e.cmd}[/red], see stack above for details")
+            console.print(
+                f"Error running [red]{e.cmd}[/red], see stack above for details"
+            )
             raise
 
     def _get_dbt_command(self, command):

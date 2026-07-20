@@ -316,7 +316,9 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
-def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()) -> int:
+def main(
+    parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()
+) -> int:
     tracking.do_not_track()
 
     exit_code = 0
@@ -332,8 +334,12 @@ def main(parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = li
  \\__,_|_.__/ \\__|     \\___\\___/ \\_/ \\___||___/
  """
         console.print(logo_str, style="cyan", highlight=False)
-        installed_dbt = dbt_version.get_installed_version().to_version_string(skip_matcher=True)
-        console.print(f"dbt-coves v{__version__}".ljust(24) + f"dbt v{installed_dbt}\n".rjust(23))
+        installed_dbt = dbt_version.get_installed_version().to_version_string(
+            skip_matcher=True
+        )
+        console.print(
+            f"dbt-coves v{__version__}".ljust(24) + f"dbt v{installed_dbt}\n".rjust(23)
+        )
 
     try:
         exit_code = handle(parser, cli_args)  # type: ignore

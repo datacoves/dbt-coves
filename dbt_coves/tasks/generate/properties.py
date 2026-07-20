@@ -114,7 +114,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
                 f"An error occurred listing your dbt models: \n {result.stdout or result.stderr}"
             )
         if "no nodes selected" in result.stdout.lower():
-            raise GeneratePropertiesException(f"{result.stdout}\nSelectors used: {user_selectors}")
+            raise GeneratePropertiesException(
+                f"{result.stdout}\nSelectors used: {user_selectors}"
+            )
 
         manifest_json_lines = filter(
             lambda i: len(i) > 0 and i[0] == "{", result.stdout.splitlines()
@@ -127,10 +129,14 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
     def load_manifest_nodes(self):
         try:
-            with open(f"{self.config.project_root}/target/manifest.json", "r") as manifest:
+            with open(
+                f"{self.config.project_root}/target/manifest.json", "r"
+            ) as manifest:
                 return json.load(manifest)
         except FileNotFoundError:
-            raise GeneratePropertiesException("Could not find manifest.json in target/ folder")
+            raise GeneratePropertiesException(
+                "Could not find manifest.json in target/ folder"
+            )
 
     def get_config_value(self, key):
         return self.coves_config.integrated["generate"]["properties"].get(key)
@@ -175,7 +181,9 @@ class GeneratePropertiesTask(BaseGenerateTask):
             relation = self.adapter.get_relation(database, schema, table)
             if relation:
                 columns = self.adapter.get_columns_in_relation(relation)
-                model_destination = self.render_path_template(prop_destination, model, manifest)
+                model_destination = self.render_path_template(
+                    prop_destination, model, manifest
+                )
                 model_path = Path(self.config.project_root).joinpath(model_destination)
 
                 self.render_templates(relation, columns, model_path, options)

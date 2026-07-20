@@ -65,9 +65,7 @@ def snowflake_connection(request):
     request.cls.warehouse = warehouse
     request.cls.schema = schema
     request.cls.production_database = database
-    request.cls.staging_database = (
-        f"{request.cls.production_database}_{DBT_COVES_SETTINGS.get('staging_suffix', 'staging')}"
-    )
+    request.cls.staging_database = f"{request.cls.production_database}_{DBT_COVES_SETTINGS.get('staging_suffix', 'staging')}"
 
     yield conn
 
