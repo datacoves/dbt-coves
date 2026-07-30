@@ -115,7 +115,7 @@ dbt-coves has telemetry built in to help the maintainers from Datacoves understa
 By default this is turned on – you can opt out of event tracking at any time by adding the following to your dbt-coves `config.yaml` file:
 
 ```yaml
-disable-tracking: true
+disable_tracking: true
 ```
 
 ## Override generation templates
