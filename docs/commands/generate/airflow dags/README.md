@@ -8,7 +8,7 @@ Translate YML files into their Airflow Python code equivalent. With this, DAGs c
 
 The basic structure of these YMLs must consist of:
 
-- Global configurations (`description`, `schedule`/`schedule_interval`, `tags`, `catchup`, etc.) — any `key:value` pair here is passed straight through as an argument to Airflow's `@dag(...)` decorator.
+- Global configurations (`description`, `schedule`/`schedule_interval`, `tags`, `catchup`, etc.) - any `key:value` pair here is passed straight through as an argument to Airflow's `@dag(...)` decorator.
 - `imports`: extra Python import statements the generated file needs (optional)
 - `doc_md`: a Markdown string used as the DAG's module docstring and `doc_md` (optional)
 - `notifications`: `on_success_callback` / `on_failure_callback` (or any other `@dag()` callback argument) built from a notifier class (optional)
@@ -72,14 +72,14 @@ doc_md: |
 
 ### Raw Python expressions with `!py`
 
-Every YML value is rendered into the generated Python as a literal: strings are quoted, numbers/booleans/lists are dumped as-is. Tag a string with `!py` when you need it emitted as an **unquoted Python expression** instead — for example, to call a helper function like Datacoves' `datacoves_utils.set_schedule(...)` or `datacoves_utils.set_default_args(...)`:
+Every YML value is rendered into the generated Python as a literal: strings are quoted, numbers/booleans/lists are dumped as-is. Tag a string with `!py` when you need it emitted as an **unquoted Python expression** instead - for example, to call a helper function like Datacoves' `datacoves_utils.set_schedule(...)` or `datacoves_utils.set_default_args(...)`:
 
 ```yaml
 schedule: !py datacoves_utils.set_schedule("0 0 1 */12 *")
 default_args: !py datacoves_utils.set_default_args(owner="Noel Gomez", owner_email="noel@example.com")
 ```
 
-`!py` can be used anywhere a `key: value` pair is rendered — at the DAG level, inside `default_args`, or as a task/decorator argument. Remember to add the corresponding `imports` entry for any module referenced in the expression.
+`!py` can be used anywhere a `key: value` pair is rendered - at the DAG level, inside `default_args`, or as a task/decorator argument. Remember to add the corresponding `imports` entry for any module referenced in the expression.
 
 Putting it all together, this YAML:
 
