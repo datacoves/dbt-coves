@@ -8,7 +8,7 @@ Translate YML files into their Airflow Python code equivalent. With this, DAGs c
 
 The basic structure of these YMLs must consist of:
 
-- Global configurations (`description`, `schedule`/`schedule_interval`, `tags`, `catchup`, etc.) — any `key:value` pair here is passed straight through as an argument to Airflow's `@dag(...)` decorator.
+- Global configurations (`description`, `schedule`/`schedule_interval`, `tags`, `catchup`, etc.) - any `key:value` pair here is passed straight through as an argument to Airflow's `@dag(...)` decorator.
 - `imports`: extra Python import statements the generated file needs (optional)
 - `doc_md`: a Markdown string used as the DAG's module docstring and `doc_md` (optional)
 - `notifications`: `on_success_callback` / `on_failure_callback` (or any other `@dag()` callback argument) built from a notifier class (optional)
@@ -72,14 +72,14 @@ doc_md: |
 
 ### Raw Python expressions with `!py`
 
-Every YML value is rendered into the generated Python as a literal: strings are quoted, numbers/booleans/lists are dumped as-is. Tag a string with `!py` when you need it emitted as an **unquoted Python expression** instead — for example, to call a helper function like Datacoves' `datacoves_utils.set_schedule(...)` or `datacoves_utils.set_default_args(...)`:
+Every YML value is rendered into the generated Python as a literal: strings are quoted, numbers/booleans/lists are dumped as-is. Tag a string with `!py` when you need it emitted as an **unquoted Python expression** instead - for example, to call a helper function like Datacoves' `datacoves_utils.set_schedule(...)` or `datacoves_utils.set_default_args(...)`:
 
 ```yaml
 schedule: !py datacoves_utils.set_schedule("0 0 1 */12 *")
 default_args: !py datacoves_utils.set_default_args(owner="Noel Gomez", owner_email="noel@example.com")
 ```
 
-`!py` can be used anywhere a `key: value` pair is rendered — at the DAG level, inside `default_args`, or as a task/decorator argument. Remember to add the corresponding `imports` entry for any module referenced in the expression.
+`!py` can be used anywhere a `key: value` pair is rendered - at the DAG level, inside `default_args`, or as a task/decorator argument. Remember to add the corresponding `imports` entry for any module referenced in the expression.
 
 Putting it all together, this YAML:
 
@@ -239,7 +239,7 @@ class PostgresGenerator():
 Sensitive values (API keys, connection credentials, etc.) don't need to be hardcoded in the YML DAGs. Two mechanisms are supported, and they merge into the `nodes` section of the YML DAG before it's translated to Python:
 
 - **Local secret files** (`--secrets-path`): YML files placed in a folder, each with the same `nodes -> node_name -> ...` shape as the DAG YML, deep-merged into it.
-- **Secrets manager** (`--secrets-manager`): currently supports `datacoves`. Requires `--secrets-url`, `--secrets-token` and `--secrets-environment` (or the `DATACOVES__SECRETS_URL`, `DATACOVES__SECRETS_TOKEN` and `DATACOVES__ENVIRONMENT_SLUG` env vars). Optionally filter the secrets fetched with `--secrets-tags` and/or `--secrets-key`. Reference a fetched secret anywhere in the YML DAG with `{{ secret('secret_slug') }}`.
+- **Secrets manager** (`--secrets-manager`): currently supports `datacoves`. Requires `--secrets-url`, `--secrets-token` and `--secrets-environment` (or the `DATACOVES__SECRETS_URL`, `DATACOVES__SECRETS_TOKEN` and `DATACOVES__ENVIRONMENT_SLUG` env vars). Inside a Datacoves environment (code-server, Airflow) these three env vars are set automatically, so the flags/env vars typically only need to be passed explicitly outside of it. Optionally filter the secrets fetched with `--secrets-tags` and/or `--secrets-key`. Reference a fetched secret anywhere in the YML DAG with `{{ secret('secret_slug') }}`.
 
 `--secrets-path` and `--secrets-manager` are mutually exclusive.
 

@@ -112,7 +112,7 @@ dbt-coves generate sources --metadata metadata.csv
 ```
 
 Metadata format:
-You can download a [sample csv file](sample_metadata.csv) as reference
+You can download a [sample csv file](../../../../sample_metadata.csv) as reference
 
 | database | schema | relation                          | column          | key  | type    | description                                     |
 | -------- | ------ | --------------------------------- | --------------- | ---- | ------- | ----------------------------------------------- |

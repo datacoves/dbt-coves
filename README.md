@@ -87,6 +87,12 @@ dbt-coves, supports the following functions:
   - [metadata](docs/commands/generate/metadata/): generate metadata extract(CSV file) that can be used to collect column types and descriptions and then provided as input inthe the `generate sources` or `generate properties` command
   - [templates](docs/commands/generate/templates/): generate the dbt-coves templates that dbt-coves utilizes with other dbt-coves commands
 - [setup](docs/commands/setup/): used configure different components of a dbt project.
+- [data-sync](docs/commands/data-sync/): sync Airflow's own metadata tables into Snowflake or Redshift.
+  - [snowflake](docs/commands/data-sync/snowflake/): sync into a Snowflake database.
+  - [redshift](docs/commands/data-sync/redshift/): sync into a Redshift database.
+- [blue-green](docs/commands/blue-green/): perform blue-green dbt deployments on Snowflake.
+
+See the [full command reference](docs/commands/) for a man-page-style breakdown of every command's arguments, and [Settings](docs/settings.md) for `.dbt_coves/config.yml` equivalents.
 
 For a complete list of options, run:
 
@@ -97,7 +103,7 @@ dbt-coves <command> -h
 
 ## Contributing
 
-If you're interested in contributing to the development of dbt-coves, please refer to the [Contributing Guidelines](contributing.md). This document outlines the process for submitting bug reports, feature requests, and code contributions.
+If you're interested in contributing to the development of dbt-coves, please refer to the [Contributing Guidelines](CONTRIBUTING.md). This document outlines the process for submitting bug reports, feature requests, and code contributions.
 
 # Metrics
 
