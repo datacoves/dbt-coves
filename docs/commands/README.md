@@ -1,5 +1,7 @@
 # Commands
 
+[← Back to Documentation](../README.md)
+
 ## Command Structure
 
 `dbt-coves` commands follow a hierarchical structure. Each top-level command may have one or more subcommands, and some subcommands may have further nested subcommands.
@@ -16,6 +18,23 @@ For instance, the documentation for the `dbt-coves generate` command and its sub
 - `generate/sources/README.md`: Documentation for the `dbt-coves generate sources` subcommand.
 
 This structure allows you to easily navigate and find the documentation for the specific command or subcommand you need.
+
+- [dbt](dbt/): run dbt commands in CI and Airflow environments.
+- [extract and load](extract%20and%20load/):
+  - [airbyte](extract%20and%20load/airbyte/)
+  - [fivetran](extract%20and%20load/fivetran/)
+- [generate](generate/):
+  - [airflow dags](generate/airflow%20dags/)
+  - [docs](generate/docs/)
+  - [metadata](generate/metadata/)
+  - [properties](generate/properties/)
+  - [sources](generate/sources/)
+  - [templates](generate/templates/)
+- [setup](setup/)
+- [data-sync](data-sync/):
+  - [snowflake](data-sync/snowflake/)
+  - [redshift](data-sync/redshift/)
+- [blue-green](blue-green/)
 
 ## Usage Examples
 
@@ -81,4 +100,4 @@ Any of these can also be set via `.dbt_coves.yml` (see [Settings](../settings.md
 
 ## Contributing
 
-If you find any issue or have suggestions for improving the command documentation, please refer to the [Contributing Guidelines](../contributing.md) for information on how to submit your feedback or contributions.
+If you find any issue or have suggestions for improving the command documentation, please refer to the [Contributing Guidelines](../../CONTRIBUTING.md) for information on how to submit your feedback or contributions.
