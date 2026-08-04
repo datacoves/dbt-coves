@@ -239,7 +239,7 @@ class PostgresGenerator():
 Sensitive values (API keys, connection credentials, etc.) don't need to be hardcoded in the YML DAGs. Two mechanisms are supported, and they merge into the `nodes` section of the YML DAG before it's translated to Python:
 
 - **Local secret files** (`--secrets-path`): YML files placed in a folder, each with the same `nodes -> node_name -> ...` shape as the DAG YML, deep-merged into it.
-- **Secrets manager** (`--secrets-manager`): currently supports `datacoves`. Requires `--secrets-url`, `--secrets-token` and `--secrets-environment` (or the `DATACOVES__SECRETS_URL`, `DATACOVES__SECRETS_TOKEN` and `DATACOVES__ENVIRONMENT_SLUG` env vars). Optionally filter the secrets fetched with `--secrets-tags` and/or `--secrets-key`. Reference a fetched secret anywhere in the YML DAG with `{{ secret('secret_slug') }}`.
+- **Secrets manager** (`--secrets-manager`): currently supports `datacoves`. Requires `--secrets-url`, `--secrets-token` and `--secrets-environment` (or the `DATACOVES__SECRETS_URL`, `DATACOVES__SECRETS_TOKEN` and `DATACOVES__ENVIRONMENT_SLUG` env vars). Inside a Datacoves environment (code-server, Airflow) these three env vars are set automatically, so the flags/env vars typically only need to be passed explicitly outside of it. Optionally filter the secrets fetched with `--secrets-tags` and/or `--secrets-key`. Reference a fetched secret anywhere in the YML DAG with `{{ secret('secret_slug') }}`.
 
 `--secrets-path` and `--secrets-manager` are mutually exclusive.
 

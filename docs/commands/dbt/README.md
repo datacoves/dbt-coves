@@ -35,7 +35,7 @@ command
 
 ### Discussion
 
-- The dbt project directory itself is **not** a dedicated flag on this command - it comes from the shared `--project-dir` [global option](../README.md#global-options), the `dbt.project_dir` setting in `.dbt_coves.yml`, or (if neither is set) the `DBT_PROJECT_DIR` / `DATACOVES__DBT_HOME` environment variables, checked in that order. If none resolve to a value, the command fails with "No dbt project specified".
+- The dbt project directory itself is **not** a dedicated flag on this command - it comes from the shared `--project-dir` [global option](../README.md#global-options), the `dbt.project_dir` setting in `.dbt_coves.yml`, or (if neither is set) the `DBT_PROJECT_DIR` / `DATACOVES__DBT_HOME` environment variables, checked in that order. If none resolve to a value, the command fails with "No dbt project specified". `DATACOVES__DBT_HOME` is set automatically inside Datacoves-managed containers (code-server, Airflow workers/scheduler) - you don't need to set it yourself there.
 - Everything after the mandatory `--` is passed straight through to `dbt` as-is, so any native dbt flag (`-s`, `--full-refresh`, `--vars`, etc.) works exactly as it would with a plain `dbt` invocation.
 - This command is what Datacoves' Airflow DAGs use under the hood to run dbt tasks against a read-only, git-synced project checkout.
 

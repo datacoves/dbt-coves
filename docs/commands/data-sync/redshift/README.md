@@ -36,6 +36,7 @@ Unlike Snowflake, Redshift only supports password auth here - all four variables
 ### Discussion
 
 - These env vars are copied internally into `dlt`'s expected `DESTINATION__REDSHIFT__CREDENTIALS__*` variables (database, password, username, host) - you never need to set the `DESTINATION__*` ones yourself.
+- **Datacoves environment:** when this command runs via Datacoves' `DatacovesDataSyncOperatorRedshift` Airflow operator, all of the `DATA_SYNC_REDSHIFT_*` variables above (plus `DATA_SYNC_SOURCE_CONNECTION_STRING`) are populated automatically for that task run - either from the named Airflow Connection (`connection_id`) or from the environment's own `DATACOVES__<SERVICE_CONNECTION_NAME>__*` variables, depending on how the operator is configured. You only need to export them by hand when invoking `dbt-coves data-sync redshift` outside of that operator.
 - `--source` doubles as the `dlt` pipeline's `dataset_name`, i.e. the schema that gets created/used in the destination database.
 
 ### Sample usage

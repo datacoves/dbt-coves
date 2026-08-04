@@ -45,6 +45,7 @@ If neither `DATA_SYNC_SNOWFLAKE_PRIVATE_KEY` nor `DATA_SYNC_SNOWFLAKE_PASSWORD` 
 ### Discussion
 
 - These env vars are copied internally into `dlt`'s expected `DESTINATION__SNOWFLAKE__CREDENTIALS__*` variables (database, warehouse, role, username, host, and password/private key) - you never need to set the `DESTINATION__*` ones yourself, only the `DATA_SYNC_SNOWFLAKE_*` ones above.
+- **Datacoves environment:** when this command runs via Datacoves' `DatacovesDataSyncOperatorSnowflake` Airflow operator, all of the `DATA_SYNC_SNOWFLAKE_*` variables above (plus `DATA_SYNC_SOURCE_CONNECTION_STRING`) are populated automatically for that task run - either from the named Airflow Connection (`connection_id`) or from the environment's own `DATACOVES__<SERVICE_CONNECTION_NAME>__*` variables, depending on how the operator is configured. You only need to export them by hand when invoking `dbt-coves data-sync snowflake` outside of that operator.
 - `--source` doubles as the `dlt` pipeline's `dataset_name`, i.e. the schema that gets created/used in the destination database.
 
 ### Sample usage

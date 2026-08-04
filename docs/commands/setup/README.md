@@ -8,7 +8,7 @@ dbt-coves setup
 
 Scaffolds (or updates) the standard Datacoves project components - dbt project skeleton, CI configuration, pre-commit hooks, and Airflow DAGs - into the current repository. Under the hood this runs [copier](https://copier.readthedocs.io/) against a template repository, so it behaves like `copier copy`/`copier update`: it prompts for any template variables it doesn't already know, and either writes new files (first run) or reconciles changes against a previous run (`--update`).
 
-The destination is always the repository root, resolved from the `DATACOVES__REPO_PATH` environment variable when running inside a Datacoves environment, or the current working directory otherwise.
+The destination is always the repository root, resolved from the `DATACOVES__REPO_PATH` environment variable when running inside a Datacoves environment, or the current working directory otherwise. `DATACOVES__REPO_PATH` is set automatically by Datacoves in code-server and CI containers - you don't need to set it yourself there.
 
 ### Arguments
 

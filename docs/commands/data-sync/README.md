@@ -44,3 +44,5 @@ DATA_SYNC_SOURCE_CONNECTION_STRING
 ```
 
 Destination credentials differ per target - see [snowflake](snowflake/) or [redshift](redshift/).
+
+> **Datacoves environment:** you rarely need to set any of these `DATA_SYNC_*` variables by hand. When `dbt-coves data-sync` is run via Datacoves' `DatacovesDataSyncOperatorSnowflake` / `DatacovesDataSyncOperatorRedshift` Airflow operators, `DATA_SYNC_SOURCE_CONNECTION_STRING` (from Airflow's own `AIRFLOW__DATABASE__SQL_ALCHEMY_CONN`) and the destination credentials are computed and injected into the task's environment automatically for that single task run - see each destination's page for details.
