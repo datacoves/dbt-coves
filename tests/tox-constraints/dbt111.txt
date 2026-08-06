@@ -1,0 +1,4 @@
+dbt-core==1.11.12
+dbt-postgres==1.11.0
+dbt-bigquery==1.11.3
+dbt-snowflake==1.11.6
