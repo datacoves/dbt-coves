@@ -85,7 +85,7 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           env_vars: GITHUB_RUN_ID
-          files: coverage-reports/dbt111-coverage.xml,coverage-reports/dbtlatest-coverage.xml
+          files: coverage-reports/dbt110-coverage.xml,coverage-reports/dbt111-coverage.xml,coverage-reports/dbtlatest-coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false
