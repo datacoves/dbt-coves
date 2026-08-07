@@ -753,7 +753,7 @@ wheels = [
 
 [[package]]
 name = "dbt-coves"
-version = "1.11.3"
+version = "1.11.4"
 source = { editable = "." }
 dependencies = [
     { name = "black" },

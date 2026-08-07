@@ -50,11 +50,16 @@ class BaseConfiguredTask(ConfiguredTask, BaseTask):
         from dbt_coves import __dbt_major_version__, __dbt_minor_version__
 
         try:
-            from dbt.flags import set_flags
+            from dbt.flags import set_from_args
 
-            set_flags(args)
+            set_from_args(args, None)
         except ImportError:
-            pass
+            try:
+                from dbt.flags import set_flags
+
+                set_flags(args)
+            except ImportError:
+                pass
         if (__dbt_major_version__, __dbt_minor_version__) < (1, 8):
             config = cls.ConfigType.from_args(args)
         else:
