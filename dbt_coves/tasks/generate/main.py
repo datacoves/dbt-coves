@@ -1,6 +1,6 @@
 from rich.console import Console
 
-from dbt_coves.tasks.base import BaseConfiguredTask
+from dbt_coves.tasks.base_configured import BaseConfiguredTask
 
 from .airflow_dags import GenerateAirflowDagsTask
 from .docs import GenerateDocsTask
@@ -38,7 +38,9 @@ class GenerateTask(BaseConfiguredTask):
              metadata for tables (used as input for sources and properties)""",
         )
         gen_subparser.set_defaults(cls=cls, which="generate")
-        sub_parsers = gen_subparser.add_subparsers(title="dbt-coves generate commands", dest="task")
+        sub_parsers = gen_subparser.add_subparsers(
+            title="dbt-coves generate commands", dest="task"
+        )
 
         # Register a separate sub parser for each sub task.
         [x.register_parser(sub_parsers, base_subparser) for x in cls.tasks]

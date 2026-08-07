@@ -21,7 +21,7 @@ jobs:
         uses: astral-sh/setup-uv@v3
         with:
           version: "0.9.x"
-          python-version: "3.11"
+          python-version: "3.12"
           enable-cache: true
 
       - name: run Pre-Commit
@@ -31,6 +31,7 @@ jobs:
         run: uv sync --group test
 
       - name: Load secrets
+        if: github.actor != 'dependabot[bot]'
         uses: 1password/load-secrets-action@v1
         with:
           # Export loaded secrets as environment variables
@@ -69,19 +70,22 @@ jobs:
           SNOWFLAKE_PRIVATE_KEY: op://Engineering - dbt-coves/dbt-coves-tests/SNOWFLAKE_PRIVATE_KEY
 
       - name: Create profiles
+        if: github.actor != 'dependabot[bot]'
         run: |
           uv run python tests/create_profiles.py
           mkdir $HOME/.dbt
           mv tests/profiles.yml $HOME/.dbt/profiles.yml
 
       - name: Run Tests and Coverage Report
+        if: github.actor != 'dependabot[bot]'
         run: uv run tox
 
       - name: Upload coverage report to CodeCov
+        if: github.actor != 'dependabot[bot]'
         uses: codecov/codecov-action@v2
         with:
           env_vars: GITHUB_RUN_ID
-          file: coverage-reports/coverage.xml
+          files: coverage-reports/dbt110-coverage.xml,coverage-reports/dbt111-coverage.xml,coverage-reports/dbtlatest-coverage.xml
           flags: unittests
           name: codecov-umbrella
           fail_ci_if_error: false

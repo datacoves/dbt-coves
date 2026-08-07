@@ -143,7 +143,10 @@ class ExtractAirbyteTask(BaseExtractTask):
             repo = definition.get("dockerRepository", "")
             repo_suffix = repo.split("/")[-1]  # e.g. "source-postgres"
             expected = f"source-{connector_type}"
-            if repo_suffix == expected or repo_suffix == f"destination-{connector_type}":
+            if (
+                repo_suffix == expected
+                or repo_suffix == f"destination-{connector_type}"
+            ):
                 def_id = definition.get("sourceDefinitionId") or definition.get(
                     "destinationDefinitionId"
                 )
@@ -180,13 +183,19 @@ class ExtractAirbyteTask(BaseExtractTask):
 
                 # We may or may not get secrets information from Airbyte.
                 if spec:
-                    airbyte_secret_fields = self._get_airbyte_secret_fields_for_definition(spec)
-                    destination["configuration"] = self._hide_configuration_secret_fields(
-                        destination.get("configuration", {}), airbyte_secret_fields
+                    airbyte_secret_fields = (
+                        self._get_airbyte_secret_fields_for_definition(spec)
+                    )
+                    destination["configuration"] = (
+                        self._hide_configuration_secret_fields(
+                            destination.get("configuration", {}), airbyte_secret_fields
+                        )
                     )
 
                 destination["connectorVersion"] = self._get_connector_version(
-                    destination_type, self.airbyte_api.destination_definitions, "destination"
+                    destination_type,
+                    self.airbyte_api.destination_definitions,
+                    "destination",
                 )
                 return destination
 
@@ -219,7 +228,9 @@ class ExtractAirbyteTask(BaseExtractTask):
 
                 # Try to get secrets information, if there is any.
                 if spec:
-                    airbyte_secret_fields = self._get_airbyte_secret_fields_for_definition(spec)
+                    airbyte_secret_fields = (
+                        self._get_airbyte_secret_fields_for_definition(spec)
+                    )
                     source["configuration"] = self._hide_configuration_secret_fields(
                         source.get("configuration", {}), airbyte_secret_fields
                     )
@@ -250,7 +261,10 @@ class ExtractAirbyteTask(BaseExtractTask):
                     self._get_airbyte_secret_fields_for_definition(v, k, secret_fields)
                 else:
                     if "airbyte_secret" in str(k):
-                        if bool(definition["airbyte_secret"]) and dict_name not in secret_fields:
+                        if (
+                            bool(definition["airbyte_secret"])
+                            and dict_name not in secret_fields
+                        ):
                             secret_fields.append(dict_name)
             return secret_fields
         except KeyError as e:
@@ -278,7 +292,9 @@ class ExtractAirbyteTask(BaseExtractTask):
         connection = copy(connection)
         connection.pop("connectionId", None)
 
-        connection_source_name = self._get_airbyte_source_from_id(connection["sourceId"])["name"]
+        connection_source_name = self._get_airbyte_source_from_id(
+            connection["sourceId"]
+        )["name"]
         connection_destination_name = self._get_airbyte_destination_from_id(
             connection["destinationId"]
         )["name"]

@@ -95,7 +95,9 @@ def table_rows(
     table_adapter_callback: Callable[[Table], None] = None,
 ) -> Iterator[TDataItem]:
     if defer_table_reflect:
-        table = Table(table.name, table.metadata, autoload_with=engine, extend_existing=True)
+        table = Table(
+            table.name, table.metadata, autoload_with=engine, extend_existing=True
+        )
         if table_adapter_callback:
             table_adapter_callback(table)
         # set the primary_key in the incremental
@@ -116,7 +118,9 @@ def table_rows(
     yield from loader.load_rows()
 
 
-def engine_from_credentials(credentials: Union[ConnectionStringCredentials, Engine, str]) -> Engine:
+def engine_from_credentials(
+    credentials: Union[ConnectionStringCredentials, Engine, str],
+) -> Engine:
     if isinstance(credentials, Engine):
         return credentials
     if isinstance(credentials, ConnectionStringCredentials):

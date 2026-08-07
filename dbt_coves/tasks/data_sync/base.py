@@ -5,13 +5,9 @@ Bring all common (shared across Snowflake and Redshift) dlt functionalities here
 import os
 from datetime import datetime
 
-import dlt
-from dlt.sources.credentials import ConnectionStringCredentials
 from rich.console import Console
 
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
-
-from .sql_database import sql_database, sql_table
 
 # These tables are always synced.  Anything else can be requested but that's on user.
 DEFAULT_AIRFLOW_TABLES = [
@@ -43,13 +39,20 @@ console = Console()
 
 class BaseDataSyncTask(NonDbtBaseConfiguredTask):
     def get_source_connection_string(self):
-        self.source_connection_string = os.environ.get("DATA_SYNC_SOURCE_CONNECTION_STRING")
+        self.source_connection_string = os.environ.get(
+            "DATA_SYNC_SOURCE_CONNECTION_STRING"
+        )
         assert self.source_connection_string, (
-            "Environment variable " "DATA_SYNC_SOURCE_CONNECTION_STRING is not defined"
+            "Environment variable DATA_SYNC_SOURCE_CONNECTION_STRING is not defined"
         )
 
     def perform_sync(self) -> None:
         """Use the sql_database source to completely load all tables in a database"""
+        import dlt
+        from dlt.sources.credentials import ConnectionStringCredentials
+
+        from .sql_database import sql_database, sql_table
+
         # Merge the default table list with the user-requested table list, and split it into
         # incremental and full loads according to if we have an incremental column.
         full_tables = []

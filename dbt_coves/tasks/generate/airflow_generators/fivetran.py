@@ -65,7 +65,9 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
             tasks[conn_id] = {
                 "trigger": {
                     "name": trigger_id,
-                    "call": self.generate_task(trigger_id, "FivetranOperator", **trigger_kwargs),
+                    "call": self.generate_task(
+                        trigger_id, "FivetranOperator", **trigger_kwargs
+                    ),
                 }
             }
             if not self.wait_for_completion:
@@ -79,7 +81,9 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                 }
                 tasks[conn_id]["sensor"] = {
                     "name": sensor_id,
-                    "call": self.generate_task(sensor_id, "FivetranSensor", **sensor_kwargs),
+                    "call": self.generate_task(
+                        sensor_id, "FivetranSensor", **sensor_kwargs
+                    ),
                 }
 
         return tasks
@@ -87,14 +91,20 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
     def _dbt_database_in_destination(self, fivetran_destination, dbt_database):
         return (
             dbt_database
-            == fivetran_destination.get("details").get("config", {}).get("database", "").lower()
+            == fivetran_destination.get("details")
+            .get("config", {})
+            .get("database", "")
+            .lower()
         )
 
     def _dbt_schema_table_in_connector(self, connector_schemas, dbt_schema, dbt_table):
         for schema_details in connector_schemas.values():
             if schema_details.get("name_in_destination", "").lower() == dbt_schema:
                 for table_details in schema_details.get("tables", {}).values():
-                    if table_details.get("name_in_destination", "").lower() == dbt_table:
+                    if (
+                        table_details.get("name_in_destination", "").lower()
+                        == dbt_table
+                    ):
                         return True
         return False
 
@@ -113,8 +123,12 @@ class FivetranGenerator(BaseDbtCovesTaskGenerator):
                 # match dbt source_db to Fivetran destination database
                 if self._dbt_database_in_destination(dest_dict, source_db.lower()):
                     # find the appropiate Connector from destination connectors)
-                    for connector_id, connector_data in dest_dict.get("connectors", {}).items():
-                        for schema_id, schema_data in connector_data.get("schemas", {}).items():
+                    for connector_id, connector_data in dest_dict.get(
+                        "connectors", {}
+                    ).items():
+                        for schema_id, schema_data in connector_data.get(
+                            "schemas", {}
+                        ).items():
                             if (
                                 self._dbt_schema_table_in_connector(
                                     {schema_id: schema_data},

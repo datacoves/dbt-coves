@@ -21,7 +21,8 @@ def trackable(task, **kwargs):
     def wrapper(task_instance, **kwargs):
         exit_code = task(task_instance)
         if task_instance.args.uuid and not (
-            task_instance.args.disable_tracking or task_instance.coves_config.disable_tracking
+            task_instance.args.disable_tracking
+            or task_instance.coves_config.disable_tracking
         ):
             try:
                 task_execution_props = _gen_task_usage_props(task_instance, exit_code)

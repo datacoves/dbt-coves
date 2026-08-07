@@ -13,12 +13,12 @@ def load_secret_manager_data(task_instance) -> dict:
     manager = task_instance.secrets_manager.lower()
     if manager == "datacoves":
         # Contact the secrets manager and retrieve Secrets
-        secrets_url = os.getenv("DATACOVES__SECRETS_URL") or task_instance.get_config_value(
-            "secrets_url"
-        )
-        secrets_token = os.getenv("DATACOVES__SECRETS_TOKEN") or task_instance.get_config_value(
-            "secrets_token"
-        )
+        secrets_url = os.getenv(
+            "DATACOVES__SECRETS_URL"
+        ) or task_instance.get_config_value("secrets_url")
+        secrets_token = os.getenv(
+            "DATACOVES__SECRETS_TOKEN"
+        ) or task_instance.get_config_value("secrets_token")
         secrets_environment = os.getenv(
             "DATACOVES__ENVIRONMENT_SLUG"
         ) or task_instance.get_config_value("secrets_environment")

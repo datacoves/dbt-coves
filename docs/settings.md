@@ -115,7 +115,7 @@ dbt-coves has telemetry built in to help the maintainers from Datacoves understa
 By default this is turned on – you can opt out of event tracking at any time by adding the following to your dbt-coves `config.yaml` file:
 
 ```yaml
-disable-tracking: true
+disable_tracking: true
 ```
 
 ## Override generation templates
@@ -137,22 +137,22 @@ There are different variables available in the templates:
 
 This file is used to create the sources yml file
 
-[source_props.yml](dbt_coves/templates/source_props.yml)
+[source_props.yml](../dbt_coves/templates/source_props.yml)
 
 #### Staging model file (.sql) template
 
 This file is used to create the staging model (sql) files.
 
-[staging_model.sql](dbt_coves/templates/staging_model.sql)
+[staging_model.sql](../dbt_coves/templates/staging_model.sql)
 
 #### Staging model property file (.yml) template
 
 This file is used to create the model properties (yml) file
 
-[staging_model_props.yml](dbt_coves/templates/staging_model_props.yml)
+[staging_model_props.yml](../dbt_coves/templates/staging_model_props.yml)
 
 ### dbt-coves generate properties
 
 This file is used to create the properties (yml) files for models
 
-[model_props.yml](dbt_coves/templates/model_props.yml)
+[model_props.yml](../dbt_coves/templates/model_props.yml)

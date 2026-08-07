@@ -140,7 +140,9 @@ def sql_table(
     engine.execution_options(stream_results=True, max_row_buffer=2 * chunk_size)
     metadata = metadata or MetaData(schema=schema)
 
-    table_obj = Table(table, metadata, autoload_with=None if defer_table_reflect else engine)
+    table_obj = Table(
+        table, metadata, autoload_with=None if defer_table_reflect else engine
+    )
     if table_adapter_callback and not defer_table_reflect:
         table_adapter_callback(table_obj)
 

@@ -50,7 +50,8 @@ def get_dbt_projects(path=os.getcwd()):
     for file in Path(path).rglob("dbt_project.yml"):
         file_str = str(file)
         if all(
-            folder not in file_str for folder in ["dbt_packages", "compiled", "target", "macros"]
+            folder not in file_str
+            for folder in ["dbt_packages", "compiled", "target", "macros"]
         ):
             project_name = open_yaml(file)["name"]
             project_path = str(file.relative_to(path).parent)

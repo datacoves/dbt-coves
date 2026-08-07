@@ -2,7 +2,6 @@ import threading
 import time
 
 from rich.console import Console
-from snowflake.connector import DictCursor
 
 console = Console()
 
@@ -15,7 +14,11 @@ class CloneDB:
     """
 
     def __init__(
-        self, blue_database: str, green_database: str, snowflake_conn, thread_count: int = 20
+        self,
+        blue_database: str,
+        green_database: str,
+        snowflake_conn,
+        thread_count: int = 20,
     ):
         """
         Blue/Green deployment for Snowflake databases.
@@ -66,6 +69,8 @@ class CloneDB:
         Returns:
             None
         """
+        from snowflake.connector import DictCursor
+
         console.print(
             f"Cloning grants from [blue]{self.blue_database}[/blue] to "
             f"green [green]{self.green_database}[/green]"
@@ -96,6 +101,8 @@ class CloneDB:
         Returns:
             None
         """
+        from snowflake.connector import DictCursor
+
         console.print(
             f"Cloning [u]schemas[/u] from [blue]{self.blue_database}[/blue] to "
             f"[green]{self.green_database}[/green]"
@@ -127,7 +134,9 @@ class CloneDB:
         )
         for schema in schemas:
             if schema["name"] not in self._list_of_schemas_to_exclude:
-                grants_sql_stg_1 = f"""show grants on schema {blue_database}.{schema['name']}"""
+                grants_sql_stg_1 = (
+                    f"""show grants on schema {blue_database}.{schema["name"]}"""
+                )
                 dict_cursor.execute(grants_sql_stg_1)
                 grants = dict_cursor.fetchall()
                 for grant in grants:
@@ -191,7 +200,9 @@ class ThreadedRunCommands:
             self.pending_queries = [
                 q
                 for q in self.pending_queries
-                if self.con.is_still_running(self.con.get_query_status_throw_if_error(q))
+                if self.con.is_still_running(
+                    self.con.get_query_status_throw_if_error(q)
+                )
             ]
             console.print(
                 f"Waiting for {len(self.pending_queries)} queries to complete before continuing."

@@ -6,7 +6,6 @@ import requests
 from jinja2.exceptions import TemplateSyntaxError
 from rich.console import Console
 
-from dbt_coves import __dbt_major_version__, __dbt_minor_version__, __dbt_patch_version__
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
 
@@ -72,6 +71,12 @@ class SetupTask(NonDbtBaseTask):
 
     @trackable
     def run(self) -> int:
+        from dbt_coves import (
+            __dbt_major_version__,
+            __dbt_minor_version__,
+            __dbt_patch_version__,
+        )
+
         self.repo_path = os.environ.get("DATACOVES__REPO_PATH", Path().resolve())
         self.copier_context = {"no_prompt": self.get_config_value("no_prompt")}
         self.copier_context["dbt_core_version"] = (
@@ -95,7 +100,9 @@ class SetupTask(NonDbtBaseTask):
         )
         if dbt_checkpoint_version:
             os.environ["DATACOVES__DBT_CHECKPOINT_VERSION"] = dbt_checkpoint_version
-        yamllint_version = self._get_latest_repo_tag(THIRD_PARTY_PRECOMMIT_REPOS["yamllint"])
+        yamllint_version = self._get_latest_repo_tag(
+            THIRD_PARTY_PRECOMMIT_REPOS["yamllint"]
+        )
         if yamllint_version:
             os.environ["DATACOVES__YAMLLINT_VERSION"] = yamllint_version
         self.copier_context["datacoves_env_version"] = os.environ.get(

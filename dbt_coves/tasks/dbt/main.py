@@ -62,7 +62,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
     def run(self) -> int:
         project_dir = self.get_config_value("project_dir")
         if not project_dir:
-            project_dir = os.environ.get("DBT_PROJECT_DIR", os.environ.get("DATACOVES__DBT_HOME"))
+            project_dir = os.environ.get(
+                "DBT_PROJECT_DIR", os.environ.get("DATACOVES__DBT_HOME")
+            )
         if not project_dir:
             console.print("[red]No dbt project specified[/red].")
             return -1
@@ -87,7 +89,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                     console.print("Removing cloned read-write copy.")
                     shutil.rmtree(tmp_dir, ignore_errors=True)
                 else:
-                    console.print("Writing dbt clone path to '/tmp/dbt_coves_dbt_clone_path.txt'.")
+                    console.print(
+                        "Writing dbt clone path to '/tmp/dbt_coves_dbt_clone_path.txt'."
+                    )
                     with open(path_file, "w") as f:
                         f.write(tmp_dir)
         else:
@@ -127,12 +131,16 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
             # conflicts with trailing / at later concatenation
             env_path = Path(os.environ.get(virtualenv, virtualenv))
         if env_path and env_path.exists():
-            cmd_list = shlex.split(f"/bin/bash -c 'source {env_path}/bin/activate && {command}'")
+            cmd_list = shlex.split(
+                f"/bin/bash -c 'source {env_path}/bin/activate && {command}'"
+            )
         else:
             cmd_list = shlex.split(command)
 
         try:
-            output = subprocess.check_output(cmd_list, env=env, cwd=cwd, stderr=subprocess.PIPE)
+            output = subprocess.check_output(
+                cmd_list, env=env, cwd=cwd, stderr=subprocess.PIPE
+            )
             console.print(
                 f"{Text.from_ansi(output.decode())}\n"
                 f"[green]{command} :heavy_check_mark:[/green]"
@@ -142,7 +150,9 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 formatted = str(Text.from_ansi(e.stderr.decode()))
             else:
                 formatted = str(Text.from_ansi(e.stdout.decode()))
-            e.stderr = f"An error has occurred running [red]{command}[/red]:\n{formatted}"
+            e.stderr = (
+                f"An error has occurred running [red]{command}[/red]:\n{formatted}"
+            )
             raise
 
     def get_config_value(self, key):

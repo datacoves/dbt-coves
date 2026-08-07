@@ -113,9 +113,7 @@ If you don't want to bother, that's also OK because we also have [pre-commit.ci]
 
 #### Formatting (Enforced by pre-commit)
 
-- We format our code with the [`black`](https://github.com/psf/black) formatter. The pre-commit hooks will attempt to fix your formatting issues for you but it's "annoying" so you can set up `black` to format your code on save in your IDE and then you'll never have a problem again. The good thing with black is that we don't ever have to discuss formatting and style while reviewing your PR which is soooooo much nicer! :heart_eyes:
-
-- [`flake8`](https://flake8.pycqa.org/en/latest/) is also part of our pre-commit config. If you do not have it installed as a linter in your IDE or you ignore its recommendation `pre-commit` will fail. **flake8 in precommits does not automatically fix your files** so it's better to enforce it's advice during developments but that's up to you.
+- We format and lint our code with [`ruff`](https://github.com/astral-sh/ruff). The pre-commit hooks will attempt to fix your formatting and lint issues for you but it's "annoying" so you can set up `ruff` to format your code on save in your IDE and then you'll never have a problem again. The good thing with ruff is that we don't ever have to discuss formatting and style while reviewing your PR which is soooooo much nicer! :heart_eyes:
 
 - Finally, **trailing whitespace** and **empty new line at end of file** will also be enforced for you by `pre-commit` either during PR time or locally if you have set it up according to [our guidelines](#pre-commit).
 
