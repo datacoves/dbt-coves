@@ -18,12 +18,14 @@ Asserts:
     ...
 """
 
+import base64
 import os
 import subprocess
 from pathlib import Path
 
 import pytest
 import snowflake.connector
+from cryptography.hazmat.primitives import serialization
 from ruamel.yaml import YAML
 from snowflake.connector import DictCursor
 
@@ -40,22 +42,30 @@ except KeyError:
 def snowflake_connection(request):
     # Check env vars
     assert "DATACOVES__DBT_COVES_TEST__DATABASE" in os.environ
-    assert "DATACOVES__DBT_COVES_TEST__PASSWORD" in os.environ
+    assert "SNOWFLAKE_PRIVATE_KEY" in os.environ
     assert "DATACOVES__DBT_COVES_TEST__ACCOUNT" in os.environ
     assert "DATACOVES__DBT_COVES_TEST__WAREHOUSE" in os.environ
     assert "DATACOVES__DBT_COVES_TEST__ROLE" in os.environ
 
     user = os.environ["DATACOVES__DBT_COVES_TEST__USER"]
-    password = os.environ["DATACOVES__DBT_COVES_TEST__PASSWORD"]
+    private_key = os.environ["SNOWFLAKE_PRIVATE_KEY"]
     account = os.environ["DATACOVES__DBT_COVES_TEST__ACCOUNT"]
     role = os.environ["DATACOVES__DBT_COVES_TEST__ROLE"]
     warehouse = os.environ["DATACOVES__DBT_COVES_TEST__WAREHOUSE"]
     database = os.environ["DATACOVES__DBT_COVES_TEST__DATABASE"]
     schema = "TESTS_BLUE_GREEN"
 
+    private_key_der = serialization.load_der_private_key(
+        base64.b64decode(private_key), password=None
+    ).private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
     conn = snowflake.connector.connect(
         user=user,
-        password=password,
+        private_key=private_key_der,
         account=account,
         warehouse=warehouse,
         role=role,

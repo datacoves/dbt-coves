@@ -2,3 +2,4 @@ dbt-core==1.10.22
 dbt-postgres==1.10.2
 dbt-bigquery==1.10.3
 dbt-snowflake==1.10.8
+dbt-redshift==1.10.2

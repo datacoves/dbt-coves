@@ -183,6 +183,21 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             self._generate_dag(self.ymls_path)
         return 0
 
+    def _register_datetime_import(self, value):
+        """
+        Values containing datetime.datetime/date/time instances render via
+        their `datetime.xxx(...)` repr, so make sure the generated DAG file
+        imports the `datetime` module whenever one shows up.
+        """
+        if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
+            self.dag_output["imports"].append("import datetime\n")
+        elif isinstance(value, dict):
+            for v in value.values():
+                self._register_datetime_import(v)
+        elif isinstance(value, (list, tuple)):
+            for v in value:
+                self._register_datetime_import(v)
+
     def dag_args_to_string(self, yaml, indent=2):
         """
         Converts a dictionary to a string of arguments for the DAG constructor.
@@ -199,6 +214,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                     dag_value = f'"{value}"'
                 else:
                     dag_value = value
+                    self._register_datetime_import(value)
                 dag_args += f"{indent * ' '}{key}={dag_value},\n"
         return dag_args[:-1]
 

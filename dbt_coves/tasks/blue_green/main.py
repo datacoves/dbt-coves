@@ -237,6 +237,8 @@ class BlueGreenTask(BaseConfiguredTask):
         return connection_dict
 
     def _gen_snowflake_private_key(self, filepath=None, existing_private_key=None):
+        import base64
+
         from cryptography.hazmat.backends import default_backend
         from cryptography.hazmat.primitives import serialization
 
@@ -246,9 +248,17 @@ class BlueGreenTask(BaseConfiguredTask):
                     key_file.read(), password=None, backend=default_backend()
                 )
         if existing_private_key:
-            private_key = serialization.load_pem_private_key(
-                existing_private_key.encode(), password=None, backend=default_backend()
-            )
+            key_str = existing_private_key.strip()
+            if key_str.startswith("-----BEGIN"):
+                private_key = serialization.load_pem_private_key(
+                    key_str.encode(), password=None, backend=default_backend()
+                )
+            else:
+                # dbt-snowflake also accepts the private key as a raw
+                # base64-encoded DER string (no PEM headers).
+                private_key = serialization.load_der_private_key(
+                    base64.b64decode(key_str), password=None, backend=default_backend()
+                )
 
         # Convert the private key to the required format
         return private_key.private_bytes(
