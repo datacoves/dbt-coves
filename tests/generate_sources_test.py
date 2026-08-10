@@ -1,6 +1,7 @@
 # Generate Sources Test
 
 # Imports
+import base64
 import os
 import pathlib
 import shutil
@@ -15,6 +16,7 @@ import redshift_connector
 
 # Snowflake
 import snowflake.connector
+from cryptography.hazmat.primitives import serialization
 from dotenv import load_dotenv
 
 # Bigquery
@@ -59,10 +61,19 @@ def get_adapter(project_dir):
 
 
 # Connector snowflake
-def get_connector_snowflake(user, password, account, warehouse, role, database):
+def get_private_key_der(raw_key):
+    key = serialization.load_der_private_key(base64.b64decode(raw_key), password=None)
+    return key.private_bytes(
+        encoding=serialization.Encoding.DER,
+        format=serialization.PrivateFormat.PKCS8,
+        encryption_algorithm=serialization.NoEncryption(),
+    )
+
+
+def get_connector_snowflake(user, private_key, account, warehouse, role, database):
     conn = snowflake.connector.connect(
         user=user,
-        password=password,
+        private_key=get_private_key_der(private_key),
         account=account,
         warehouse=warehouse,
         role=role,
@@ -184,13 +195,13 @@ def test_generate_data(input):
     if input["adapter"] == "snowflake":
         # Check env vars
         assert "USER_SNOWFLAKE" in os.environ
-        assert "PASSWORD_SNOWFLAKE" in os.environ
+        assert "SNOWFLAKE_PRIVATE_KEY" in os.environ
         assert "ACCOUNT_SNOWFLAKE" in os.environ
         assert "WAREHOUSE_SNOWFLAKE" in os.environ
         assert "ROLE_SNOWFLAKE" in os.environ
 
         user = os.environ["USER_SNOWFLAKE"]
-        password = os.environ["PASSWORD_SNOWFLAKE"]
+        private_key = os.environ["SNOWFLAKE_PRIVATE_KEY"]
         account = os.environ["ACCOUNT_SNOWFLAKE"]
         warehouse = os.environ["WAREHOUSE_SNOWFLAKE"]
         role = os.environ["ROLE_SNOWFLAKE"]
@@ -202,7 +213,7 @@ def test_generate_data(input):
         # Get connector
         conn = get_connector_snowflake(
             user=user,
-            password=password,
+            private_key=private_key,
             account=account,
             warehouse=warehouse,
             role=role,
@@ -412,7 +423,7 @@ def test_check_models(input, expected):
     if input["adapter"] == "snowflake":
         conn = get_connector_snowflake(
             user=os.environ["USER_SNOWFLAKE"],
-            password=os.environ["PASSWORD_SNOWFLAKE"],
+            private_key=os.environ["SNOWFLAKE_PRIVATE_KEY"],
             account=os.environ["ACCOUNT_SNOWFLAKE"],
             warehouse=os.environ["WAREHOUSE_SNOWFLAKE"],
             role=os.environ["ROLE_SNOWFLAKE"],
@@ -724,7 +735,7 @@ def tests_cleanup(input):
 
         conn = get_connector_snowflake(
             user=os.environ["USER_SNOWFLAKE"],
-            password=os.environ["PASSWORD_SNOWFLAKE"],
+            private_key=os.environ["SNOWFLAKE_PRIVATE_KEY"],
             account=os.environ["ACCOUNT_SNOWFLAKE"],
             warehouse=os.environ["WAREHOUSE_SNOWFLAKE"],
             role=os.environ["ROLE_SNOWFLAKE"],
