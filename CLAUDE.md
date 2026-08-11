@@ -20,7 +20,7 @@ uv run pytest tests/                              # Run all tests
 uv run pytest tests/generate_sources_test.py     # Run specific test file
 uv run pytest tests/file.py::test_name -v        # Run specific test function
 uv run pytest --cov=dbt_coves tests/             # Run with coverage
-uv run tox                                        # Test against multiple dbt versions (1.1, 1.10)
+uv run tox                                        # Test against multiple dbt versions (1.10, 1.11, latest)
 ```
 
 ### Linting & Formatting
@@ -41,7 +41,9 @@ dbt-coves generate properties --help
 ## Architecture
 
 ### Task-Based Command System
-All CLI commands are implemented as Task classes inheriting from base classes in `dbt_coves/tasks/base.py`:
+All CLI commands are implemented as Task classes inheriting from base classes in
+`dbt_coves/tasks/base.py` (`BaseTask`, `NonDbtBaseTask`, `NonDbtBaseConfiguredTask`) and
+`dbt_coves/tasks/base_configured.py` (`BaseConfiguredTask`):
 - `BaseTask`: Lightweight tasks not requiring dbt config
 - `BaseConfiguredTask`: Tasks using dbt configuration and adapters
 - `NonDbtBaseTask`/`NonDbtBaseConfiguredTask`: Tasks using only dbt-coves config

@@ -45,8 +45,6 @@ jobs:
         run: rm -f "$RUNNER_TEMP/review.md"
 
       - uses: anthropics/claude-code-action@v1
-        env:
-          BASE_REF: ${{ github.event.pull_request.base.ref }}
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
