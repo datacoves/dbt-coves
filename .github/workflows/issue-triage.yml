@@ -5,6 +5,14 @@ name: issue-triage 🤖
 # suggested labels for a human to apply). No auto-labeling, no auto-close, no code
 # changes — a human still makes the call. Complements the keyword-based auto-label
 # workflow (issue.yml) and the PR review workflow (pr-review.yml), same pattern.
+#
+# Split into two jobs so the write-capable `issues: write` permission never reaches
+# the agent's environment: `triage` gets only `issues: read` (enough for `gh issue
+# view`/`gh issue list`, but GitHub rejects any write call that token attempts, at the
+# API level, regardless of what the prompt says) and writes its note to an artifact;
+# `comment` (no code access, no agent) downloads it and posts. This defends against an
+# issue whose title/body successfully tricks the agent into trying to post/label/close
+# on its own.
 
 on:
   issues:
@@ -25,7 +33,7 @@ jobs:
     timeout-minutes: 20
     permissions:
       contents: read
-      issues: write
+      issues: read
     env:
       GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
       ISSUE: ${{ github.event.issue.number }}
@@ -40,7 +48,8 @@ jobs:
         with:
           claude_code_oauth_token: ${{ secrets.CLAUDE_CODE_OAUTH_TOKEN }}
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          # Read-only — no Edit/Write/Task. The workflow, not the agent, posts the comment.
+          # Read-only tools AND a read-only job token (issues: read above, no write) —
+          # even a successful prompt injection has no working path to comment/label/close.
           claude_args: "--max-turns 60 --allowedTools Bash,Read,Glob,Grep"
           prompt: |
             Take a first pass at a newly opened issue on the dbt-coves project (a Python
@@ -48,8 +57,9 @@ jobs:
 
             **You do NOT post anything yourself — never run `gh issue comment` or
             `gh issue edit`. Your only output is the file `$RUNNER_TEMP/triage.md`; a
-            later workflow step owns the marker line, the heading and the target issue,
-            and posts it. You MUST write that file on every run.**
+            separate job (running with no code access and no agent) owns the marker
+            line, the heading and the target issue, and posts it. You MUST write that
+            file on every run.**
 
             1. Read the issue (Bash):
                  gh issue view "$ISSUE" --repo "$REPO" --json title,body,labels,author
@@ -77,18 +87,46 @@ jobs:
                missing so a maintainer can ask for it.
 
             3. Write the note to `$RUNNER_TEMP/triage.md` (a file, so multi-line markdown
-               survives), on EVERY run — a workflow step below posts it:
+               survives), on EVERY run — a later job posts it:
                  cat > "$RUNNER_TEMP/triage.md" <<'MD'
                  …your triage note…
                  MD
                Do NOT write the marker line or the `### Triage of #…` heading — the
-               workflow prepends both.
+               posting job prepends both.
 
             Do NOT modify files, push commits, apply labels, or comment/close the issue
             yourself — triage only.
 
-      - name: Post the triage comment
+      - name: Upload triage note
         if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: issue-triage-note
+          path: ${{ runner.temp }}/triage.md
+          if-no-files-found: warn
+          retention-days: 1
+
+  comment:
+    name: Post triage comment
+    needs: triage
+    if: always()
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      issues: write
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      ISSUE: ${{ github.event.issue.number }}
+      REPO: ${{ github.repository }}
+    steps:
+      - name: Download triage note
+        uses: actions/download-artifact@v4
+        continue-on-error: true
+        with:
+          name: issue-triage-note
+          path: ${{ runner.temp }}
+
+      - name: Post the triage comment
         run: |
           set -uo pipefail
           body="$RUNNER_TEMP/comment.md"
