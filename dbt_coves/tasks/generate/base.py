@@ -1,5 +1,6 @@
 import csv
 import fnmatch
+import re
 from pathlib import Path
 
 import questionary
@@ -12,6 +13,13 @@ from dbt_coves.utils.jinja import get_render_output, render_template_file
 from dbt_coves.utils.yaml import open_yaml, save_yaml
 
 console = Console()
+# Slugified aliases are lowercase alphanumerics and underscores
+VALID_IDENTIFIER = re.compile(r"^[a-z_][a-z0-9_]*$")
+NON_IDENTIFIER_CHARS = re.compile(r"[^a-z0-9_]")
+# Quotes, escapes and control characters end the quoted string an alias renders into
+UNQUOTABLE_CHARS = re.compile(r"[\"\\\x00-\x1f\x7f]")
+# Last resort for a column name that keeps nothing renderable
+DEFAULT_ALIAS = "column"
 yaml = YAML()
 yaml.default_flow_style = False
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -165,6 +173,35 @@ class BaseGenerateTask(BaseConfiguredTask):
         }
         return data
 
+    def get_column_id(self, name):
+        """
+        Build the alias a column is exposed with, ready to render as-is.
+
+        Aliases are slugified, and slugify drops leading/trailing separators, so a
+        column named `_2010` aliases to `2010`, which SQL reads as a numeric literal
+        instead of an identifier -- and YAML as an int. Aliases that aren't valid
+        unquoted identifiers are quoted, leaving every other alias untouched.
+
+        The quotes belong here rather than in the templates because projects keep
+        their own copies of those under `.dbt_coves/templates`, and a double quoted
+        alias is both valid SQL and a valid YAML string.
+        """
+        alias = slugify(name, separator="_")
+        if not alias:
+            # slugify dropped every character (e.g. a column named "$"), so fall
+            # back to the name itself, minus whatever would end the quoted string
+            # it gets rendered into -- SQL and YAML escape those differently, and
+            # a name with no alphanumerics at all has little left to preserve
+            alias = UNQUOTABLE_CHARS.sub("", name.lower()) or DEFAULT_ALIAS
+        if VALID_IDENTIFIER.match(alias):
+            return alias
+        if "BigQuery" in self.adapter.__class__.__name__:
+            # BigQuery rejects column names holding anything but letters, digits
+            # and underscores, or starting with a digit, even when they are quoted
+            alias = NON_IDENTIFIER_CHARS.sub("", alias)
+            return f"_{alias}" if alias else DEFAULT_ALIAS
+        return f'"{alias}"'
+
     def get_default_metadata_item(
         self,
         name,
@@ -175,7 +212,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     ):
         return {
             "name": name,
-            "id": slugify(name, separator="_"),
+            "id": self.get_column_id(name),
             "type": type,
             "description": description,
             "numeric_precision": numeric_precision,
@@ -255,7 +292,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if new_col:
                     # FIXME: DRY this
                     new_col["name"] = col.name
-                    new_col["id"] = slugify(col.name, separator="_")
+                    new_col["id"] = self.get_column_id(col.name)
             if not new_col:
                 numeric_precision = None
                 numeric_scale = None
