@@ -5,7 +5,7 @@ models:
     description: ""
     columns:
 {%- for col in columns %}
-      - name: {{ col['id'] }}
+      - name: {{ col['yml_name'] }}
       {%- if col['description'] %}
         description: "{{ col['description'] }}"
       {%- endif %}

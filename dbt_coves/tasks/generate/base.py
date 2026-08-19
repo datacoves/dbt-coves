@@ -1,5 +1,6 @@
 import csv
 import fnmatch
+import re
 from pathlib import Path
 
 import questionary
@@ -12,6 +13,10 @@ from dbt_coves.utils.jinja import get_render_output, render_template_file
 from dbt_coves.utils.yaml import open_yaml, save_yaml
 
 console = Console()
+# Adapters whose identifier quoting isn't the SQL standard double quote
+IDENTIFIER_QUOTE_CHARS = {"BigQueryAdapter": "`"}
+# Slugified aliases are lowercase alphanumerics and underscores
+VALID_IDENTIFIER = re.compile(r"^[a-z_][a-z0-9_]*$")
 yaml = YAML()
 yaml.default_flow_style = False
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -165,6 +170,29 @@ class BaseGenerateTask(BaseConfiguredTask):
         }
         return data
 
+    def get_column_aliases(self, name):
+        """
+        Build the alias a column is exposed with, in its SQL and YAML flavors.
+
+        Aliases are slugified, and slugify drops leading/trailing separators, so a
+        column named `_2010` aliases to `2010`, which SQL reads as a numeric literal
+        instead of an identifier. Aliases that aren't valid unquoted identifiers are
+        quoted, leaving every other alias untouched.
+        """
+        alias = slugify(name, separator="_")
+        if not alias:
+            # slugify dropped every character (e.g. a column named "$")
+            alias = name.lower()
+        quote_char = IDENTIFIER_QUOTE_CHARS.get(self.adapter.__class__.__name__, '"')
+        if quote_char == "`" and not VALID_IDENTIFIER.match(alias):
+            # BigQuery rejects column names not starting with a letter or an
+            # underscore even when they are quoted, so prefix instead of quoting
+            alias = f"_{alias}"
+        if VALID_IDENTIFIER.match(alias):
+            return {"id": alias, "sql_alias": alias, "yml_name": alias}
+        quoted = f"{quote_char}{alias}{quote_char}"
+        return {"id": alias, "sql_alias": quoted, "yml_name": f'"{alias}"'}
+
     def get_default_metadata_item(
         self,
         name,
@@ -175,7 +203,7 @@ class BaseGenerateTask(BaseConfiguredTask):
     ):
         return {
             "name": name,
-            "id": slugify(name, separator="_"),
+            **self.get_column_aliases(name),
             "type": type,
             "description": description,
             "numeric_precision": numeric_precision,
@@ -255,7 +283,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if new_col:
                     # FIXME: DRY this
                     new_col["name"] = col.name
-                    new_col["id"] = slugify(col.name, separator="_")
+                    new_col.update(self.get_column_aliases(col.name))
             if not new_col:
                 numeric_precision = None
                 numeric_scale = None
