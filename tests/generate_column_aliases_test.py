@@ -7,6 +7,7 @@
 from types import SimpleNamespace
 
 import pytest
+from ruamel.yaml import YAML
 
 from dbt_coves.tasks.generate.base import BaseGenerateTask
 from dbt_coves.utils.jinja import get_render_output, render_template
@@ -70,6 +71,27 @@ def test_alias_falls_back_to_the_column_name_when_slugify_empties_it():
     assert get_id("$") == '"$"'
 
 
+@pytest.mark.parametrize(
+    "name, id",
+    [
+        # A name holding alphanumerics keeps them, quotes and all
+        ('a"b', "a_b"),
+        # Otherwise the quotes would end the string the alias renders into
+        ('$"', '"$"'),
+        ('"', "column"),
+        ("\\", "column"),
+        ("\n", "column"),
+    ],
+)
+def test_alias_cannot_break_out_of_its_quotes(name, id):
+    assert get_id(name) == id
+
+
+@pytest.mark.parametrize("name, id", [("$", "column"), ("a$b", "a_b"), ('"', "column")])
+def test_bigquery_aliases_hold_identifier_characters_only(name, id):
+    assert get_id(name, adapter=BigQueryAdapter) == id
+
+
 def test_default_metadata_item_carries_the_id():
     assert get_column("_2010") == {
         "name": "_2010",
@@ -101,6 +123,18 @@ def test_model_props_quotes_the_column_name():
     output = render("model_props.yml", context)
     assert "      - name: states" in output
     assert '      - name: "2010"' in output
+
+
+def test_rendered_props_stay_parseable_for_hostile_column_names():
+    # Nested column names come from `json.loads` on live row data, so they can
+    # hold anything at all
+    context = {
+        "model": "US_POPULATION",
+        "columns": [get_column(name) for name in ("STATES", "_2010", '"', '$"')],
+    }
+    parsed = YAML().load(render("model_props.yml", context))
+    names = [col["name"] for col in parsed["models"][0]["columns"]]
+    assert names == ["states", "2010", "column", "$"]
 
 
 def test_quoting_reaches_templates_kept_by_the_project():

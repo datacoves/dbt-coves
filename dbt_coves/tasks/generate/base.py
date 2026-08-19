@@ -15,6 +15,11 @@ from dbt_coves.utils.yaml import open_yaml, save_yaml
 console = Console()
 # Slugified aliases are lowercase alphanumerics and underscores
 VALID_IDENTIFIER = re.compile(r"^[a-z_][a-z0-9_]*$")
+NON_IDENTIFIER_CHARS = re.compile(r"[^a-z0-9_]")
+# Quotes, escapes and control characters end the quoted string an alias renders into
+UNQUOTABLE_CHARS = re.compile(r"[\"\\\x00-\x1f\x7f]")
+# Last resort for a column name that keeps nothing renderable
+DEFAULT_ALIAS = "column"
 yaml = YAML()
 yaml.default_flow_style = False
 yaml.indent(mapping=2, sequence=4, offset=2)
@@ -183,14 +188,18 @@ class BaseGenerateTask(BaseConfiguredTask):
         """
         alias = slugify(name, separator="_")
         if not alias:
-            # slugify dropped every character (e.g. a column named "$")
-            alias = name.lower()
+            # slugify dropped every character (e.g. a column named "$"), so fall
+            # back to the name itself, minus whatever would end the quoted string
+            # it gets rendered into -- SQL and YAML escape those differently, and
+            # a name with no alphanumerics at all has little left to preserve
+            alias = UNQUOTABLE_CHARS.sub("", name.lower()) or DEFAULT_ALIAS
         if VALID_IDENTIFIER.match(alias):
             return alias
         if "BigQuery" in self.adapter.__class__.__name__:
-            # BigQuery rejects column names not starting with a letter or an
-            # underscore even when they are quoted, so prefix instead of quoting
-            return f"_{alias}"
+            # BigQuery rejects column names holding anything but letters, digits
+            # and underscores, or starting with a digit, even when they are quoted
+            alias = NON_IDENTIFIER_CHARS.sub("", alias)
+            return f"_{alias}" if alias else DEFAULT_ALIAS
         return f'"{alias}"'
 
     def get_default_metadata_item(
