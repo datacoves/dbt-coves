@@ -6,14 +6,14 @@ models:
     columns:
 {%- for cols in nested.values() %}
   {%- for col in cols %}
-      - name: {{ cols[col]["yml_name"] }}
+      - name: {{ cols[col]["id"] }}
       {%- if cols[col]["description"] %}
         description: "{{ cols[col]['description'] }}"
       {%- endif %}
   {%- endfor %}
 {%- endfor %}
 {%- for col in columns %}
-      - name: {{ col['yml_name'] }}
+      - name: {{ col['id'] }}
       {%- if col['description'] %}
         description: "{{ col['description'] }}"
       {%- endif %}

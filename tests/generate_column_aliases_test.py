@@ -9,7 +9,7 @@ from types import SimpleNamespace
 import pytest
 
 from dbt_coves.tasks.generate.base import BaseGenerateTask
-from dbt_coves.utils.jinja import get_render_output
+from dbt_coves.utils.jinja import get_render_output, render_template
 
 
 class SnowflakeAdapter:
@@ -30,8 +30,8 @@ class Task(BaseGenerateTask):
         self.adapter = adapter()
 
 
-def get_aliases(name, adapter=SnowflakeAdapter):
-    return Task(adapter).get_column_aliases(name)
+def get_id(name, adapter=SnowflakeAdapter):
+    return Task(adapter).get_column_id(name)
 
 
 def get_column(name, adapter=SnowflakeAdapter):
@@ -44,50 +44,36 @@ def render(template, context):
 
 
 @pytest.mark.parametrize(
-    "name, alias",
+    "name, id",
     [
         ("STATES", "states"),
         ("Order Date", "order_date"),
         ("already_slugged", "already_slugged"),
     ],
 )
-def test_valid_aliases_are_not_quoted(name, alias):
-    assert get_aliases(name) == {
-        "id": alias,
-        "sql_alias": alias,
-        "yml_name": alias,
-    }
+def test_valid_aliases_are_not_quoted(name, id):
+    assert get_id(name) == id
 
 
 @pytest.mark.parametrize("adapter", [SnowflakeAdapter, RedshiftAdapter])
 def test_leading_digit_alias_is_quoted(adapter):
-    assert get_aliases("_2010", adapter=adapter) == {
-        "id": "2010",
-        "sql_alias": '"2010"',
-        "yml_name": '"2010"',
-    }
+    assert get_id("_2010", adapter=adapter) == '"2010"'
 
 
 def test_leading_digit_alias_is_prefixed_on_bigquery():
     # BigQuery rejects column names not starting with a letter or an underscore
     # even when they are quoted
-    assert get_aliases("_2010", adapter=BigQueryAdapter) == {
-        "id": "_2010",
-        "sql_alias": "_2010",
-        "yml_name": "_2010",
-    }
+    assert get_id("_2010", adapter=BigQueryAdapter) == "_2010"
 
 
 def test_alias_falls_back_to_the_column_name_when_slugify_empties_it():
-    assert get_aliases("$") == {"id": "$", "sql_alias": '"$"', "yml_name": '"$"'}
+    assert get_id("$") == '"$"'
 
 
-def test_default_metadata_item_carries_the_aliases():
+def test_default_metadata_item_carries_the_id():
     assert get_column("_2010") == {
         "name": "_2010",
-        "id": "2010",
-        "sql_alias": '"2010"',
-        "yml_name": '"2010"',
+        "id": '"2010"',
         "type": "varchar",
         "description": "",
         "numeric_precision": None,
@@ -115,3 +101,14 @@ def test_model_props_quotes_the_column_name():
     output = render("model_props.yml", context)
     assert "      - name: states" in output
     assert '      - name: "2010"' in output
+
+
+def test_quoting_reaches_templates_kept_by_the_project():
+    # Projects keep their own copies of the templates under `.dbt_coves/templates`,
+    # and those take precedence over the packaged ones, so the quoting has to hold
+    # for a template that only knows about `id`
+    context = {"columns": [get_column("STATES"), get_column("_2010")]}
+    sql = render_template(
+        "{% for col in columns %}as {{ col['id'] }}\n{% endfor %}", context
+    )
+    assert sql == 'as states\nas "2010"\n'
