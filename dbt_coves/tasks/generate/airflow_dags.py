@@ -167,13 +167,19 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 dag_name=yml_filepath.stem,
                 yml_dag=yaml.full_load(open(yml_filepath)),
             )
-        # A DAG's own problem -- unreadable YML or an unresolvable secret
-        # included -- skips that DAG, it doesn't stop the ones still to be
-        # generated
+        # A DAG's own problem -- unreadable YML, an unresolvable secret, a
+        # generator that can't reach its API -- skips that DAG, it doesn't stop
+        # the ones still to be generated
         except (GenerateAirflowDagsException, DbtCovesException) as e:
             self._skip_dag(yml_filepath, str(e))  # our own messages hold markup
-        except (yaml.YAMLError, ValueError) as e:
-            self._skip_dag(yml_filepath, escape(str(e)))
+        except Exception as e:
+            # Anything else is unexpected, so name the type: this is all the
+            # caller gets to tell a DAG's own problem from a bug in here
+            self._skip_dag(
+                yml_filepath,
+                f"DAG [red][b][i]{yml_filepath.stem}[/i][/b][/red] could not be "
+                f"generated. {type(e).__name__}: {escape(str(e))}",
+            )
 
     def _skip_dag(self, yml_filepath: Path, message: str):
         console.print(f"[red]{message}[/red]")

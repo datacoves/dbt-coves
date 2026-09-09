@@ -1,6 +1,7 @@
 import datetime
 
 import pytest
+import requests
 import yaml
 
 from dbt_coves.tasks.generate.airflow_dags import (
@@ -172,6 +173,27 @@ def test_unreadable_yml_skips_only_that_dag(task, tmp_path, capsys):
 
     assert task.skipped_dags == ["broken"]
     assert not (tmp_path / "broken.py").exists()
+
+
+def test_any_failure_skips_only_that_dag(task, tmp_path, capsys, monkeypatch):
+    """A generator that can't reach its API is that DAG's problem, not the run's"""
+
+    def unreachable(*args, **kwargs):
+        raise requests.ConnectionError("Connection refused")
+
+    monkeypatch.setattr(GenerateAirflowDagsTask, "build_dag_file", unreachable)
+    yml_filepath = tmp_path / "loan_run.yml"
+    yml_filepath.write_text("nodes:\n  t:\n    type: task\n")
+    task.dags_path = None
+    task.ymls_path = tmp_path
+    task.yml_dags_path_env = None
+    task.skipped_dags = []
+
+    task._generate_dag(yml_filepath)
+
+    assert task.skipped_dags == ["loan_run"]
+    # the type is named, so a bug in here doesn't read like a bad DAG
+    assert "ConnectionError" in capsys.readouterr().out
 
 
 def test_the_error_survives_rich_markup(task, tmp_path):
