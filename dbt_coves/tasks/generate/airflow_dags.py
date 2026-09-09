@@ -10,10 +10,15 @@ import isort
 import yaml
 from black import FileMode, format_str
 from rich.console import Console
+from rich.markup import escape
 
-from dbt_coves.core.exceptions import MissingArgumentException
+from dbt_coves.core.exceptions import DbtCovesException, MissingArgumentException
 from dbt_coves.tasks.base import NonDbtBaseTask
-from dbt_coves.utils.secrets import load_secret_manager_data, replace_secrets
+from dbt_coves.utils.secrets import (
+    contains_secret,
+    load_secret_manager_data,
+    replace_secrets,
+)
 from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import deep_merge
 
@@ -157,7 +162,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 dag_name=yml_filepath.stem,
                 yml_dag=yaml.full_load(open(yml_filepath)),
             )
-        except GenerateAirflowDagsException as e:
+        except (GenerateAirflowDagsException, DbtCovesException) as e:
+            # A DAG's own problem -- an unresolvable secret included -- skips that
+            # DAG, it doesn't stop the ones still to be generated
             console.print(f"[red]{e}[/red]")
 
     @trackable
@@ -169,6 +176,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.validate_operators = self.get_config_value("validate_operators")
         self.secrets_path = self.get_config_value("secrets_path")
         self.secrets_manager = self.get_config_value("secrets_manager")
+        self.secret_data = None
+        self.secret_data_error = None
         self.yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
 
         if self.secrets_path and self.secrets_manager:
@@ -339,12 +348,37 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 secret_data = yaml.full_load(open(secret))
                 yml_dag = self._merge_secret_nodes(secret_data, yml_dag)
 
-        if self.secrets_manager:
-            self.secret_data = load_secret_manager_data(self)
-            if self.secret_data:
-                yml_dag = self._merge_secret_nodes(self.secret_data, yml_dag)
+        if self.secrets_manager and contains_secret(yml_dag):
+            yml_dag = self._merge_secret_nodes(self._get_secret_manager_data(), yml_dag)
 
         return yml_dag
+
+    def _get_secret_manager_data(self):
+        """
+        Retrieve the secrets manager's data, once per run and only when a DAG asks
+        for it: a run must not need the manager's credentials to generate DAGs that
+        hold no `secret()` reference
+        """
+        if self.secret_data_error:
+            # The manager's settings are the run's, not this DAG's: report them
+            # once and skip every DAG that needs them, rather than repeating
+            raise GenerateAirflowDagsException(
+                "Skipped: the secrets manager is unavailable, as reported above"
+            )
+        if self.secret_data is None:
+            try:
+                self.secret_data = load_secret_manager_data(self)
+            except Exception as e:
+                # Reaching the manager fails for reasons well beyond its settings
+                # -- a revoked token, an unreachable host -- and none of those are
+                # this DAG's to fix either
+                self.secret_data_error = e
+                # dbt-coves' own messages carry markup, anything else is raw text
+                detail = str(e) if isinstance(e, DbtCovesException) else escape(str(e))
+                raise GenerateAirflowDagsException(
+                    f"Could not read the secrets manager: {detail}"
+                ) from e
+        return self.secret_data
 
     def generate_node(self, node_name: str, node_conf: Dict[str, Any]):
         """
@@ -381,8 +415,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         generators_params = self.get_config_value("generators_params")
         coves_config_generators_params = generators_params.get(generator, {})
-        if self.secrets_manager:
-            replace_secrets(self.secret_data, coves_config_generators_params)
+        if self.secrets_manager and contains_secret(coves_config_generators_params):
+            replace_secrets(
+                self._get_secret_manager_data(), coves_config_generators_params
+            )
         return deep_merge(tg_conf, coves_config_generators_params)
 
     def generate_task_group(self, tg_name: str, tg_conf: Dict[str, Any]):
