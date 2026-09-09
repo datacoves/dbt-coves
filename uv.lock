@@ -761,7 +761,7 @@ sdist = { url = "https://files.pythonhosted.org/packages/54/bc/d37f24f564cb32b3c
 
 [[package]]
 name = "dbt-coves"
-version = "1.12.1"
+version = "1.12.2"
 source = { editable = "." }
 dependencies = [
     { name = "black" },
