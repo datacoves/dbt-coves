@@ -47,6 +47,11 @@ class GenerateAirflowDagsException(Exception):
 class RawExpr(str):
     """A string marked via the `!py` YAML tag to be emitted as a raw, unquoted Python expression."""
 
+    def __repr__(self):
+        # Dicts and lists render through their elements' repr, so this is what
+        # keeps a `!py` value nested inside one unquoted too
+        return str(self)
+
 
 class GenerateAirflowDagsTask(NonDbtBaseTask):
     """
@@ -162,10 +167,17 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 dag_name=yml_filepath.stem,
                 yml_dag=yaml.full_load(open(yml_filepath)),
             )
+        # A DAG's own problem -- unreadable YML or an unresolvable secret
+        # included -- skips that DAG, it doesn't stop the ones still to be
+        # generated
         except (GenerateAirflowDagsException, DbtCovesException) as e:
-            # A DAG's own problem -- an unresolvable secret included -- skips that
-            # DAG, it doesn't stop the ones still to be generated
-            console.print(f"[red]{e}[/red]")
+            self._skip_dag(yml_filepath, str(e))  # our own messages hold markup
+        except (yaml.YAMLError, ValueError) as e:
+            self._skip_dag(yml_filepath, escape(str(e)))
+
+    def _skip_dag(self, yml_filepath: Path, message: str):
+        console.print(f"[red]{message}[/red]")
+        self.skipped_dags.append(yml_filepath.stem)
 
     @trackable
     def run(self):
@@ -178,6 +190,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.secrets_manager = self.get_config_value("secrets_manager")
         self.secret_data = None
         self.secret_data_error = None
+        self.skipped_dags = []
         self.yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
 
         if self.secrets_path and self.secrets_manager:
@@ -190,6 +203,14 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 self._generate_dag(Path(yml_filepath))
         else:
             self._generate_dag(self.ymls_path)
+        if self.skipped_dags:
+            # Skipped DAGs leave whatever was at their destination in place, so
+            # the run has to fail for a caller to notice they're now stale
+            console.print(
+                f"[red]Skipped {len(self.skipped_dags)} DAG(s): "
+                f"{', '.join(self.skipped_dags)}[/red]"
+            )
+            return 1
         return 0
 
     def _register_datetime_import(self, value):
@@ -207,6 +228,29 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             for v in value:
                 self._register_datetime_import(v)
 
+    def _python_value(self, value):
+        """
+        Render a non-string argument as Python. A datetime interpolates through
+        `str()` as `2023-01-01 00:00:00`, which doesn't parse, so it goes through
+        `repr()` instead -- one nested in a dict or list already does, as their
+        own repr renders their elements
+        """
+        self._register_datetime_import(value)
+        if isinstance(value, (datetime.datetime, datetime.date, datetime.time)):
+            return repr(value)
+        return value
+
+    def _warn_on_quoted_py_tag(self, key, value):
+        """
+        `key: '!py expr()'` is an ordinary string to YAML -- the tag has to sit
+        outside the quotes to be one -- so the `!py` would be emitted verbatim
+        """
+        if value.startswith("!py "):
+            console.print(
+                f"[yellow]{key} starts with [b]!py[/b] inside its quotes, so it is a "
+                f"plain string: move the tag outside them to emit an expression[/yellow]"
+            )
+
     def dag_args_to_string(self, yaml, indent=2):
         """
         Converts a dictionary to a string of arguments for the DAG constructor.
@@ -220,10 +264,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 if isinstance(value, RawExpr):
                     dag_value = str(value)
                 elif isinstance(value, str) and "config" not in key:
+                    self._warn_on_quoted_py_tag(key, value)
                     dag_value = f'"{value}"'
                 else:
-                    dag_value = value
-                    self._register_datetime_import(value)
+                    dag_value = self._python_value(value)
                 dag_args += f"{indent * ' '}{key}={dag_value},\n"
         return dag_args[:-1]
 
@@ -250,17 +294,24 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             usage_args = []
             if isinstance(callback_args, dict):
                 for arg, value in callback_args.items():
-                    if isinstance(value, str):
+                    if isinstance(value, RawExpr):  # `!py` tagged: emit as written
+                        value = str(value)
+                    elif isinstance(value, str):
+                        self._warn_on_quoted_py_tag(arg, value)
                         value = f'"{value}"'
+                    else:
+                        value = self._python_value(value)
                     usage_args.append(f"{arg}={value}")
             if isinstance(callback_args, list):
                 for arg in callback_args:
-                    if isinstance(arg, dict):
+                    if isinstance(arg, RawExpr):
+                        usage_args.append(str(arg))
+                    elif isinstance(arg, dict):
                         arg = self.dag_args_to_string(arg, indent=4).rstrip(",")
                         usage_args.append(arg)
-                    if isinstance(arg, int):
+                    elif isinstance(arg, int):
                         usage_args.append(f"{arg}")
-                    if isinstance(arg, str):
+                    elif isinstance(arg, str):
                         usage_args.append(f'"{arg}"')
             callback_usage = f"{callback_class}({','.join(usage_args)})"
             callback_output.append(f"{2 * ' '}{callback}={callback_usage}")
@@ -312,22 +363,27 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             )
         self.dag_output["dag"].append(f"dag = {dag_name}()\n")
 
-        with open(destination_path, "w") as f:
-            final_output = (
-                "".join(self.dag_output["docstring"])
-                + "".join(set(self.dag_output["imports"]))
-                + "".join(self.dag_output["globals"])
-                + "".join(self.dag_output["dag"])
+        final_output = (
+            "".join(self.dag_output["docstring"])
+            + "".join(set(self.dag_output["imports"]))
+            + "".join(self.dag_output["globals"])
+            + "".join(self.dag_output["dag"])
+        )
+        try:
+            black_formatted = format_str(final_output, mode=FileMode())
+            final_output = isort.code(black_formatted)
+        except Exception as exc:
+            # Only write once the output is known to be valid Python: a DAG we
+            # can't generate must not overwrite the last one we could
+            raise GenerateAirflowDagsException(
+                f"DAG [red][b][i]{dag_name}[/i][/b][/red] resulted in an invalid DAG, "
+                f"skipping. [b]{destination_path}[/b] left unchanged. "
+                # The error echoes the source line it choked on, and a `[...]` in
+                # it would otherwise be read as markup and dropped from the only
+                # diagnostic there is now that nothing is written
+                f"Error: {escape(str(exc))}"
             )
-            try:
-                black_formatted = format_str(final_output, mode=FileMode())
-                isort_formatted = isort.code(black_formatted)
-                f.write(isort_formatted)
-            except Exception as exc:
-                f.write(final_output)
-                console.print(
-                    f"DAG {dag_name} resulted in an invalid DAG, skipping. Error: {exc}"
-                )
+        destination_path.write_text(final_output)
 
     def _merge_secret_nodes(self, secret_nodes, yml_dag) -> Dict[str, Any]:
         if isinstance(secret_nodes, dict):
@@ -527,7 +583,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.dag_output["imports"].append(
             "from kubernetes.client import models as k8s\n"
         )
-        task_conf["executor_config"] = config_global_name
+        # The name of the global just appended, not a string to quote
+        task_conf["executor_config"] = RawExpr(config_global_name)
 
     def generate_task_output(
         self, task_name: str, task_conf: Dict[str, Any], is_task_taskgroup=False
@@ -549,18 +606,29 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             # Extract additional arguments for the decorator
             decorator_args = []
             for key, value in task_conf.items():
-                if isinstance(
+                if isinstance(value, RawExpr):  # `!py` tagged: emit as written
+                    value = str(value)
+                elif isinstance(
                     value, dict
                 ):  # Handle nested dictionaries (e.g., overrides)
+                    self._register_datetime_import(value)
                     value = f"{value}"  # Render as a Python dictionary
                 elif isinstance(value, str):
+                    self._warn_on_quoted_py_tag(key, value)
                     value = f'"{value}"'
+                else:
+                    value = self._python_value(value)
                 decorator_args.append(f"{key}={value}")
 
-            # Render decorated function
+            # Render decorated function, leaving out the argument line entirely
+            # when the task has no arguments -- a lone `,` doesn't parse
             task_output = [
                 f"{' ' * indent}@task.{task_decorator}(\n",
-                f"{' ' * (indent + 4)}{', '.join(decorator_args)},\n",
+                *(
+                    [f"{' ' * (indent + 4)}{', '.join(decorator_args)},\n"]
+                    if decorator_args
+                    else []
+                ),
                 f"{' ' * indent})\n",
                 f"{' ' * indent}def {task_name}():\n",
                 f'{" " * (indent + 4)}return "{bash_command}"\n',
