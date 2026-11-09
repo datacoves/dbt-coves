@@ -7,7 +7,7 @@ from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.utils.tracking import trackable
 
-from .clone_db import CloneDB
+from .clone_db import CloneDB, find_database
 
 console = Console()
 
@@ -119,15 +119,25 @@ class BlueGreenTask(BaseConfiguredTask):
         try:
             # create staging db
             self.cdb.create_database(self.staging_database)
-            # clones schemas and schema grants from production to pre_production
-            self.cdb.clone_database_schemas(
+            # copies database-level parameters and comment from production
+            self.cdb.clone_database_properties(
+                self.production_database, self.staging_database
+            )
+            # clones schemas and their grants and future grants (ownership comes
+            # after the build)
+            post_build = self.cdb.clone_database_schemas(
+                self.production_database, self.staging_database
+            )
+            # copies the database's future and inherited grants before the build, so
+            # future grants apply to the objects dbt creates
+            post_build += self.cdb.clone_database_container_grants(
                 self.production_database, self.staging_database
             )
             # run dbt build
             self._run_dbt_build(env)
-            # copy db grants from production db
+            # copy db grants, then managed access and ownership held back from above
             self.cdb.clone_database_grants(
-                self.production_database, self.staging_database
+                self.production_database, self.staging_database, post_build
             )
             # Swaps databases: Snowflake sql `alter database {blue} swap with {green}`
             self._swap_databases()
@@ -203,7 +213,9 @@ class BlueGreenTask(BaseConfiguredTask):
         """
         green_exists = self._check_if_database_exists()
         if green_exists and self.drop_staging_db_at_start:
-            self.cdb.drop_database()
+            # No IF EXISTS: it would hide a database this role can see but isn't
+            # authorized to drop, leaving CREATE DATABASE to fail afterwards.
+            self.cdb.drop_database(if_exists=False)
         elif green_exists:
             raise DbtCovesException(
                 f"Green database {self.staging_database} already exists. Please either drop it or "
@@ -285,11 +297,4 @@ class BlueGreenTask(BaseConfiguredTask):
         Returns:
             None
         """
-        query = f"SHOW DATABASES LIKE '{self.staging_database}'"
-        cursor = self.con.cursor()
-        cursor.execute(query)
-        result = cursor.fetchone()
-        if result is not None:
-            return True
-        else:
-            return False
+        return find_database(self.con, self.staging_database) is not None

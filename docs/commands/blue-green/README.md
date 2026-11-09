@@ -11,9 +11,20 @@ Performs a blue-green dbt deployment on **Snowflake**: it clones the production 
 High-level flow:
 
 1. Fail fast if a staging database with the target name already exists (unless `--drop-staging-db-at-start` is set).
-2. Create the staging database and clone all of production's schemas and grants into it.
-3. Run `dbt build` with the target database pointed at staging.
-4. Clone the (possibly changed) database-level grants from production into staging.
+2. Create the staging database and prepare it:
+   - Copy production's database-level parameters (those explicitly set on the database, such as `DATA_RETENTION_TIME_IN_DAYS`) and comment. A parameter the deploy role isn't allowed to set (for example `LOG_LEVEL`, which needs the account-level `MODIFY LOG LEVEL` privilege) is skipped with a warning and reverts to its default after the swap.
+   - Clone all of production's schemas.
+   - Copy the schemas' grants, the schemas' and the database's future grants, and the database's inherited grants, except `OWNERSHIP`.
+
+   Future grants are in place before the build so they apply to the objects dbt creates. Schema-level inherited grants are kept by the schema clone itself.
+3. Run `dbt build` with the target database pointed at staging. The deploy role still owns the staging schemas during the build.
+4. Finish the staging database:
+   - Copy the (possibly changed) database-level grants.
+   - Apply future `OWNERSHIP` grants.
+   - Re-enable `MANAGED ACCESS` on schemas that have it in production. A schema clone doesn't keep it, and it's held back until after the build so dbt can still grant on the objects it creates.
+   - Transfer schema ownership, then database ownership, with `COPY CURRENT GRANTS`.
+
+   Only grants to account roles are copied. If production's database or schemas are granted to a database role, share, user or application, the deploy stops before `dbt build` with an error listing those grants, because swapping would silently drop them. Future and inherited grants to anything other than an account role are skipped with a warning.
 5. Swap staging and production in Snowflake.
 6. Drop the now-old production database (physically the object still named "staging") unless `--keep-staging-db-on-success` is set.
 
