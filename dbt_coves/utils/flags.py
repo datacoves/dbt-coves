@@ -75,6 +75,7 @@ class DbtCovesFlags:
                 "dbt_args": None,
             },
             "airflow_dags": {
+                "airflow_version": None,
                 "yml_path": None,
                 "dags_path": None,
                 "validate_operators": False,
@@ -309,6 +310,10 @@ class DbtCovesFlags:
 
             # generate airflow_dags
             if self.args.cls.__name__ == "GenerateAirflowDagsTask":
+                if self.args.airflow_version:
+                    self.generate["airflow_dags"]["airflow_version"] = (
+                        self.args.airflow_version
+                    )
                 if self.args.yml_path:
                     self.generate["airflow_dags"]["yml_path"] = self.args.yml_path
                 if self.args.dags_path:

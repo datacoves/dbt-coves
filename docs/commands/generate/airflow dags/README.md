@@ -1,14 +1,42 @@
 ## dbt-coves generate airflow-dags
 
 ```console
-dbt-coves generate airflow-dags
+dbt-coves generate airflow-dags --airflow-version 3
 ```
 
 Translate YML files into their Airflow Python code equivalent. With this, DAGs can be easily written with some `key:value` pairs.
 
+### Airflow version (required)
+
+DAGs generated for Airflow 2 don't work on Airflow 3, and the other way around. For example, Airflow 3 imports `@dag` from `airflow.sdk`, which Airflow 2 doesn't have, and it no longer accepts `schedule_interval`. So you must say which major version the DAGs are for, with `--airflow-version 2|3` or `generate.airflow_dags.airflow_version` in `.dbt_coves/config.yml`. Without it, the command stops before generating anything.
+
+For Airflow 2, the generated DAGs target Airflow 2.4 and later, where `schedule` replaced `schedule_interval`.
+
+The version decides:
+
+- **Where the decorators come from:** `@dag`, `@task` and `@task_group` are imported from `airflow.decorators` for Airflow 2, and from `airflow.sdk` for Airflow 3.
+- **How DAG arguments are adapted.** Arguments the other version renamed are renamed in the generated DAG, with a notice, so the same YML loads on either version:
+
+  | Generating for | Renamed | Not supported (the DAG is skipped with an error) |
+  |---|---|---|
+  | Airflow 3 | `schedule_interval` and `timetable` → `schedule`, `fail_stop` → `fail_fast`, `concurrency` → `max_active_tasks` | `default_view`, `orientation`, `full_filepath` |
+  | Airflow 2 | `fail_fast` → `fail_stop` (Airflow 2.7+) | `deadline`, `allowed_run_types`, `disable_bundle_versioning`, `rerun_with_latest_version`, `task_group` |
+
+  Setting both the old and the new name (e.g. `schedule_interval` and `schedule`) is an error.
+- **Warnings for changed behavior on Airflow 3.** Airflow 3 still accepts some settings but treats them differently, so the DAG loads but behaves differently than on Airflow 2. When generating for Airflow 3, dbt-coves warns when:
+  - a DAG sets no `schedule`. Airflow 3 defaults to none, so the DAG only runs when triggered; Airflow 2 defaulted to daily.
+  - `sla_miss_callback` is set, at the top level or under `notifications`. It has no effect, because Airflow 3 removed SLAs.
+
+  Airflow 3 also changed `catchup` to default to off. Set `catchup` explicitly if a DAG relies on it.
+- **Checks on operators and custom `imports`.** A task's `operator` and the YML's `imports` are checked against the version:
+  - For Airflow 2, anything from `airflow.sdk` skips the DAG with an error: that module doesn't exist in Airflow 2.
+  - For Airflow 3, anything from `airflow.operators` / `airflow.sensors` prints a warning, once per operator path or import line. Those still work, but are deprecated in favor of the `apache-airflow-providers-standard` package (e.g. `airflow.providers.standard.operators.bash.BashOperator`). So does anything from `airflow.decorators`, deprecated in favor of `airflow.sdk`.
+
+Only these DAG-level differences are handled. Task arguments, templates (e.g. `{{ execution_date }}`, removed in Airflow 3) and custom imports are written as given. Airflow's upgrade guide recommends `ruff check --select AIR3` to find the rest.
+
 The basic structure of these YMLs must consist of:
 
-- Global configurations (`description`, `schedule`/`schedule_interval`, `tags`, `catchup`, etc.) - any `key:value` pair here is passed straight through as an argument to Airflow's `@dag(...)` decorator.
+- Global configurations (`description`, `schedule`, `tags`, `catchup`, etc.) - any `key:value` pair here is passed as an argument to Airflow's `@dag(...)` decorator (adapted to the Airflow version, see above).
 - `imports`: extra Python import statements the generated file needs (optional)
 - `doc_md`: a Markdown string used as the DAG's module docstring and `doc_md` (optional)
 - `notifications`: `on_success_callback` / `on_failure_callback` (or any other `@dag()` callback argument) built from a notifier class (optional)
@@ -26,7 +54,7 @@ The basic structure of these YMLs must consist of:
 
 ```yaml
 description: "dbt-coves DAG"
-schedule_interval: "@hourly"
+schedule: "@hourly"
 tags:
   - version_01
 default_args:
@@ -113,7 +141,7 @@ This DAG shows how to run a dbt task
 
 import datetime
 
-from airflow.decorators import dag, task
+from airflow.decorators import dag, task  # from airflow.sdk with --airflow-version 3
 from orchestrate.utils import datacoves_utils
 
 
@@ -248,6 +276,9 @@ Sensitive values (API keys, connection credentials, etc.) don't need to be hardc
 `dbt-coves generate airflow-dags` supports the following args:
 
 ```console
+--airflow-version
+# Required: major version of Airflow the DAGs are for, 2 or 3
+
 --yml-path --yaml-path
 # Path to the folder containing YML files to translate into Python DAGs
 
