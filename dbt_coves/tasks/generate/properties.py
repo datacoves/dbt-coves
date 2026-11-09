@@ -1,4 +1,5 @@
 import json
+import os
 import subprocess
 from pathlib import Path
 
@@ -101,6 +102,7 @@ class GeneratePropertiesTask(BaseGenerateTask):
             return self.json_from_dbt_ls
 
         dbt_params = ["dbt", "ls", "--output", output, "--resource-type", "model"]
+        dbt_params += self._dbt_connection_flags()
 
         if user_selectors:
             dbt_params += user_selectors
@@ -127,15 +129,51 @@ class GeneratePropertiesTask(BaseGenerateTask):
 
         return list(manifest_data)
 
+    def _target_path(self):
+        """
+        The dbt target path `dbt ls` writes manifest.json to: --target-path, then
+        DBT_TARGET_PATH, then dbt_project.yml's target-path (default "target").
+        """
+        return (
+            getattr(self.args, "TARGET_PATH", None)
+            or os.environ.get("DBT_TARGET_PATH")
+            or self.config.target_path
+        )
+
+    def _dbt_connection_flags(self):
+        """
+        The dbt flags that decide which project, profile and target `dbt ls`
+        resolves, so model relations match the connection dbt-coves opened.
+        """
+        flags = []
+        profiles_dir = getattr(self.args, "PROFILES_DIR", None)
+        if profiles_dir:
+            flags += ["--profiles-dir", str(profiles_dir)]
+        profile = getattr(self.args, "profile", None)
+        if profile:
+            flags += ["--profile", profile]
+        target = getattr(self.args, "target", None)
+        if target:
+            flags += ["--target", target]
+        dbt_vars = getattr(self.args, "vars", None)
+        if isinstance(dbt_vars, dict):
+            dbt_vars = json.dumps(dbt_vars) if dbt_vars else None
+        if dbt_vars and dbt_vars.strip() not in ("{}", ""):
+            flags += ["--vars", dbt_vars]
+        if getattr(self.args, "TARGET_PATH", None) or os.environ.get("DBT_TARGET_PATH"):
+            flags += ["--target-path", self._target_path()]
+        return flags
+
     def load_manifest_nodes(self):
+        manifest_path = os.path.join(
+            self.config.project_root, self._target_path(), "manifest.json"
+        )
         try:
-            with open(
-                f"{self.config.project_root}/target/manifest.json", "r"
-            ) as manifest:
+            with open(manifest_path, "r") as manifest:
                 return json.load(manifest)
         except FileNotFoundError:
             raise GeneratePropertiesException(
-                "Could not find manifest.json in target/ folder"
+                f"Could not find manifest.json at {manifest_path}"
             )
 
     def get_config_value(self, key):
