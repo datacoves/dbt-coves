@@ -1,6 +1,7 @@
 from __future__ import nested_scopes
 
 import json
+import re
 from pathlib import Path
 
 import questionary
@@ -11,6 +12,44 @@ from dbt_coves.utils.jinja import render_template, render_template_file
 from dbt_coves.utils.tracking import trackable
 
 from .base import BaseGenerateTask
+
+# A Snowflake identifier that resolves to itself unquoted: Snowflake stores unquoted
+# identifiers in uppercase, so anything else (lowercase, mixed case, spaces, ...) was
+# created quoted and must be quoted to be found.
+SNOWFLAKE_UNQUOTED_IDENTIFIER = re.compile(r"[A-Z_][A-Z0-9_$]*")
+
+# Snowflake keywords that break as unquoted schema or table names in the fully
+# qualified references dbt renders for sources (DB.SCHEMA.TABLE). Found by trying
+# every reserved and limited keyword from
+# https://docs.snowflake.com/en/sql-reference/reserved-keywords in both positions
+# (2026-11-09): these 61 fail, the other 32 (ACCOUNT, ISSUE, JOIN, ...) work.
+# Quoting changes the name dbt sees, so only names that need it are quoted.
+SNOWFLAKE_RESERVED_KEYWORDS = frozenset(
+    """
+    ALL ALTER AND ANY AS BETWEEN BY CHECK COLUMN CONNECT CREATE CURRENT DELETE
+    DISTINCT DROP ELSE EXISTS FOLLOWING FOR FROM GRANT GROUP HAVING ILIKE IN
+    INCREMENT INSERT INTERSECT INTO IS LIKE MINUS NOT NULL OF ON OR ORDER QUALIFY
+    REGEXP REVOKE RLIKE ROW ROWS SAMPLE SELECT SET SOME START TABLE TABLESAMPLE THEN
+    TO TRIGGER UNION UNIQUE UPDATE VALUES WHENEVER WHERE WITH
+    """.split()
+)
+
+
+def snowflake_source_name(identifier: str):
+    """
+    Returns (name, needs_quoting) for a Snowflake schema or table in sources.yml.
+    Identifiers that resolve unquoted are written in lowercase (as dbt projects
+    conventionally do) without quoting. Any other identifier (created quoted, or a
+    reserved word) keeps its exact case and needs `quoting`, so dbt doesn't let
+    Snowflake uppercase it or read it as a keyword.
+    """
+    if (
+        SNOWFLAKE_UNQUOTED_IDENTIFIER.fullmatch(identifier)
+        and identifier not in SNOWFLAKE_RESERVED_KEYWORDS
+    ):
+        return identifier.lower(), False
+    return identifier, True
+
 
 console = Console()
 
@@ -250,10 +289,32 @@ class GenerateSourcesTask(BaseGenerateTask):
         }
         return render_template(destination_path, template_context)
 
+    def get_source_context(self, relation):
+        """
+        The names sources.yml declares the relation with, and the arguments the
+        staging model passes to source(), which must match them exactly: dbt's
+        source() lookup is case-sensitive.
+        """
+        if self.is_snowflake():
+            name, quote_schema = snowflake_source_name(relation.schema)
+            table, quote_identifier = snowflake_source_name(relation.name)
+        else:
+            # Redshift and BigQuery (the other adapters dbt-coves supports) quote
+            # identifiers by default, so the exact names resolve as they are.
+            name, quote_schema = relation.schema, False
+            table, quote_identifier = relation.name, False
+        return {
+            "name": name,
+            "table": table,
+            "quote_schema": quote_schema,
+            "quote_identifier": quote_identifier,
+        }
+
     def get_templates_context(self, relation, columns, json_cols=None):
         metadata_cols = self.get_metadata_columns(relation, columns)
         context = {
             "relation": relation,
+            "source": self.get_source_context(relation),
             "columns": metadata_cols,
             "nested": {},
             "adapter_name": self.adapter.__class__.__name__,
@@ -321,9 +382,14 @@ class GenerateSourcesTask(BaseGenerateTask):
             config_db += "."
         else:
             config_db = ""
+        schema, name, columns = relation.schema, relation.name, json_cols
+        if self.is_snowflake():
+            # Names come from Snowflake as stored; quoting finds lowercase and
+            # mixed-case (quoted) ones too.
+            schema, name = self.adapter.quote(schema), self.adapter.quote(name)
+            columns = [self.adapter.quote(col) for col in json_cols]
         _, data = self.adapter.execute(
-            f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} \
-                limit 1",
+            f"SELECT {', '.join(columns)} FROM {config_db}{schema}.{name} limit 1",
             fetch=True,
         )
         result = dict()

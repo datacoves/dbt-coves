@@ -1,7 +1,7 @@
 with raw_source as (
 
     select *
-    from {% raw %}{{{% endraw %} source('{{ relation.schema }}', '{{ relation.name }}') {% raw %}}}{% endraw %}
+    from {% raw %}{{{% endraw %} source('{{ source.name }}', '{{ source.table }}') {% raw %}}}{% endraw %}
 
 ),
 
@@ -11,7 +11,7 @@ final as (
 {%- if adapter_name == 'SnowflakeAdapter' %}
 {%- for key, cols in nested.items() %}
   {%- for col in cols %}
-        {{ key }}:{{ '"' + col + '"' }}::{{ cols[col]["type"].lower() }}
+        {{ '"' + key + '"' }}:{{ '"' + col + '"' }}::{{ cols[col]["type"].lower() }}
         {%- if cols[col]["type"].lower() == 'number' -%}
             ({{ cols[col]["numeric_precision"] }},{{ cols[col]["numeric_scale"] }})
         {%- endif -%}

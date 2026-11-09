@@ -76,7 +76,7 @@ class BaseGenerateTask(BaseConfiguredTask):
                 if fnmatch.fnmatch(schema.lower(), selector.lower()):
                     filtered_schemas.append(schema)
                     break
-        if "snowflake" in self.adapter.type().lower():
+        if self.is_snowflake():
             filtered_schemas = list({f'"{schema}"' for schema in filtered_schemas})
         else:
             filtered_schemas = list(set(filtered_schemas))
@@ -92,6 +92,9 @@ class BaseGenerateTask(BaseConfiguredTask):
                 exit()
 
         return filtered_schemas
+
+    def is_snowflake(self):
+        return "snowflake" in self.adapter.type().lower()
 
     def select_schemas(self, schemas):
         if self.no_prompt:
@@ -537,6 +540,13 @@ class BaseGenerateTask(BaseConfiguredTask):
                             current_table["description"] = new_table.get("description")
                         if new_table.get("identifier"):
                             current_table["identifier"] = new_table.get("identifier")
+                        if new_table.get("quoting"):
+                            # Merge: generated keys are updated, any other
+                            # quoting the user set by hand is kept
+                            current_table["quoting"] = {
+                                **(current_table.get("quoting") or {}),
+                                **new_table["quoting"],
+                            }
             else:
                 tables_a.append(new_table)
 
@@ -544,6 +554,13 @@ class BaseGenerateTask(BaseConfiguredTask):
         source_a["database"] = source_b.get("database")
         if source_b.get("schema"):
             source_a["schema"] = source_b.get("schema")
+        if source_b.get("quoting"):
+            # Merge: generated keys are updated, any other quoting the user set
+            # by hand is kept
+            source_a["quoting"] = {
+                **(source_a.get("quoting") or {}),
+                **source_b["quoting"],
+            }
         self.update_source_tables(source_a.get("tables"), source_b.get("tables"))
         return source_a
 

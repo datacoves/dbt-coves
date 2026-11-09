@@ -1,10 +1,18 @@
 version: 2
 
 sources:
-  - name: {% if not relation.schema.isupper() and not relation.schema.islower() %}{{ relation.schema }}{% else %}{{ relation.schema.lower() }}{% endif %}
+  - name: {{ source.name }}
 {%- if source_database %}
     database: {{ source_database }}
 {%- endif %}
+{%- if source.quote_schema %}
+    quoting:
+      schema: true
+{%- endif %}
     tables:
-      - name: {% if not relation.name.isupper() and not relation.name.islower() %}{{ relation.name }}{% else %}{{ relation.name.lower() }}{% endif %}
+      - name: {{ source.table }}
+{%- if source.quote_identifier %}
+        quoting:
+          identifier: true
+{%- endif %}
         description: ""

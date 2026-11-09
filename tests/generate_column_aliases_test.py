@@ -106,6 +106,7 @@ def test_default_metadata_item_carries_the_id():
 def test_staging_model_quotes_the_alias():
     context = {
         "relation": SimpleNamespace(schema="RAW", name="US_POPULATION"),
+        "source": {"name": "raw", "table": "us_population"},
         "columns": [get_column("STATES"), get_column("_2010")],
         "nested": {},
         "adapter_name": "SnowflakeAdapter",
