@@ -11,9 +11,9 @@ Performs a blue-green dbt deployment on **Snowflake**: it clones the production 
 High-level flow:
 
 1. Fail fast if a staging database with the target name already exists (unless `--drop-staging-db-at-start` is set).
-2. Create the staging database and clone all of production's schemas and grants into it.
+2. Create the staging database, copy production's database-level parameters (those explicitly set on the database, such as `DATA_RETENTION_TIME_IN_DAYS`) and comment, and clone all of production's schemas into it. For each schema this restores `MANAGED ACCESS` (a schema clone doesn't keep it) and copies the schema's grants, future grants and inherited grants.
 3. Run `dbt build` with the target database pointed at staging.
-4. Clone the (possibly changed) database-level grants from production into staging.
+4. Copy the (possibly changed) database-level grants, future grants and inherited grants from production into staging. Ownership transfers run after all other grants, with `COPY CURRENT GRANTS`. Only grants to account roles are copied; grants to database roles, users or applications are skipped with a warning.
 5. Swap staging and production in Snowflake.
 6. Drop the now-old production database (physically the object still named "staging") unless `--keep-staging-db-on-success` is set.
 

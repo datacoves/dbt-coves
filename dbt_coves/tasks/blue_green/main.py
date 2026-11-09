@@ -119,6 +119,10 @@ class BlueGreenTask(BaseConfiguredTask):
         try:
             # create staging db
             self.cdb.create_database(self.staging_database)
+            # copies database-level parameters and comment from production
+            self.cdb.clone_database_properties(
+                self.production_database, self.staging_database
+            )
             # clones schemas and schema grants from production to pre_production
             self.cdb.clone_database_schemas(
                 self.production_database, self.staging_database
@@ -203,7 +207,9 @@ class BlueGreenTask(BaseConfiguredTask):
         """
         green_exists = self._check_if_database_exists()
         if green_exists and self.drop_staging_db_at_start:
-            self.cdb.drop_database()
+            # No IF EXISTS: it would hide a database this role can see but isn't
+            # authorized to drop, leaving CREATE DATABASE to fail afterwards.
+            self.cdb.drop_database(if_exists=False)
         elif green_exists:
             raise DbtCovesException(
                 f"Green database {self.staging_database} already exists. Please either drop it or "

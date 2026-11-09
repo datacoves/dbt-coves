@@ -5,6 +5,29 @@ from rich.console import Console
 
 console = Console()
 
+# SHOW PARAMETERS `type` values whose values are written unquoted in ALTER ... SET.
+_UNQUOTED_PARAMETER_TYPES = {"BOOLEAN", "NUMBER", "INTEGER"}
+
+
+def _sql_string(value: str) -> str:
+    """Render a Python string as a Snowflake single-quoted string literal."""
+    return "'" + value.replace("\\", "\\\\").replace("'", "''") + "'"
+
+
+def _object_type_plural(grant_on: str) -> str:
+    """
+    Turn a SHOW FUTURE/INHERITED GRANTS object type (e.g. TABLE, DYNAMIC_TABLE,
+    PASSWORD_POLICY) into the plural used by GRANT ... ON FUTURE / ON ALL <plural>.
+    """
+    words = grant_on.replace("_", " ").upper()
+    if words.endswith("Y"):
+        return words[:-1] + "IES"
+    return words + "S"
+
+
+def _is_true(value) -> bool:
+    return str(value).lower() == "true"
+
 
 class CloneDB:
     """
@@ -41,15 +64,24 @@ class CloneDB:
         self.con = snowflake_conn
         self._thread_count = thread_count
 
-    def drop_database(self):
+    def drop_database(self, if_exists: bool = True):
         """
         Utility function to drop the green database.
+
+        Args:
+            if_exists: Use DROP ... IF EXISTS. Pass False when the database is known
+                to exist: Snowflake reports a database the role isn't authorized on
+                as "does not exist or not authorized", which IF EXISTS would turn
+                into a silent no-op.
 
         Returns:
             None
         """
         console.print(f"Dropping database [green]{self.green_database}[/green]")
-        self.con.cursor().execute(f"drop database if exists {self.green_database};")
+        if_exists_sql = "if exists " if if_exists else ""
+        self.con.cursor().execute(
+            f"drop database {if_exists_sql}{self.green_database};"
+        )
 
     def create_database(self, database: str):
         """
@@ -58,9 +90,194 @@ class CloneDB:
         console.print(f"Creating database [green]{self.green_database}[/green]")
         self.con.cursor().execute(f"create database {database};")
 
+    def clone_database_properties(self, blue_database: str, green_database: str):
+        """
+        Copies the parameters explicitly set on the blue database (level DATABASE in
+        SHOW PARAMETERS, e.g. DATA_RETENTION_TIME_IN_DAYS) and its comment to the
+        green database. The green database is created bare rather than cloned, so
+        without this they revert to their defaults after the swap.
+
+        Args:
+            blue_database: The name of the blue database (prod)
+            green_database: The name of the green database (staging).
+
+        Returns:
+            None
+        """
+        from snowflake.connector import DictCursor
+
+        console.print(
+            f"Cloning [u]database parameters[/u] from [blue]{blue_database}[/blue] to "
+            f"[green]{green_database}[/green]"
+        )
+        dict_cursor = self.con.cursor(DictCursor)
+        dict_cursor.execute(f"show parameters in database {blue_database};")
+        parameters = dict_cursor.fetchall()
+        for parameter in parameters:
+            if parameter["level"] != "DATABASE":
+                continue
+            value = parameter["value"]
+            if parameter["type"] not in _UNQUOTED_PARAMETER_TYPES:
+                value = _sql_string(value)
+            self.con.cursor().execute(
+                f"alter database {green_database} set {parameter['key']} = {value};"
+            )
+
+        # SHOW ... LIKE is case-insensitive and treats _ as a wildcard, so match the
+        # exact name afterwards.
+        dict_cursor.execute(f"show databases like {_sql_string(blue_database)};")
+        for database in dict_cursor.fetchall():
+            if database["name"].upper() == blue_database.upper():
+                if database.get("comment"):
+                    self.con.cursor().execute(
+                        f"comment on database {green_database} is "
+                        f"{_sql_string(database['comment'])};"
+                    )
+                break
+
+    def _register_container_grants(
+        self,
+        threaded_commands: "ThreadedRunCommands",
+        container_type: str,
+        blue_container: str,
+        green_container: str,
+    ):
+        """
+        Registers the statements that recreate on the green container (DATABASE or
+        SCHEMA) the future and inherited grants defined on the blue one. Both belong
+        to the container object itself, so they are lost when it's swapped out.
+        """
+        self._register_future_grants(
+            threaded_commands, container_type, blue_container, green_container
+        )
+        self._register_inherited_grants(
+            threaded_commands, container_type, blue_container, green_container
+        )
+
+    def _register_inherited_grants(
+        self,
+        threaded_commands: "ThreadedRunCommands",
+        container_type: str,
+        blue_container: str,
+        green_container: str,
+    ):
+        """
+        Registers GRANT INHERITED statements for the inherited grants defined on the
+        blue container. SHOW INHERITED GRANTS returns one row per privilege, object
+        type and grantee (e.g. SELECT on TABLE to READER).
+        """
+        from snowflake.connector import DictCursor
+        from snowflake.connector.errors import ProgrammingError
+
+        dict_cursor = self.con.cursor(DictCursor)
+        try:
+            dict_cursor.execute(
+                f"show inherited grants in {container_type.lower()} {blue_container};"
+            )
+        except ProgrammingError as e:
+            # Inherited grants need FEATURE_RBAC_INHERITED_GRANTS; accounts without
+            # it can't have any to copy.
+            console.print(
+                f"[yellow]Couldn't list inherited grants in {container_type} "
+                f"{blue_container}, skipping them: {e}[/yellow]"
+            )
+            return
+        for grant in dict_cursor.fetchall():
+            if grant["inherited_from"] != container_type:
+                continue
+            if grant["granted_to"] != "ROLE":
+                console.print(
+                    f"[yellow]Skipping inherited grant of {grant['privilege']} on "
+                    f"{grant['granted_on']} to {grant['granted_to']} "
+                    f"{grant['grantee_name']}: only grants to roles are copied."
+                    "[/yellow]"
+                )
+                continue
+            threaded_commands.register_command(
+                f"GRANT INHERITED {grant['privilege']} ON ALL "
+                f"{_object_type_plural(grant['granted_on'])} IN "
+                f"{container_type} {green_container} "
+                f"TO ROLE {grant['grantee_name']};"
+            )
+
+    def _register_future_grants(
+        self,
+        threaded_commands: "ThreadedRunCommands",
+        container_type: str,
+        blue_container: str,
+        green_container: str,
+    ):
+        """
+        Registers GRANT ... ON FUTURE statements that recreate on the green container
+        (DATABASE or SCHEMA) the future grants defined on the blue one.
+        """
+        from snowflake.connector import DictCursor
+
+        dict_cursor = self.con.cursor(DictCursor)
+        dict_cursor.execute(
+            f"show future grants in {container_type.lower()} {blue_container};"
+        )
+        for grant in dict_cursor.fetchall():
+            if grant["grant_to"] != "ROLE":
+                console.print(
+                    f"[yellow]Skipping future grant of {grant['privilege']} on "
+                    f"{grant['grant_on']} to {grant['grant_to']} "
+                    f"{grant['grantee_name']}: only grants to roles are copied."
+                    "[/yellow]"
+                )
+                continue
+            grant_option = (
+                " WITH GRANT OPTION" if _is_true(grant.get("grant_option")) else ""
+            )
+            threaded_commands.register_command(
+                f"GRANT {grant['privilege']} ON FUTURE "
+                f"{_object_type_plural(grant['grant_on'])} IN "
+                f"{container_type} {green_container} "
+                f"TO ROLE {grant['grantee_name']}{grant_option};"
+            )
+
+    @staticmethod
+    def _grant_sql(grant: dict, green_object: str) -> str:
+        """
+        Builds the GRANT statement that recreates a SHOW GRANTS ON row on the green
+        object. Ownership transfers copy the grants issued before them, so they must
+        run after the other grants.
+        """
+        sql = (
+            f"GRANT {grant['privilege']} ON {grant['granted_on']} {green_object} "
+            f"TO ROLE {grant['grantee_name']}"
+        )
+        if grant["privilege"] == "OWNERSHIP":
+            sql += " COPY CURRENT GRANTS"
+        return sql + ";"
+
+    def _run_grants(self, grants: list, green_object: str, extra_commands=None):
+        """
+        Re-issues SHOW GRANTS ON rows against the green object. Non-ownership grants
+        (and any extra_commands registrations, such as future grants) run first,
+        then ownership transfers, so the current role still owns the object while
+        the other grants are issued.
+        """
+        threaded_commands = ThreadedRunCommands(self.con, self._thread_count)
+        ownership_grants = []
+        for grant in grants:
+            if grant["privilege"] == "OWNERSHIP":
+                ownership_grants.append(grant)
+            else:
+                threaded_commands.register_command(self._grant_sql(grant, green_object))
+        if extra_commands:
+            extra_commands(threaded_commands)
+        threaded_commands.run()
+
+        ownership_commands = ThreadedRunCommands(self.con, self._thread_count)
+        for grant in ownership_grants:
+            ownership_commands.register_command(self._grant_sql(grant, green_object))
+        ownership_commands.run()
+
     def clone_database_grants(self, blue_database: str, green_database: str):
         """
-        Clones the grants from the blue database to the green database.
+        Clones the grants and future grants from the blue database to the green
+        database.
 
         Args:
             blue_database: The name of the blue database (prod)
@@ -76,18 +293,15 @@ class CloneDB:
             f"green [green]{self.green_database}[/green]"
         )
         dict_cursor = self.con.cursor(DictCursor)
-        grants_sql_stg_1 = f"""show grants on database {blue_database}"""
-        dict_cursor.execute(grants_sql_stg_1)
+        dict_cursor.execute(f"show grants on database {blue_database}")
         grants = dict_cursor.fetchall()
-        threaded_run_commands = ThreadedRunCommands(self.con, self._thread_count)
-        for grant in grants:
-            grant_sql = (
-                f"GRANT {grant['privilege']} ON {grant['granted_on']} {green_database} "
-                f"TO ROLE {grant['grantee_name']};"
-            )
-
-            threaded_run_commands.register_command(grant_sql)
-        threaded_run_commands.run()
+        self._run_grants(
+            grants,
+            green_database,
+            extra_commands=lambda commands: self._register_container_grants(
+                commands, "DATABASE", blue_database, green_database
+            ),
+        )
 
     def clone_database_schemas(self, blue_database: str, green_database: str):
         """
@@ -112,42 +326,66 @@ class CloneDB:
         schemas = dict_cursor.fetchall()
         threaded_schema_commands = ThreadedRunCommands(self.con, self._thread_count)
 
+        schemas = [
+            schema
+            for schema in schemas
+            if schema["name"] not in self._list_of_schemas_to_exclude
+        ]
+
         # Clone schemas
         for schema in schemas:
-            if schema["name"] not in self._list_of_schemas_to_exclude:
-                # Clone each schema
-                sql = (
-                    f"create schema {green_database}.{schema['name']} "
-                    f"clone {blue_database}.{schema['name']};"
-                )
-                threaded_schema_commands.register_command(sql)
+            sql = (
+                f"create schema {green_database}.{schema['name']} "
+                f"clone {blue_database}.{schema['name']};"
+            )
+            threaded_schema_commands.register_command(sql)
         threaded_schema_commands.run()
         console.print(f"Cloned schemas in {time.time() - self.time_check} seconds.")
         self.time_check = time.time()
 
-        # Copy grants from Blue DB schemas
-        threaded_grants_commands = ThreadedRunCommands(self.con, self._thread_count)
+        # A schema clone isn't guaranteed to keep MANAGED ACCESS, and losing it would
+        # let object owners grant access on their own objects. Re-enable it while
+        # the current role still owns the cloned schemas (before ownership grants).
+        managed_access_commands = ThreadedRunCommands(self.con, self._thread_count)
+        for schema in schemas:
+            if "MANAGED ACCESS" in (schema.get("options") or "").upper():
+                managed_access_commands.register_command(
+                    f"alter schema {green_database}.{schema['name']} "
+                    "enable managed access;"
+                )
+        managed_access_commands.run()
 
+        # Copy grants and future grants from Blue DB schemas
         console.print(
             f"Cloning [u]schema grants[/u] from [blue]{self.blue_database}[/blue] to "
             f"[green]{self.green_database}[/green]"
         )
+        schema_grants = []
         for schema in schemas:
-            if schema["name"] not in self._list_of_schemas_to_exclude:
-                grants_sql_stg_1 = (
-                    f"""show grants on schema {blue_database}.{schema["name"]}"""
+            dict_cursor.execute(
+                f"""show grants on schema {blue_database}.{schema["name"]}"""
+            )
+            schema_grants.append((schema["name"], dict_cursor.fetchall()))
+
+        threaded_grants_commands = ThreadedRunCommands(self.con, self._thread_count)
+        ownership_commands = ThreadedRunCommands(self.con, self._thread_count)
+        for schema_name, grants in schema_grants:
+            green_schema = f"{green_database}.{schema_name}"
+            for grant in grants:
+                commands = (
+                    ownership_commands
+                    if grant["privilege"] == "OWNERSHIP"
+                    else threaded_grants_commands
                 )
-                dict_cursor.execute(grants_sql_stg_1)
-                grants = dict_cursor.fetchall()
-                for grant in grants:
-                    sql = (
-                        f"GRANT {grant['privilege']} ON {grant['granted_on']} "
-                        f"{green_database}.{schema['name']} "
-                        f"TO ROLE {grant['grantee_name']};"
-                    )
-                    # Load SQL into the threaded commands to run.
-                    threaded_grants_commands.register_command(sql)
+                commands.register_command(self._grant_sql(grant, green_schema))
+            self._register_container_grants(
+                threaded_grants_commands,
+                "SCHEMA",
+                f"{blue_database}.{schema_name}",
+                green_schema,
+            )
         threaded_grants_commands.run()
+        ownership_commands.run()
         print(f"Cloned grants to schemas in {time.time() - self.time_check} seconds.")
         self.time_check = time.time()
 
