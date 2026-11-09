@@ -50,6 +50,7 @@ generate:
     dbt_args: "--no-compile --select foo --exclude bar"
 
   airflow_dags:
+    airflow_version: 3 # Required: major version of Airflow the DAGs are for (2 or 3)
     yml_path:
     dags_path:
     generators_params:

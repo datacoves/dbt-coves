@@ -28,6 +28,9 @@ def test_generate_airflow_dags(test_data_dir: Path, test_output_dir: Path):
         "../dbt_coves/core/main.py",
         "generate",
         "airflow-dags",
+        # The DagBag below loads the DAGs with the Airflow 2 installed for tests
+        "--airflow-version",
+        "2",
         "--yml-path",
         test_data_dir,
         "--dags-path",

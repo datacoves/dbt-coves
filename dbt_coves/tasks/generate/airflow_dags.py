@@ -1,6 +1,7 @@
 import datetime
 import importlib
 import os
+import re
 import textwrap
 from glob import glob
 from pathlib import Path
@@ -44,6 +45,57 @@ class GenerateAirflowDagsException(Exception):
     pass
 
 
+AIRFLOW_VERSIONS = (2, 3)
+
+# Where each Airflow major version imports the @dag, @task and @task_group
+# decorators from. airflow.sdk doesn't exist in Airflow 2, and airflow.decorators is
+# deprecated in Airflow 3.
+DECORATORS_MODULE = {2: "airflow.decorators", 3: "airflow.sdk"}
+
+# DAG arguments only one of the two versions accepts, from the DAG constructor of
+# Airflow 2.10 and of Airflow 3's task SDK: per target version, the ones with a
+# direct replacement (renamed when generating) and the ones without (an error).
+DAG_ARG_RENAMES = {
+    3: {
+        "schedule_interval": "schedule",
+        "timetable": "schedule",
+        "fail_stop": "fail_fast",
+        "concurrency": "max_active_tasks",
+    },
+    2: {"fail_fast": "fail_stop"},
+}
+UNSUPPORTED_DAG_ARGS = {
+    3: {"default_view", "orientation", "full_filepath"},
+    2: {
+        "allowed_run_types",
+        "deadline",
+        "disable_bundle_versioning",
+        "rerun_with_latest_version",
+        "task_group",
+    },
+}
+
+# Core operator and sensor modules Airflow 3 moved to the
+# apache-airflow-providers-standard package; the old paths are deprecated.
+AIRFLOW_3_MOVED_MODULES = ("airflow.operators", "airflow.sensors")
+
+_IMPORT_STATEMENT = re.compile(r"^\s*(?:from|import)\s+([\w.]+)")
+
+
+def _referenced_module(reference: str) -> str:
+    """
+    The module an import statement (`from x.y import z`, `import x.y`) refers to,
+    or the dotted path itself for an operator path (`x.y.Class`).
+    """
+    match = _IMPORT_STATEMENT.match(reference)
+    return match.group(1) if match else reference.strip()
+
+
+def _in_module(path: str, module: str) -> bool:
+    """Whether a dotted path is `module` or inside it (not just similarly named)."""
+    return path == module or path.startswith(f"{module}.")
+
+
 class RawExpr(str):
     """A string marked via the `!py` YAML tag to be emitted as a raw, unquoted Python expression."""
 
@@ -64,6 +116,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             "airflow-dags",
             parents=[base_subparser],
             help="Generate Airflow Python DAGs from YML configuration files",
+        )
+        subparser.add_argument(
+            "--airflow-version",
+            type=int,
+            choices=AIRFLOW_VERSIONS,
+            help="Major version of Airflow the DAGs are for (2 or 3). Required: "
+            "DAGs generated for one version don't work on the other",
         )
         subparser.add_argument(
             "--yml-path",
@@ -185,8 +244,30 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         console.print(f"[red]{message}[/red]")
         self.skipped_dags.append(yml_filepath.stem)
 
+    def _get_airflow_version(self) -> int:
+        configured = self.get_config_value("airflow_version")
+        version = None
+        if type(configured) is int:  # not bool, nor a float like 3.0
+            version = configured
+        elif isinstance(configured, str) and configured.strip() in ("2", "3"):
+            # From config.yml it can be a string, e.g. from `{{ env_var(...) }}`
+            version = int(configured.strip())
+        if version not in AIRFLOW_VERSIONS:
+            given = f" (got {configured!r})" if configured is not None else ""
+            raise DbtCovesException(
+                f"[red]generate airflow-dags needs the major version of Airflow the "
+                f"DAGs are for{given}: 2 or 3.[/red] Pass "
+                f"[b]--airflow-version 2[/b] or [b]--airflow-version 3[/b], or set "
+                f"[b]generate.airflow_dags.airflow_version[/b] in "
+                f"[yellow].dbt_coves/config.yml[/yellow]. DAGs generated for one "
+                f"version don't work on the other (e.g. Airflow 3 imports @dag from "
+                f"airflow.sdk, which Airflow 2 doesn't have)."
+            )
+        return version
+
     @trackable
     def run(self):
+        self.airflow_version = self._get_airflow_version()
         ymls_path = self.get_config_value("yml_path")
         self.dags_path = self.get_config_value("dags_path")
         if not (ymls_path):
@@ -197,6 +278,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         self.secret_data = None
         self.secret_data_error = None
         self.skipped_dags = []
+        self.warned_airflow_3_moved: set = set()
         self.yml_dags_path_env = os.environ.get("DATACOVES__AIRFLOW_DAGS_YML_PATH")
 
         if self.secrets_path and self.secrets_manager:
@@ -339,11 +421,14 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"YML file [red][b][i]{dag_name}[/i][/b][/red] must contain a 'nodes' section"
             )
         extra_imports = yml_dag.pop("imports", [])
+        for extra_import in extra_imports:
+            self._check_airflow_version_compat(extra_import)
+        yml_dag = self._adapt_dag_args(dag_name, yml_dag)
         doc_md = yml_dag.get("doc_md", None)
         self.dag_output = {
             "docstring": [],
             "imports": [
-                "from airflow.decorators import dag\n",
+                f"from {self._decorators_module} import dag\n",
                 *[f"{imp}\n" for imp in extra_imports],
             ],
             "globals": [],
@@ -390,6 +475,71 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"Error: {escape(str(exc))}"
             )
         destination_path.write_text(final_output)
+
+    @property
+    def _decorators_module(self) -> str:
+        return DECORATORS_MODULE[self.airflow_version]
+
+    def _adapt_dag_args(self, dag_name: str, yml_dag: Dict[str, Any]):
+        """
+        Rename DAG arguments the target Airflow version only knows under another
+        name (e.g. `schedule_interval` is `schedule` in Airflow 3), keeping their
+        order. Arguments with no equivalent in that version skip the DAG.
+        """
+        renames = DAG_ARG_RENAMES[self.airflow_version]
+        unsupported = sorted(set(yml_dag) & UNSUPPORTED_DAG_ARGS[self.airflow_version])
+        if unsupported:
+            raise GenerateAirflowDagsException(
+                f"DAG [red][b][i]{dag_name}[/i][/b][/red] uses "
+                f"{', '.join(unsupported)}, which Airflow {self.airflow_version} "
+                f"doesn't support and has no equivalent for: remove it"
+            )
+        adapted: Dict[str, Any] = {}
+        renamed_from: Dict[str, str] = {}
+        for key, value in yml_dag.items():
+            new_key = renames.get(key, key)
+            if new_key != key:
+                # The other key is the user's: the new name itself, or another old
+                # one renamed to it (schedule_interval and timetable -> schedule)
+                other = new_key if new_key in yml_dag else renamed_from.get(new_key)
+                if other:
+                    raise GenerateAirflowDagsException(
+                        f"DAG [red][b][i]{dag_name}[/i][/b][/red] sets both {other} and "
+                        f"{key}: Airflow {self.airflow_version} only has {new_key}, "
+                        f"keep one"
+                    )
+                renamed_from[new_key] = key
+                # fail_stop only exists from Airflow 2.7
+                since = ".7+" if new_key == "fail_stop" else ""
+                console.print(
+                    f"[yellow]{dag_name}: {key} is {new_key} in Airflow "
+                    f"{self.airflow_version}{since}, renamed[/yellow]"
+                )
+            adapted[new_key] = value
+        if self.airflow_version == 3:
+            self._warn_airflow_3_behavior_changes(dag_name, adapted)
+        return adapted
+
+    def _warn_airflow_3_behavior_changes(self, dag_name: str, dag_args: Dict[str, Any]):
+        """
+        Warn about DAG settings Airflow 3 still accepts but treats differently, so
+        the DAG loads yet doesn't behave as it did on Airflow 2.
+        """
+        if "schedule" not in dag_args:
+            console.print(
+                f"[yellow]{dag_name}: no schedule set. Airflow 3 defaults to none, so "
+                f"the DAG only runs when triggered (Airflow 2 defaulted to daily)."
+                f"[/yellow]"
+            )
+        notifications = dag_args.get("notifications")
+        callbacks = set(dag_args)
+        if isinstance(notifications, dict):  # anything else fails later, explained
+            callbacks |= set(notifications)
+        if "sla_miss_callback" in callbacks:
+            console.print(
+                f"[yellow]{dag_name}: sla_miss_callback has no effect in Airflow 3, "
+                f"which removed SLAs.[/yellow]"
+            )
 
     def _merge_secret_nodes(self, secret_nodes, yml_dag) -> Dict[str, Any]:
         if isinstance(secret_nodes, dict):
@@ -487,10 +637,8 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         """
         Generate Task Groups, using YML's `generator` or `tasks`
         """
-        (
-            self.dag_output["imports"].append(
-                "from airflow.decorators import task_group\n"
-            ),
+        self.dag_output["imports"].append(
+            f"from {self._decorators_module} import task_group\n"
         )
         tg_tooltip = tg_conf.pop("tooltip", "")
         task_group_output = [
@@ -549,13 +697,45 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         _class = operator_parts[-1]
         if self.validate_operators:
             try:
-                importlib.import_module(module).instance
-            except ImportError:
+                getattr(importlib.import_module(module), _class)
+            except (ImportError, AttributeError, ValueError):
                 raise GenerateAirflowDagsException(
                     f"Can't import operator {_class} from module {module}"
                 )
-
+        self._check_airflow_version_compat(operator)
         self.dag_output["imports"].append(f"from {module} import {_class}\n")
+
+    def _check_airflow_version_compat(self, reference: str):
+        """
+        Check an operator path or a custom import statement against the target
+        Airflow version: airflow.sdk doesn't exist in Airflow 2 (an error, which
+        skips the DAG), and Airflow 3 deprecates airflow.decorators and the
+        airflow.operators / airflow.sensors modules (a warning, once per
+        reference).
+        """
+        module = _referenced_module(reference)
+        if self.airflow_version == 2 and _in_module(module, "airflow.sdk"):
+            raise GenerateAirflowDagsException(
+                f"{escape(reference)} needs Airflow 3: airflow.sdk doesn't exist in "
+                f"Airflow 2 (generate with --airflow-version 3, or use the Airflow 2 "
+                f"import)"
+            )
+        if self.airflow_version != 3 or reference in self.warned_airflow_3_moved:
+            return
+        if any(_in_module(module, moved) for moved in AIRFLOW_3_MOVED_MODULES):
+            reason = (
+                "core operators and sensors moved to the "
+                "apache-airflow-providers-standard package (e.g. "
+                "airflow.providers.standard.operators.bash.BashOperator)"
+            )
+        elif _in_module(module, "airflow.decorators"):
+            reason = "use airflow.sdk, which dbt-coves imports the DAG decorators from"
+        else:
+            return
+        self.warned_airflow_3_moved.add(reference)
+        console.print(
+            f"[yellow]{escape(reference)} is deprecated in Airflow 3: {reason}[/yellow]"
+        )
 
     def generate_airflow_k8s_inner_conf(self, task_name: str, config: Dict[str, Any]):
         """
@@ -605,7 +785,9 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         task_decorator = task_conf.pop("task_decorator", None)
         if task_decorator:
             # Parse task_decorator and arguments
-            self.dag_output["imports"].append("from airflow.decorators import task\n")
+            self.dag_output["imports"].append(
+                f"from {self._decorators_module} import task\n"
+            )
             bash_command = task_conf.pop("bash_command", "")
             dependencies = task_conf.pop("dependencies", [])
 

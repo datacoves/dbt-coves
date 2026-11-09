@@ -30,6 +30,8 @@ class FakeTask:
 def task():
     """A DAG generation task with a secrets manager configured, and no secrets loaded"""
     task = GenerateAirflowDagsTask.__new__(GenerateAirflowDagsTask)
+    task.airflow_version = 2
+    task.warned_airflow_3_moved = set()
     task.secrets_path = None
     task.secrets_manager = "datacoves"
     task.secret_data = None

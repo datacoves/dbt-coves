@@ -15,6 +15,8 @@ from dbt_coves.tasks.generate.airflow_dags import (
 def task():
     """A DAG generation task ready to render nodes, with no secrets configured"""
     task = GenerateAirflowDagsTask.__new__(GenerateAirflowDagsTask)
+    task.airflow_version = 2
+    task.warned_airflow_3_moved = set()
     task.secrets_path = None
     task.secrets_manager = None
     task.secret_data = None

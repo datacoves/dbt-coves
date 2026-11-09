@@ -59,6 +59,9 @@ class GenerateDocsModel(BaseModel):
 
 
 class GenerateAirflowDagsModel(BaseModel):
+    # Major version of Airflow the DAGs are generated for (2 or 3); required.
+    # Validated by `generate airflow-dags`, which explains what's expected.
+    airflow_version: Optional[Any] = None
     yml_path: Optional[str] = ""
     dags_path: Optional[str] = ""
     validate_operators: Optional[bool] = False
@@ -220,6 +223,7 @@ class DbtCovesConfig:
         "generate.docs.merge_deferred",
         "generate.docs.state",
         "generate.docs.dbt_args",
+        "generate.airflow_dags.airflow_version",
         "generate.airflow_dags.yml_path",
         "generate.airflow_dags.dags_path",
         "generate.airflow_dags.validate_operators",
