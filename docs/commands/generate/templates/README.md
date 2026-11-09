@@ -34,7 +34,7 @@ On Snowflake, a schema or table whose name only uses uppercase letters, digits, 
 
 On Redshift and BigQuery, which quote identifiers by default, both use the exact schema and table names.
 
-Templates copied before this variable existed use `relation.schema` / `relation.name` directly. On Snowflake their `source()` calls don't match the lowercase names in `sources.yml`, so update them to use `source.name` / `source.table`, or copy the templates again.
+Templates copied before this variable existed use `relation.schema` / `relation.name` directly. On Snowflake their `source()` calls don't match the lowercase names in `sources.yml`, so update them to use `source.name` / `source.table`, or copy the templates again. Copying again also picks up the Snowflake JSON-flattening change: `staging_model.sql` now quotes the JSON column (`"payload":"key"`), so flattening works on columns whose names were created quoted.
 
 ### In Action
 
