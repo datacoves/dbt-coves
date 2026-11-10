@@ -26,7 +26,7 @@ dependencies = [
     "questionary==2.1.1",
     "rich>=10.4",
     "Jinja2>2.11.2",
-    "python-slugify<9.0.0",
+    "python-slugify<10.0.0",
     "dbt-core>=1.1,<2.0",
     "ruamel-yaml>=0.17.21,<0.20",
     "db-dtypes>=1.0.5,<2",
