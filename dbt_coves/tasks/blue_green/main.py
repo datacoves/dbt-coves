@@ -108,7 +108,11 @@ class BlueGreenTask(BaseConfiguredTask):
         try:
             self.con.close()
         except Exception as e:
-            logger.debug(f"Couldn't close the Snowflake connection: {e}")
+            # Visible: the session stays open on the server until it times out
+            logger.warning(
+                f"Couldn't close the Snowflake connection, its session stays open "
+                f"until Snowflake times it out: {e}"
+            )
 
     def _deploy(self):
         staging_database = self.get_config_value("staging_database")

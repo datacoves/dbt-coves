@@ -49,7 +49,7 @@ def test_connection_closed_when_the_run_fails(monkeypatch):
     assert task.con_used.closed
 
 
-def test_a_failing_close_does_not_hide_the_runs_error(monkeypatch):
+def test_a_failing_close_does_not_hide_the_runs_error(monkeypatch, caplog):
     task = make_task(monkeypatch)
 
     def failing_close():
@@ -63,6 +63,12 @@ def test_a_failing_close_does_not_hide_the_runs_error(monkeypatch):
     task._deploy = failing_deploy
     with pytest.raises(RuntimeError, match="dbt build failed"):
         task.run()
+    # ...but the open session is reported
+    assert any(
+        r.levelname == "WARNING"
+        and "Couldn't close the Snowflake connection" in r.message
+        for r in caplog.records
+    )
 
 
 @pytest.mark.parametrize("major, expected", [(4, None), (5, False), (6, False)])
