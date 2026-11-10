@@ -96,6 +96,24 @@ class BaseGenerateTask(BaseConfiguredTask):
     def is_snowflake(self):
         return "snowflake" in self.adapter.type().lower()
 
+    def sample_json_columns(self, json_cols, relation):
+        """
+        Fetch one row of the relation's JSON columns, to discover their keys. On
+        Snowflake the names are quoted: they come from Snowflake as stored, so
+        quoting also finds lowercase and mixed-case (quoted) ones.
+        """
+        config_db = self.get_config_value("database")
+        config_db = f"{config_db}." if config_db else ""
+        schema, name, columns = relation.schema, relation.name, json_cols
+        if self.is_snowflake():
+            schema, name = self.adapter.quote(schema), self.adapter.quote(name)
+            columns = [self.adapter.quote(col) for col in json_cols]
+        _, data = self.adapter.execute(
+            f"SELECT {', '.join(columns)} FROM {config_db}{schema}.{name} limit 1",
+            fetch=True,
+        )
+        return data
+
     def select_schemas(self, schemas):
         if self.no_prompt:
             return schemas
