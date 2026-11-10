@@ -5,11 +5,19 @@ from rich.console import Console
 
 from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base_configured import BaseConfiguredTask
+from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.tracking import trackable
 
 from .clone_db import CloneDB, find_database
 
 console = Console()
+
+
+def _snowflake_connector_major_version() -> int:
+    # The version of the module that's imported, whatever installed it
+    import snowflake.connector
+
+    return int(snowflake.connector.__version__.split(".")[0])
 
 
 class BlueGreenTask(BaseConfiguredTask):
@@ -88,6 +96,25 @@ class BlueGreenTask(BaseConfiguredTask):
                 f"Please provide a production database"
             )
         self.con = self.snowflake_connection()
+        try:
+            return self._deploy()
+        finally:
+            # Connector 5 warns that it will stop closing it at exit, which would
+            # leave the session open on the server until it times out
+            self._close_connection()
+
+    def _close_connection(self):
+        """Best effort: a failure to log out mustn't hide the run's own error."""
+        try:
+            self.con.close()
+        except Exception as e:
+            # Visible: the session stays open on the server until it times out
+            logger.warning(
+                f"Couldn't close the Snowflake connection, its session stays open "
+                f"until Snowflake times it out: {e}"
+            )
+
+    def _deploy(self):
         staging_database = self.get_config_value("staging_database")
         staging_suffix = self.get_config_value("staging_suffix")
         if staging_database and staging_suffix:
@@ -246,6 +273,14 @@ class BlueGreenTask(BaseConfiguredTask):
                     existing_private_key=self.config.credentials.private_key
                 )
             connection_dict["login_timeout"] = 10
+        if _snowflake_connector_major_version() >= 5:
+            # Connector 5 warns on every connection until this is set. Its current
+            # default, True, skips the logout while async queries are still running,
+            # which would leave the session open when a failed query stops the run
+            # before the others finish. False always logs out on close: after a
+            # successful run blue-green's async queries have all finished anyway.
+            # 4.x doesn't know the setting.
+            connection_dict["enable_server_session_keep_alive_auto_detection"] = False
         return connection_dict
 
     def _gen_snowflake_private_key(self, filepath=None, existing_private_key=None):
