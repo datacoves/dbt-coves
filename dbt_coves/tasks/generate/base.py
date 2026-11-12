@@ -8,6 +8,7 @@ from rich.console import Console
 from ruamel.yaml import YAML
 from slugify import slugify
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.utils.jinja import get_render_output, render_template_file
 from dbt_coves.utils.yaml import open_yaml, save_yaml
@@ -26,7 +27,7 @@ yaml.indent(mapping=2, sequence=4, offset=2)
 yaml.preserve_quotes = True
 
 
-class BaseGeneratorException(Exception):
+class BaseGeneratorException(DbtCovesException):
     pass
 
 
@@ -263,13 +264,13 @@ class BaseGenerateTask(BaseConfiguredTask):
                                 self.get_metadata_map_item(row)
                             )
                         except KeyError as e:
-                            raise Exception(
-                                f"Key {e} not found in {path}. Please check this sample metadata"
-                                "file: https://raw.githubusercontent.com/datacoves/dbt-coves/main/\
-                                    sample_metadata.csv."
+                            raise BaseGeneratorException(
+                                f"Key {e} not found in {path}. Please check this "
+                                "sample metadata file: https://raw.githubusercontent"
+                                ".com/datacoves/dbt-coves/main/sample_metadata.csv."
                             )
             except FileNotFoundError as e:
-                raise Exception(f"Metadata file not found: {e}")
+                raise BaseGeneratorException(f"Metadata file not found: {e}")
 
         self.metadata = metadata_map
 

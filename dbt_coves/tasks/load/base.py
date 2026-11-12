@@ -4,12 +4,13 @@ from pathlib import Path
 
 from rich.console import Console
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base import NonDbtBaseTask
 
 console = Console()
 
 
-class LoadException(Exception):
+class LoadException(DbtCovesException):
     pass
 
 

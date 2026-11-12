@@ -7,13 +7,15 @@ from pathlib import Path
 from typing import Any, Dict, Set
 
 from rich.console import Console
+from rich.markup import escape
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.utils.yaml import open_yaml
 
 console = Console()
 
 
-class GeneratorException(Exception):
+class GeneratorException(DbtCovesException):
     pass
 
 
@@ -71,7 +73,9 @@ class BaseDbtGenerator:
                     else None
                 )
             except Exception as e:
-                raise GeneratorException(f"Couldn't read {dbt_project}: {e}")
+                raise GeneratorException(
+                    f"Couldn't read {dbt_project}: {escape(str(e))}"
+                )
             if configured and "{{" in str(configured):
                 # dbt renders Jinja in dbt_project.yml (e.g. env_var), which this
                 # can't do: assume the default, and say so in case it's wrong
@@ -145,8 +149,10 @@ class BaseDbtGenerator:
                 error_message += f"{e.stdout.decode()}\n"
             if e.stderr:
                 error_message += f"{e.stderr.decode()}"
+            # dbt's output is printed as is, not read as rich markup
             raise GeneratorException(
-                f"Exception occurred running {command}\n{error_message}"
+                f"[b]{escape(shlex.join(command))}[/b] failed in {cwd}:\n"
+                f"{escape(error_message.strip())}"
             )
 
         sources_list = []
@@ -162,7 +168,8 @@ class BaseDbtGenerator:
                 manifest_json = json.load(manifest)
         except (OSError, ValueError) as e:  # missing, unreadable or corrupt
             raise GeneratorException(
-                f"Couldn't read dbt's manifest.json at {manifest_path}: {e}. If dbt "
+                f"Couldn't read dbt's manifest.json at {manifest_path}: "
+                f"{escape(str(e))}. If dbt "
                 f"writes it elsewhere, pass --target-path in dbt_list_args."
             )
         return sources_list, manifest_json
@@ -205,8 +212,15 @@ class BaseDbtGenerator:
         finally:
             # Whatever fails: a leftover copy would be copied into, not replaced,
             # on the next run with the same commit
+            # A failure to clean up is only warned about: it mustn't replace the
+            # error that got here
             if deploy_path:
-                subprocess.run(["rm", "-rf", deploy_path], check=True)
+                removed = subprocess.run(["rm", "-rf", deploy_path], check=False)
+                if removed.returncode:
+                    console.print(
+                        f"[yellow]Couldn't remove {deploy_path}: remove it before "
+                        f"generating again from the same commit.[/yellow]"
+                    )
 
         connections_ids = []
         for source in sources_list:

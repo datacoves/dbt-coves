@@ -1,5 +1,6 @@
 import os
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.utils.tracking import trackable
 
 from .base import BaseDataSyncTask
@@ -36,7 +37,7 @@ class SnowflakeDestination(object):
         elif password:
             os.environ[f"{DLT_PREFIX}PASSWORD"] = password
         else:
-            raise ValueError(
+            raise DbtCovesException(
                 f"Either {DATA_SYNC_PREFIX}PRIVATE_KEY or "
                 f"{DATA_SYNC_PREFIX}PASSWORD must be defined"
             )

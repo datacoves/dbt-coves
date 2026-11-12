@@ -7,6 +7,9 @@ class Logger:
     def __init__(self):
         logger = logging.getLogger("dbt-coves logger")
         logger.setLevel(logging.INFO)
+        # Don't also pass records to the root logger: dbt and others give it a
+        # plain handler, which repeated every message with its markup unrendered
+        logger.propagate = False
 
         c_handler = RichHandler(
             rich_tracebacks=True,

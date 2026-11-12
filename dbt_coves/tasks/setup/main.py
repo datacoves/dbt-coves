@@ -6,6 +6,7 @@ import requests
 from jinja2.exceptions import TemplateSyntaxError
 from rich.console import Console
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base import NonDbtBaseTask
 from dbt_coves.utils.tracking import trackable
 
@@ -17,7 +18,7 @@ THIRD_PARTY_PRECOMMIT_REPOS = {
 console = Console()
 
 
-class DbtCovesSetupException(Exception):
+class DbtCovesSetupException(DbtCovesException):
     pass
 
 

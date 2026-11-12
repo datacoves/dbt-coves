@@ -11,6 +11,7 @@ import isort
 import yaml
 from black import FileMode, format_str
 from rich.console import Console
+from rich.errors import MarkupError
 from rich.markup import escape
 
 from dbt_coves.core.exceptions import DbtCovesException, MissingArgumentException
@@ -41,7 +42,7 @@ AIRFLOW_K8S_CONFIG_TEMPLATE = textwrap.dedent(
 )
 
 
-class GenerateAirflowDagsException(Exception):
+class GenerateAirflowDagsException(DbtCovesException):
     pass
 
 
@@ -229,8 +230,16 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         # A DAG's own problem -- unreadable YML, an unresolvable secret, a
         # generator that can't reach its API -- skips that DAG, it doesn't stop
         # the ones still to be generated
-        except (GenerateAirflowDagsException, DbtCovesException) as e:
-            self._skip_dag(yml_filepath, str(e))  # our own messages hold markup
+        except GenerateAirflowDagsException as e:
+            self._skip_dag(yml_filepath, str(e))  # names the DAG, holds markup
+        except DbtCovesException as e:
+            # e.g. a secrets or generator error: our own message, with markup,
+            # that doesn't say which DAG it was generating
+            self._skip_dag(
+                yml_filepath,
+                f"DAG [red][b][i]{yml_filepath.stem}[/i][/b][/red] could not be "
+                f"generated. {e}",
+            )
         except Exception as e:
             # Anything else is unexpected, so name the type: this is all the
             # caller gets to tell a DAG's own problem from a bug in here
@@ -241,7 +250,10 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
             )
 
     def _skip_dag(self, yml_filepath: Path, message: str):
-        console.print(f"[red]{message}[/red]")
+        try:
+            console.print(f"[red]{message}[/red]")
+        except MarkupError:  # e.g. outside text that wasn't escaped
+            console.print(f"[red]{escape(message)}[/red]")
         self.skipped_dags.append(yml_filepath.stem)
 
     def _get_airflow_version(self) -> int:
