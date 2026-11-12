@@ -5,6 +5,9 @@ import requests
 from requests.auth import HTTPBasicAuth
 from requests.exceptions import RequestException
 from rich.console import Console
+from rich.markup import escape
+
+from dbt_coves.core.exceptions import DbtCovesException
 
 console = Console()
 
@@ -45,14 +48,14 @@ def api_call(
             return json.loads(response.text)
     except RequestException:
         error_message = json.loads(response.text)["message"]
-        raise FivetranApiCallerException(error_message)
+        raise FivetranApiCallerException(escape(str(error_message)))
 
 
-class AirbyteApiCallerException(Exception):
+class AirbyteApiCallerException(DbtCovesException):
     pass
 
 
-class FivetranApiCallerException(Exception):
+class FivetranApiCallerException(DbtCovesException):
     pass
 
 
@@ -115,7 +118,7 @@ class AirbyteApiCaller:
         except Exception:
             message = response.text
         raise AirbyteApiCallerException(
-            f"Airbyte API error ({response.status_code}) at {path}: {message}"
+            f"Airbyte API error ({response.status_code}) at {path}: {escape(message)}"
         )
 
     def _get_all(self, resource, **params):

@@ -2,7 +2,9 @@ import argparse
 import importlib
 import os
 import pathlib
+import shlex
 import sys
+import traceback
 import uuid
 from subprocess import CalledProcessError
 from typing import List
@@ -10,16 +12,28 @@ from typing import List
 from dbt import tracking
 from dbt import version as dbt_version
 from rich.console import Console
+from rich.errors import MarkupError
+from rich.markup import escape
 
 from dbt_coves import __version__
 from dbt_coves.config.config import DbtCovesConfig
-from dbt_coves.core.exceptions import MissingCommand, MissingDbtProject
+from dbt_coves.core.exceptions import (
+    DbtCovesException,
+    MissingCommand,
+    MissingDbtProject,
+)
 from dbt_coves.tasks.base import BaseTask
 from dbt_coves.ui.traceback import DbtCovesTraceback
 from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.log import log_manager
 from dbt_coves.utils.yaml import open_yaml, save_yaml
+
+try:
+    # dbt's own errors (a database error, a profile that doesn't work, ...)
+    from dbt_common.exceptions import DbtBaseException
+except ImportError:  # dbt < 1.8: handled as any other error
+    DbtBaseException = ()  # type: ignore
 
 # Registry: subcommand name → (module path, class name, help text)
 _TASK_REGISTRY = {
@@ -101,7 +115,7 @@ base_subparser.add_argument(
 base_subparser.add_argument(
     "-vv",
     "--verbose",
-    help="When provided the length of the tracebacks will not be truncated.",
+    help="Show the full traceback of errors, including dbt-coves' own error messages.",
     action="store_true",
     default=False,
 )
@@ -294,8 +308,10 @@ for _name, (_mod, _cls, _help) in _TASK_REGISTRY.items():
 
 
 def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int:
+    global _show_tracebacks
     main_parser = DbtCovesFlags(parser)
     main_parser.parse_args(cli_args=cli_args)
+    _show_tracebacks = bool(main_parser.verbose or main_parser.log_level == "debug")
 
     if not main_parser.task_cls:
         raise MissingCommand(main_parser.cli_parser)
@@ -316,9 +332,30 @@ def handle(parser: argparse.ArgumentParser, cli_args: List[str] = list()) -> int
     return task_cls.get_instance(main_parser, coves_config=coves_config).run()
 
 
+# Whether to show the traceback of dbt-coves' own errors (-vv or --log-level
+# debug); unexpected errors always show it. Set by handle() from the flags.
+_show_tracebacks = False
+
+
+def _print_traceback(only_if_requested: bool) -> None:
+    if only_if_requested and not _show_tracebacks:
+        return
+    print(traceback.format_exc())
+
+
+def _print_error(message: str) -> None:
+    """Print an error message, rendering its rich markup when it's valid."""
+    try:
+        console.print(f"[red]:cross_mark:[/red] {message}")
+    except MarkupError:
+        console.print(f"[red]:cross_mark:[/red] {escape(message)}")
+
+
 def main(
     parser: argparse.ArgumentParser = parser, test_cli_args: List[str] = list()
 ) -> int:
+    global _show_tracebacks
+    _show_tracebacks = False
     tracking.do_not_track()
 
     exit_code = 0
@@ -351,26 +388,44 @@ def main(
             "No [u]dbt_project.yml[/u] found. Current folder doesn't look like a dbt project."
         )
         return 1
+    except KeyboardInterrupt:
+        console.print("\n[red]Interrupted.[/red]")
+        return 130
+    except DbtCovesException as e:
+        # dbt-coves' own errors say what's wrong and how to fix it: a traceback
+        # would bury that, so it's only shown on request
+        _print_traceback(only_if_requested=True)
+        _print_error(str(e) or type(e).__name__)
+        return 1
+    except DbtBaseException as e:
+        # dbt's messages explain the problem too, e.g. a database error
+        _print_traceback(only_if_requested=True)
+        _print_error(f"dbt error: {escape(str(e))}")
+        return 1
     except CalledProcessError as cpe:
-        import traceback
-
-        logger.debug(traceback.format_exc())
+        _print_traceback(only_if_requested=True)
         if cpe.returncode in [137, 247]:
             console.print(
                 "[red]The process was killed by the OS due to running out of memory.[/red]"
             )
-        if cpe.stderr:
-            console.print(f"[red]:cross_mark:[/red] Called process error: {cpe.stderr}")
-            print(traceback.format_exc())
-
+        command = cpe.cmd if isinstance(cpe.cmd, str) else shlex.join(map(str, cpe.cmd))
+        _print_error(
+            f"[b]{escape(command)}[/b] failed with exit code {cpe.returncode}."
+        )
+        output = cpe.stderr or cpe.output
+        if isinstance(output, bytes):
+            output = output.decode(errors="replace")
+        if output and output.strip():
+            console.print(escape(output.strip()))
         return cpe.returncode
     except Exception as ex:
-        # For general errors, print a more useful traceback.
-        import traceback
-
-        logger.debug(traceback.format_exc())
-        console.print(f"[red]:cross_mark:[/red] Exception: {ex}")
-        print(traceback.format_exc())
+        # Unexpected: the traceback is what a bug report needs
+        _print_traceback(only_if_requested=False)
+        _print_error(f"{type(ex).__name__}: {escape(str(ex))}")
+        console.print(
+            "If this looks like a bug in dbt-coves, please report it with the "
+            "output above at https://github.com/datacoves/dbt-coves/issues"
+        )
         return 1
 
     if exit_code > 0:

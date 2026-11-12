@@ -3,12 +3,13 @@ from typing import Any, Dict, List
 
 from slugify import slugify
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.utils.api_caller import FivetranApiCaller
 
 from .base import BaseDbtCovesTaskGenerator, BaseDbtGenerator
 
 
-class FivetranGeneratorException(Exception):
+class FivetranGeneratorException(DbtCovesException):
     pass
 
 

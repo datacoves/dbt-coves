@@ -270,14 +270,11 @@ class GenerateSourcesTask(BaseGenerateTask):
             else:
                 self.render_templates(relation, columns, destination, options)
         elif options["flatten_all"] == "Yes":
-            if nested:
-                self.render_templates(
-                    relation,
-                    columns,
-                    destination,
-                    options,
-                    json_cols=nested,
-                )
+            # Relations without JSON columns have nothing to flatten, but still
+            # need their model
+            self.render_templates(
+                relation, columns, destination, options, json_cols=nested
+            )
         else:
             self.render_templates(relation, columns, destination, options)
 
@@ -377,21 +374,7 @@ class GenerateSourcesTask(BaseGenerateTask):
         )
 
     def get_nested_keys(self, json_cols, relation):
-        config_db = self.get_config_value("database")
-        if config_db:
-            config_db += "."
-        else:
-            config_db = ""
-        schema, name, columns = relation.schema, relation.name, json_cols
-        if self.is_snowflake():
-            # Names come from Snowflake as stored; quoting finds lowercase and
-            # mixed-case (quoted) ones too.
-            schema, name = self.adapter.quote(schema), self.adapter.quote(name)
-            columns = [self.adapter.quote(col) for col in json_cols]
-        _, data = self.adapter.execute(
-            f"SELECT {', '.join(columns)} FROM {config_db}{schema}.{name} limit 1",
-            fetch=True,
-        )
+        data = self.sample_json_columns(json_cols, relation)
         result = dict()
         if len(data.rows) > 0:
             for idx, json_col in enumerate(json_cols):

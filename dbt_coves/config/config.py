@@ -5,9 +5,11 @@ import re
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from pydantic import BaseModel
+from pydantic import BaseModel, ValidationError
+from rich.markup import escape
+from ruamel.yaml import YAMLError
 
-from dbt_coves.core.exceptions import MissingDbtProject
+from dbt_coves.core.exceptions import DbtCovesException, MissingDbtProject
 from dbt_coves.utils.flags import DbtCovesFlags
 from dbt_coves.utils.log import LOGGER as logger
 from dbt_coves.utils.yaml import open_yaml
@@ -327,13 +329,31 @@ class DbtCovesConfig:
 
     def load_and_validate_config_yaml(self) -> None:
         if self._config_path:
-            yaml_dict = open_yaml(self._config_path) or {}
+            try:
+                yaml_dict = open_yaml(self._config_path) or {}
+            except YAMLError as e:
+                raise DbtCovesException(
+                    f"[yellow]{self._config_path}[/yellow] isn't valid YAML:\n"
+                    f"{escape(str(e))}"
+                ) from e
+
+            if not isinstance(yaml_dict, dict):
+                raise DbtCovesException(
+                    f"[yellow]{self._config_path}[/yellow] must hold settings "
+                    f"(e.g. [b]generate:[/b]), not a {type(yaml_dict).__name__}"
+                )
 
             # Replace environment variable placeholders
             yaml_dict = self.replace_env_vars(yaml_dict)
 
             # use pydantic to shape and validate
-            self._config = ConfigModel(**yaml_dict)
+            try:
+                self._config = ConfigModel(**yaml_dict)
+            except ValidationError as e:
+                raise DbtCovesException(
+                    f"[yellow]{self._config_path}[/yellow] has invalid settings:\n"
+                    f"{escape(str(e))}"
+                ) from e
 
     def replace_env_vars(self, yaml_dict: Dict) -> Dict:
         # regex -> {{ env_var('ENV_VAR_NAME', 'DEFAULT_VALUE') }}
@@ -404,7 +424,7 @@ class DbtCovesConfig:
         config_folders = [path for path in Path(workspace_path).rglob("**/.dbt_coves/")]
         if not config_folders:
             if mandatory:
-                raise Exception("No .dbt_coves folder found in workspace")
+                raise DbtCovesException("No .dbt_coves folder found in workspace")
             else:
                 return None
         else:
