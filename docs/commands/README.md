@@ -86,8 +86,10 @@ Every `dbt-coves` command accepts the following flags, in addition to the ones d
 
 ```console
 -vv, --verbose
-# Don't truncate tracebacks
+# Show the full traceback of errors, including dbt-coves' own error messages
 ```
+
+Errors dbt-coves expects (a missing or invalid setting, a dbt or database error, a failed `dbt` command, ...) are printed as a message without a traceback. Pass `-vv` or `--log-level debug` to also see the traceback. Unexpected errors always print one, along with a link to report the bug.
 
 ```console
 --disable-tracking
