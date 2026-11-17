@@ -72,6 +72,7 @@ Every `dbt-coves` command accepts the following flags, in addition to the ones d
 ```console
 --vars
 # Supply variables to dbt_project.yml as a YAML string, e.g. '{my_variable: my_value}'
+# It must be a YAML dictionary, as with dbt's own --vars.
 ```
 
 ```console
