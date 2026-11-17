@@ -1,9 +1,10 @@
 import json
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base import NonDbtBaseTask
 
 
-class ExtractException(Exception):
+class ExtractException(DbtCovesException):
     pass
 
 

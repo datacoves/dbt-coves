@@ -10,6 +10,16 @@ Translate YML files into their Airflow Python code equivalent. With this, DAGs c
 
 DAGs generated for Airflow 2 don't work on Airflow 3, and the other way around. For example, Airflow 3 imports `@dag` from `airflow.sdk`, which Airflow 2 doesn't have, and it no longer accepts `schedule_interval`. So you must say which major version the DAGs are for, with `--airflow-version 2|3` or `generate.airflow_dags.airflow_version` in `.dbt_coves/config.yml`. Without it, the command stops before generating anything.
 
+**Datacoves users:** the VS Code task that generates a DAG from the open YML file runs in your dbt project folder, so set `generate.airflow_dags.airflow_version` in the `.dbt_coves/config.yml` of that folder (not the repository root):
+
+```yaml
+generate:
+  airflow_dags:
+    airflow_version: 3 # or 2, matching your environment's Airflow
+```
+
+The value can also come from an environment variable you set, e.g. `airflow_version: "{{ env_var('MY_AIRFLOW_VERSION') }}"`.
+
 For Airflow 2, the generated DAGs target Airflow 2.4 and later, where `schedule` replaced `schedule_interval`.
 
 The version decides:
@@ -241,6 +251,9 @@ We provide some prebuilt Generators:
   - `virtualenv_path`: path to a virtualenv in case dbt within a specific virtual env
   - `run_dbt_compile`: true/false always run the dbt compile command
   - `run_dbt_deps`: true/false always run the dbt deps command
+  - `dbt_list_args`: extra arguments for the dbt commands it runs (`dbt ls`, and `dbt compile` / `dbt deps` when enabled), e.g. `"--select tag:daily_run_airbyte"`
+
+  These Generators run `dbt ls --resource-type source` in `dbt_project_path` and read the `manifest.json` it writes, from the same place dbt does: the project folder (`--project-dir` in `dbt_list_args`, or `DBT_PROJECT_DIR`) joined with the target path (`--target-path` in `dbt_list_args`, then `DBT_TARGET_PATH`, then `target-path` in `dbt_project.yml`, then `target`). If `target-path` in `dbt_project.yml` uses Jinja, which dbt-coves can't render, it warns and assumes `target`; pass `--target-path` in `dbt_list_args` if dbt writes elsewhere. dbt needs a working profile to run, so if `dbt ls` fails (for example, `profiles.yml` isn't found), the DAG is skipped with the command and dbt's output.
 
 ### Create your custom Generator
 

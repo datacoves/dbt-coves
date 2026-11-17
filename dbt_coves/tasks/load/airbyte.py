@@ -7,6 +7,7 @@ import questionary
 from rich.console import Console
 from slugify import slugify
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.utils.api_caller import AirbyteApiCaller, AirbyteApiCallerException
 from dbt_coves.utils.secrets import load_secret_manager_data
 from dbt_coves.utils.tracking import trackable
@@ -16,7 +17,7 @@ from .base import BaseLoadTask
 console = Console()
 
 
-class AirbyteLoaderException(Exception):
+class AirbyteLoaderException(DbtCovesException):
     pass
 
 

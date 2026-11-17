@@ -8,6 +8,17 @@ jobs:
   build:
     name: Main CI
     runs-on: ubuntu-latest
+    # Runs share the Snowflake test databases (e.g. DBT_COVES_TEST and its
+    # _STAGING), so only one at a time: the others wait instead of colliding.
+    # Dependabot runs don't load the secrets or run the tests, so they don't wait.
+    # GitHub keeps one pending run per group: a newer one cancels an older
+    # pending one, which then needs a re-run.
+    concurrency:
+      group: >-
+        ${{ github.actor == 'dependabot[bot]'
+        && format('main-ci-dependabot-{0}', github.run_id)
+        || 'main-ci-snowflake' }}
+      cancel-in-progress: false
 
     env:
       GPG_PRIVATE_KEY: ${{ secrets.GPG_PRIVATE_KEY }}

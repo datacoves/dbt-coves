@@ -86,6 +86,7 @@ dbt-coves generate sources -h
 ```console
 --flatten-json-fields
 # Action to perform when JSON fields exist: 'yes', 'no', 'ask' (per file)
+# Relations without JSON fields are generated either way
 ```
 
 ```console
@@ -102,6 +103,15 @@ dbt-coves generate sources -h
 --no-prompt
 # Silently generate source dbt models
 ```
+
+### Source and table names
+
+The staging model's `source()` call uses the same names as `sources.yml`, since dbt's `source()` lookup is case-sensitive.
+
+- **Snowflake:** schemas and tables with ordinary (unquoted) names, such as `RAW.ORDERS`, are written in lowercase (`raw` / `orders`). Names created quoted (lowercase, mixed case, spaces, ...) and reserved words that can't be used unquoted, such as `ORDER`, keep their exact case and get a `quoting:` block in `sources.yml`, so dbt queries `RAW."my_table"` rather than `RAW.MY_TABLE`. Flattening JSON fields quotes the schema, table and column names, so it works on quoted tables too.
+- **Redshift and BigQuery:** the exact schema and table names are used.
+
+When `sources.yml` already exists, its `quoting:` settings are kept and merged. If you use templates copied with `dbt-coves generate templates` before 1.12.3, update them to use the new `source` variable or copy them again: see [Source names in templates](../templates/README.md#source-names-in-generate-sources-templates).
 
 ### Metadata
 

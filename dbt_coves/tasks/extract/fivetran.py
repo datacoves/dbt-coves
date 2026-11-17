@@ -3,7 +3,7 @@ from pathlib import Path
 import questionary
 from rich.console import Console
 
-from dbt_coves.core.exceptions import MissingArgumentException
+from dbt_coves.core.exceptions import DbtCovesException, MissingArgumentException
 from dbt_coves.utils.api_caller import FivetranApiCaller
 from dbt_coves.utils.tracking import trackable
 from dbt_coves.utils.yaml import open_yaml
@@ -13,7 +13,7 @@ from .base import BaseExtractTask
 console = Console()
 
 
-class FivetranExtractorException(Exception):
+class FivetranExtractorException(DbtCovesException):
     pass
 
 

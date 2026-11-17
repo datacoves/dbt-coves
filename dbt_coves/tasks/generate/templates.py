@@ -6,13 +6,14 @@ import questionary
 from rich import console
 
 import dbt_coves
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.utils.tracking import trackable
 
 console = console.Console()
 
 
-class GenerateTemplatesException(Exception):
+class GenerateTemplatesException(DbtCovesException):
     pass
 
 

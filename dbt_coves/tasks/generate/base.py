@@ -8,6 +8,7 @@ from rich.console import Console
 from ruamel.yaml import YAML
 from slugify import slugify
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.utils.jinja import get_render_output, render_template_file
 from dbt_coves.utils.yaml import open_yaml, save_yaml
@@ -26,7 +27,7 @@ yaml.indent(mapping=2, sequence=4, offset=2)
 yaml.preserve_quotes = True
 
 
-class BaseGeneratorException(Exception):
+class BaseGeneratorException(DbtCovesException):
     pass
 
 
@@ -95,6 +96,24 @@ class BaseGenerateTask(BaseConfiguredTask):
 
     def is_snowflake(self):
         return "snowflake" in self.adapter.type().lower()
+
+    def sample_json_columns(self, json_cols, relation):
+        """
+        Fetch one row of the relation's JSON columns, to discover their keys. On
+        Snowflake the names are quoted: they come from Snowflake as stored, so
+        quoting also finds lowercase and mixed-case (quoted) ones.
+        """
+        config_db = self.get_config_value("database")
+        config_db = f"{config_db}." if config_db else ""
+        schema, name, columns = relation.schema, relation.name, json_cols
+        if self.is_snowflake():
+            schema, name = self.adapter.quote(schema), self.adapter.quote(name)
+            columns = [self.adapter.quote(col) for col in json_cols]
+        _, data = self.adapter.execute(
+            f"SELECT {', '.join(columns)} FROM {config_db}{schema}.{name} limit 1",
+            fetch=True,
+        )
+        return data
 
     def select_schemas(self, schemas):
         if self.no_prompt:
@@ -245,13 +264,13 @@ class BaseGenerateTask(BaseConfiguredTask):
                                 self.get_metadata_map_item(row)
                             )
                         except KeyError as e:
-                            raise Exception(
-                                f"Key {e} not found in {path}. Please check this sample metadata"
-                                "file: https://raw.githubusercontent.com/datacoves/dbt-coves/main/\
-                                    sample_metadata.csv."
+                            raise BaseGeneratorException(
+                                f"Key {e} not found in {path}. Please check this "
+                                "sample metadata file: https://raw.githubusercontent"
+                                ".com/datacoves/dbt-coves/main/sample_metadata.csv."
                             )
             except FileNotFoundError as e:
-                raise Exception(f"Metadata file not found: {e}")
+                raise BaseGeneratorException(f"Metadata file not found: {e}")
 
         self.metadata = metadata_map
 

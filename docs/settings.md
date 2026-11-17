@@ -129,6 +129,7 @@ There are different variables available in the templates:
 - `adapter_name` refers to the Adapter's class name being used by the target, e.g. `SnowflakeAdapter` when using [Snowflake](https://github.com/dbt-labs/dbt-snowflake/blob/21b52127e7d221db8b92114aae066fb8a7151bba/dbt/adapters/snowflake/impl.py#L33).
 - `columns` contains the list of relation columns that don't contain nested (JSON) data, it's type is `List[Item]`.
 - `nested` contains a dict of nested columns, grouped by column name, it's type is `Dict[column_name, Dict[nested_key, Item]]`.
+- `source` (`generate sources` only) holds the source and table names `sources.yml` and the staging model's `source()` call must share, and whether they need quoting. See [Source names in templates](commands/generate/templates/README.md#source-names-in-generate-sources-templates).
 
 `Item` is a `dict` with the keys `id`, `name`, `type`, and `description`, where `id` contains an slugified id generated from `name`.
 

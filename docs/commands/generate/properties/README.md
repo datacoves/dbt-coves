@@ -52,6 +52,8 @@ You can use dbt-coves to generate and update the properties(yml) file for a give
 
 Note: `--select (or -s)`, `--exclude` and `--selector` work exactly as `dbt ls` selectors do. For usage details, visit [dbt list docs](https://docs.getdbt.com/reference/commands/list)
 
+dbt-coves runs `dbt ls` to find the models, passing it the global `--profiles-dir`, `--profile`, `--target`, `--vars` and `--target-path` flags, so models are looked up in the same target dbt-coves connects to. It then reads `manifest.json` from that target path (`--target-path`, then the `DBT_TARGET_PATH` environment variable, then `target-path` in `dbt_project.yml`, which defaults to `target`).
+
 ### Metadata
 
 dbt-coves supports the argument `--metadata` which allows users to specify a csv file containing field types and descriptions to be used when creating the staging models and property files.

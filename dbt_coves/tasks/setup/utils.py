@@ -6,6 +6,7 @@ from git.exc import InvalidGitRepositoryError
 from rich.console import Console
 from rich.table import Table
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.utils.yaml import open_yaml
 
 console = Console()
@@ -42,7 +43,9 @@ def get_git_root(path=None):
         git_root = git_repo.git.rev_parse("--show-toplevel")
         return git_root
     except InvalidGitRepositoryError:
-        raise Exception(f"{path or 'current path'} doesn't belong to a git repository")
+        raise DbtCovesException(
+            f"{path or 'current path'} doesn't belong to a git repository"
+        )
 
 
 def get_dbt_projects(path=os.getcwd()):

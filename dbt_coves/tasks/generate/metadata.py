@@ -103,7 +103,9 @@ class GenerateMetadataTask(BaseGenerateTask):
 
     def get_nested_columns(self, columns):
         nested_field_type = self.NESTED_FIELD_TYPES.get(self.adapter.__class__.__name__)
-        return [col.name.lower() for col in columns if col.dtype == nested_field_type]
+        # Exact names: they're queried (quoted on Snowflake) to sample the JSON;
+        # the CSV lowercases them when it's written
+        return [col.name for col in columns if col.dtype == nested_field_type]
 
     def get_shared_column_fields(self, relation):
         return {
@@ -167,16 +169,7 @@ class GenerateMetadataTask(BaseGenerateTask):
         )
 
     def get_nested_keys(self, json_cols, relation):
-        config_db = self.get_config_value("database")
-        if config_db:
-            config_db += "."
-        else:
-            config_db = ""
-        _, data = self.adapter.execute(
-            f"SELECT {', '.join(json_cols)} FROM {config_db}{relation.schema}.{relation.name} \
-                limit 1",
-            fetch=True,
-        )
+        data = self.sample_json_columns(json_cols, relation)
         result = dict()
         if len(data.rows) > 0:
             for idx, json_col in enumerate(json_cols):

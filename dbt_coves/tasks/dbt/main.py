@@ -8,13 +8,14 @@ from pathlib import Path
 from rich.console import Console
 from rich.text import Text
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base import NonDbtBaseConfiguredTask
 from dbt_coves.utils.tracking import trackable
 
 console = Console()
 
 
-class RunDbtException(Exception):
+class RunDbtException(DbtCovesException):
     pass
 
 
@@ -150,9 +151,10 @@ class RunDbtTask(NonDbtBaseConfiguredTask):
                 formatted = str(Text.from_ansi(e.stderr.decode()))
             else:
                 formatted = str(Text.from_ansi(e.stdout.decode()))
-            e.stderr = (
-                f"An error has occurred running [red]{command}[/red]:\n{formatted}"
-            )
+            # main() reports "<command> failed with exit code N" and this output:
+            # the dbt command as typed, not the bash/virtualenv wrapper
+            e.cmd = command
+            e.stderr = formatted
             raise
 
     def get_config_value(self, key):

@@ -7,7 +7,7 @@ from copy import copy
 
 from rich.console import Console
 
-from dbt_coves.core.exceptions import MissingArgumentException
+from dbt_coves.core.exceptions import DbtCovesException, MissingArgumentException
 from dbt_coves.utils.api_caller import AirbyteApiCaller
 from dbt_coves.utils.tracking import trackable
 
@@ -17,7 +17,7 @@ console = Console()
 NON_EXTRACT_KEYS = ["icon", "breakingChange", "createdAt", "updatedAt"]
 
 
-class AirbyteExtractorException(Exception):
+class AirbyteExtractorException(DbtCovesException):
     pass
 
 

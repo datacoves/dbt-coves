@@ -7,6 +7,7 @@ import questionary
 from questionary import Choice
 from rich.console import Console
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.utils.jinja import render_template
 from dbt_coves.utils.tracking import trackable
 
@@ -15,7 +16,7 @@ from .base import BaseGenerateTask
 console = Console()
 
 
-class GeneratePropertiesException(Exception):
+class GeneratePropertiesException(DbtCovesException):
     pass
 
 

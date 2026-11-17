@@ -4,6 +4,8 @@ This command will generate a `dbt-coves metadata` CSV file for your database tab
 
 The`Metadata` file consists of comma-separated values in which the user can specify column(s) keys and descriptions and is particularly useful for working with stakeholders to get descriptions for dbt YML files when [generate sources](../sources/README.md#metadata) or [generate properties](../properties/README.md#metadata) is used.
 
+Each column gets a row. For JSON (e.g. Snowflake `VARIANT`) columns, dbt-coves also samples one row and adds a row per top-level key, in the `key` column. On Snowflake the sampling query quotes the schema, table and column names, so it works with names created quoted (e.g. lowercase).
+
 ### Arguments
 
 `dbt-coves generate metadata` supports the following args:

@@ -6,6 +6,7 @@ from typing import Any, Dict
 
 from rich.console import Console
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.base_configured import BaseConfiguredTask
 from dbt_coves.tasks.setup.utils import print_row
 from dbt_coves.utils.shell import prepare_cmd, run_and_capture_cwd
@@ -14,7 +15,7 @@ from dbt_coves.utils.tracking import trackable
 console = Console()
 
 
-class DbtCovesGenerateDocsException(Exception):
+class DbtCovesGenerateDocsException(DbtCovesException):
     pass
 
 
@@ -69,7 +70,9 @@ class GenerateDocsTask(BaseConfiguredTask):
             new_section=True,
         )
         if output.returncode > 0:
-            raise Exception("Error when running 'dbt docs generate'. Check logs.")
+            raise DbtCovesGenerateDocsException(
+                "Error when running 'dbt docs generate'. Check logs."
+            )
 
     def _fix_dbt_docs_links(self, docs_path: Path):
         dbt_docs_index_path = Path(docs_path, "index.html")

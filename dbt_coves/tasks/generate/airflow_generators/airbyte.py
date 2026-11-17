@@ -3,6 +3,7 @@ from typing import Any, Dict, List
 
 from slugify import slugify
 
+from dbt_coves.core.exceptions import DbtCovesException
 from dbt_coves.tasks.generate.airflow_generators.base import (
     BaseDbtCovesTaskGenerator,
     BaseDbtGenerator,
@@ -10,7 +11,7 @@ from dbt_coves.tasks.generate.airflow_generators.base import (
 from dbt_coves.utils.api_caller import AirbyteApiCaller
 
 
-class AirbyteGeneratorException(Exception):
+class AirbyteGeneratorException(DbtCovesException):
     pass
 
 
