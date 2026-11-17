@@ -94,6 +94,43 @@ If step 3-5 raises, the exception propagates (and, depending on `--drop-staging-
 - Deferral is triggered either by passing `--defer`, or automatically when the `MANIFEST_FOUND` environment variable is set to `"true"` (as Datacoves' CI does for Slim CI runs). In deferral mode, dbt-coves runs `dbt build --defer --state logs -s state:modified+ --fail-fast` and `--dbt-selector` is ignored; otherwise it runs `dbt build --fail-fast <your --dbt-selector, split on spaces>`.
 - All arguments can also be set under `blue_green:` in `.dbt_coves/config.yml`, which is the more common approach for this command since it's normally invoked unattended from CI/Airflow rather than typed by hand.
 - `--staging-database` and `--staging-suffix` are mutually exclusive; so are the concepts they represent - dbt-coves raises immediately if both resolve to a value, or if the computed staging name collides with the production name.
+- Views must reference other models without the database name, or they break after the swap: see [Views and the swap](#views-and-the-swap).
+
+### Views and the swap
+
+dbt writes fully qualified names into a view's SQL. A view built during the deploy therefore selects from `ANALYTICS_STAGING.<schema>.<model>`. After the swap that name belongs to the old production database, which is then dropped (unless `--keep-staging-db-on-success`), and the view fails with `Database 'ANALYTICS_STAGING' does not exist or not authorized`. Tables aren't affected, since they hold data rather than a query.
+
+To avoid this, override `ref()` in your project so models in the staging database are referenced without the database name. Snowflake resolves those relative to the view's own database, so they keep working after the swap:
+
+```sql
+-- macros/ref.sql
+{% macro ref() %}
+    {% set version = kwargs.get('version') or kwargs.get('v') %}
+    {% set packagename = none %}
+    {%- if (varargs | length) == 1 -%}
+        {% set modelname = varargs[0] %}
+    {%- else -%}
+        {% set packagename = varargs[0] %}
+        {% set modelname = varargs[1] %}
+    {% endif %}
+
+    {% if packagename is not none %}
+        {% set rel = builtins.ref(packagename, modelname, version=version) %}
+    {% else %}
+        {% set rel = builtins.ref(modelname, version=version) %}
+    {% endif %}
+
+    {# Match your staging database name (here: the default STAGING suffix). #}
+    {% set db_name = rel.database | lower %}
+    {% if db_name.startswith('staging') or db_name.endswith('staging') %}
+        {% do return(rel.include(database=false)) %}
+    {% else %}
+        {% do return(rel) %}
+    {% endif %}
+{% endmacro %}
+```
+
+References to other databases, such as `source()`s in a raw database, keep the database name and aren't affected. A `source()` that points into the database being deployed has the same problem as `ref()`.
 
 ### Sample usage
 

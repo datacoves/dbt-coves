@@ -80,7 +80,8 @@ _TASK_REGISTRY = {
 try:
     from dbt.flags import PROFILES_DIR
 
-    VARS_DEFAULT_IS_STR = False
+    # dbt < 1.8 parses the --vars YAML string itself.
+    DBT_PARSES_CLI_VARS = True
 except ImportError:
     # dbt >= 1.8: replicate default_profiles_dir() inline to avoid importing dbt.cli.main
     _cwd = pathlib.Path.cwd()
@@ -88,7 +89,29 @@ except ImportError:
         os.environ.get("DBT_PROFILES_DIR")
         or (_cwd if (_cwd / "profiles.yml").exists() else pathlib.Path.home() / ".dbt")
     )
-    VARS_DEFAULT_IS_STR = True
+    # dbt >= 1.8 parses --vars in its click CLI, and RuntimeConfig expects a dict.
+    DBT_PARSES_CLI_VARS = False
+
+
+def parse_cli_vars(value: str) -> dict:
+    """
+    argparse type for --vars on dbt >= 1.8: parse the YAML the way dbt's CLI does, so
+    RuntimeConfig gets the dict it expects. Invalid input is a usage error.
+    """
+    from dbt.clients.yaml_helper import load_yaml_text
+
+    try:
+        parsed = load_yaml_text(value)
+    except Exception as e:
+        raise argparse.ArgumentTypeError(f"isn't valid YAML: {e}")
+    if parsed is None:
+        return {}
+    if not isinstance(parsed, dict):
+        raise argparse.ArgumentTypeError(
+            f"must be a YAML dictionary, e.g. '{{my_variable: my_value}}', not {value!r}"
+        )
+    return parsed
+
 
 console = Console()
 
@@ -157,22 +180,13 @@ base_subparser.add_argument(
     help="Which target to load for the given profile",
 )
 
-if VARS_DEFAULT_IS_STR:
-    base_subparser.add_argument(
-        "--vars",
-        type=str,
-        default={},
-        help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
-        " string, eg. '{my_variable: my_value}'",
-    )
-else:
-    base_subparser.add_argument(
-        "--vars",
-        type=str,
-        default="{}",
-        help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
-        " string, eg. '{my_variable: my_value}'",
-    )
+base_subparser.add_argument(
+    "--vars",
+    type=str if DBT_PARSES_CLI_VARS else parse_cli_vars,
+    default="{}" if DBT_PARSES_CLI_VARS else {},
+    help="Supply variables to your dbt_project.yml file. This argument should be a YAML"
+    " string, eg. '{my_variable: my_value}'",
+)
 
 base_subparser.add_argument(
     "--threads",

@@ -10,6 +10,10 @@ yaml = YAML()
 yaml.default_flow_style = False
 yaml.indent(mapping=2, sequence=4, offset=2)
 yaml.preserve_quotes = True
+# Don't fold long values: ruamel re-wraps them at 80 characters and leaves a trailing
+# space at every fold, so rewriting a properties file reformatted every long
+# description and tripped trailing-whitespace hooks.
+yaml.width = 4096
 
 
 def open_yaml(path: Path) -> Dict[str, Any]:

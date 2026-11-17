@@ -204,23 +204,7 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
         yaml.FullLoader.add_constructor("!py", self.raw_expr_constructor)
         console.print(f"Generating [b][i]{yml_filepath.stem}[/i][/b]")
         try:
-            if self.dags_path:
-                if yml_filepath != self.ymls_path:
-                    yml_relpath = yml_filepath.relative_to(self.ymls_path)
-                elif self.yml_dags_path_env:
-                    yml_relpath = yml_filepath.relative_to(
-                        Path(f"/config/workspace/{self.yml_dags_path_env}")
-                    )
-                else:
-                    yml_relpath = yml_filepath.name
-                dag_destination = (
-                    Path(self.dags_path)
-                    .resolve()
-                    .joinpath(yml_relpath)
-                    .with_suffix(".py")
-                )
-            else:
-                dag_destination = yml_filepath.with_suffix(".py")
+            dag_destination = self._dag_destination(yml_filepath)
             dag_destination.parent.mkdir(parents=True, exist_ok=True)
             self.build_dag_file(
                 destination_path=dag_destination,
@@ -248,6 +232,24 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 f"DAG [red][b][i]{yml_filepath.stem}[/i][/b][/red] could not be "
                 f"generated. {type(e).__name__}: {escape(str(e))}",
             )
+
+    def _dag_destination(self, yml_filepath: Path) -> Path:
+        """
+        Where the DAG for `yml_filepath` goes. With a dags_path, a YML's subfolders
+        under the YML folder are kept: the --yml-path folder, or for a single file
+        on Datacoves, the environment's DAGs YML folder. A single file outside it
+        goes to the top of dags_path.
+        """
+        if not self.dags_path:
+            return yml_filepath.with_suffix(".py")
+        yml_relpath: Path | str = yml_filepath.name
+        if yml_filepath != self.ymls_path:
+            yml_relpath = yml_filepath.relative_to(self.ymls_path)
+        elif self.yml_dags_path_env:
+            yml_folder = Path(f"/config/workspace/{self.yml_dags_path_env}")
+            if yml_filepath.is_relative_to(yml_folder):
+                yml_relpath = yml_filepath.relative_to(yml_folder)
+        return Path(self.dags_path).resolve().joinpath(yml_relpath).with_suffix(".py")
 
     def _skip_dag(self, yml_filepath: Path, message: str):
         try:
@@ -298,6 +300,13 @@ class GenerateAirflowDagsTask(NonDbtBaseTask):
                 "Can't use 'secrets_path' and 'secrets_manager' simultaneously."
             )
         self.ymls_path = Path(ymls_path).resolve()
+        if not self.ymls_path.exists():
+            raise GenerateAirflowDagsException(
+                f"YML path [yellow]{escape(str(self.ymls_path))}[/yellow] doesn't "
+                f"exist. Pass a DAG YML file or a folder of them with "
+                f"[b]--yml-path[/b], or set [b]generate.airflow_dags.yml_path[/b] in "
+                f"[yellow].dbt_coves/config.yml[/yellow]."
+            )
         if self.ymls_path.is_dir():
             for yml_filepath in glob(f"{self.ymls_path}/**/*.yml", recursive=True):
                 self._generate_dag(Path(yml_filepath))
