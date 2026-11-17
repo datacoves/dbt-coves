@@ -36,6 +36,12 @@ On Redshift and BigQuery, which quote identifiers by default, both use the exact
 
 Templates copied before this variable existed use `relation.schema` / `relation.name` directly. On Snowflake their `source()` calls don't match the lowercase names in `sources.yml`, so update them to use `source.name` / `source.table`, or copy the templates again. Copying again also picks up the Snowflake JSON-flattening change: `staging_model.sql` now quotes the JSON column (`"payload":"key"`), so flattening works on columns whose names were created quoted.
 
+### Model name in `staging_model_props.yml`
+
+dbt names a model after its `.sql` file, so `staging_model_props.yml` gets a `model_name` variable: the staging model's file name without `.sql`. It differs from the relation's name (`model`) when `models_destination` adds to it. For example, with `stg_{{relation}}.sql`, the table `GOLF` gives `stg_golf.sql`, so `model_name` is `stg_golf` while `model` is `GOLF`.
+
+Templates copied before `model_name` existed use `{{ model.lower() }}`, which only names the model correctly when the file is named after the relation. With a different `models_destination`, dbt warns `Did not find matching node for patch with name ...` and the properties aren't applied. Use `name: {{ model_name }}` instead, or copy the templates again.
+
 ### In Action
 
 https://www.loom.com/share/3eb0d4b7a67341f6bd4f2e0c161a8e54?sid=c1db5cca-4977-4fdd-9e3f-63adb723e844

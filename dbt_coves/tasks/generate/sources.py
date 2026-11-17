@@ -2,6 +2,7 @@ from __future__ import nested_scopes
 
 import json
 import re
+from collections import Counter
 from pathlib import Path
 
 import questionary
@@ -324,11 +325,51 @@ class GenerateSourcesTask(BaseGenerateTask):
                 if col["id"] not in context["nested"]:
                     new_cols.append(col)
             context["columns"] = new_cols
+            self.dedupe_nested_aliases(context)
         config_db = self.get_config_value("database")
         if config_db:
             context["source_database"] = config_db
 
         return context
+
+    def dedupe_nested_aliases(self, context):
+        """
+        Flattened JSON keys are aliased from the key alone, so `PROPERTIES:type`,
+        `GEOMETRY:type` and a `TYPE` column all became `type`, which Snowflake
+        rejects (duplicate column name). Columns keep their alias; a key whose alias
+        is taken, or shared with another key, is prefixed with its JSON column's
+        name (`properties_type`), plus a number if that's taken too. Keys that
+        don't clash keep their alias, so existing models don't change.
+        """
+
+        def key(alias):
+            return alias.strip('"').lower()
+
+        nested_items = [
+            (json_col, key_name, item)
+            for json_col, keys in context["nested"].items()
+            for key_name, item in keys.items()
+        ]
+        column_aliases = {key(col["id"]) for col in context["columns"]}
+        nested_counts = Counter(key(item["id"]) for _, _, item in nested_items)
+
+        def clashes(item):
+            alias = key(item["id"])
+            return alias in column_aliases or nested_counts[alias] > 1
+
+        clashing = [entry for entry in nested_items if clashes(entry[2])]
+        # Aliases staying as they are, which renamed keys must avoid too
+        taken = column_aliases | {
+            key(item["id"]) for _, _, item in nested_items if not clashes(item)
+        }
+        for json_col, key_name, item in clashing:
+            alias = self.get_column_id(f"{json_col}_{key_name}")
+            number = 2
+            while key(alias) in taken:
+                alias = self.get_column_id(f"{json_col}_{key_name}_{number}")
+                number += 1
+            item["id"] = alias
+            taken.add(key(alias))
 
     def render_templates_with_context(self, context, sql_destination, options):
         skip_model_props = self.get_config_value("skip_model_props")
@@ -337,6 +378,9 @@ class GenerateSourcesTask(BaseGenerateTask):
         model_property_destination = self.get_config_value("model_props_destination")
         source_property_destination = self.get_config_value("sources_destination")
         rel = context["relation"]
+        # dbt names a model after its file, which differs from the relation's name
+        # when models_destination adds to it, e.g. stg_{{relation}}.sql
+        context["model_name"] = Path(sql_destination).stem
 
         # Render model SQL
         render_template_file(

@@ -113,6 +113,12 @@ The staging model's `source()` call uses the same names as `sources.yml`, since 
 
 When `sources.yml` already exists, its `quoting:` settings are kept and merged. If you use templates copied with `dbt-coves generate templates` before 1.12.3, update them to use the new `source` variable or copy them again: see [Source names in templates](../templates/README.md#source-names-in-generate-sources-templates).
 
+The staging model's properties file names the model after its `.sql` file, so a `models_destination` such as `models/staging/{{schema}}/stg_{{relation}}.sql` gives the model `stg_<relation>`. Templates copied before 1.12.3 need the [`model_name` variable](../templates/README.md#model-name-in-staging_model_propsyml).
+
+### Flattened JSON column names
+
+Each key of a flattened JSON column becomes a column named after the key, e.g. `"PROPERTIES":"mag"` becomes `mag`. When that name is already taken, by one of the table's columns or by a key of another JSON column, the key's column is prefixed with its JSON column's name instead. For example, a table with `PROPERTIES` and `GEOMETRY` JSON columns that both hold a `type` key, and its own `TYPE` column, gets `properties_type`, `geometry_type` and `type`. If the prefixed name is taken too, a number is added (`properties_type_2`). The table's own columns always keep their names.
+
 ### Metadata
 
 dbt-coves supports the argument `--metadata` which allows users to specify a csv file containing field types and descriptions to be used when creating the staging models and property files.
